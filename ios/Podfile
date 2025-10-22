@@ -8,10 +8,18 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
+# Thêm dòng này để enable Mapbox
+$RNMapboxMapsImpl = 'mapbox'
+
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
   use_frameworks! :linkage => linkage.to_sym
+end
+
+# pre_install phải đặt TRƯỚC target
+pre_install do |installer|
+  $RNMapboxMaps.pre_install(installer)
 end
 
 target 'mobile' do
@@ -24,6 +32,10 @@ target 'mobile' do
   )
 
   post_install do |installer|
+    # Gọi Mapbox post_install TRƯỚC
+    $RNMapboxMaps.post_install(installer)
+    
+    # Sau đó mới gọi react_native_post_install
     react_native_post_install(
       installer,
       config[:reactNativePath],
