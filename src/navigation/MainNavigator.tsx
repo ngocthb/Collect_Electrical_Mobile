@@ -11,6 +11,10 @@ import DeliveryOrderMapScreen from '../screens/delivery/DeliveryOrderMapScreen';
 import DeliveryRewardScreen from '../screens/user/DeliveryRewardScreen';
 import DeliveryInfoScreen from '../screens/user/DeliveryInfoScreen';
 import DeliveryConfirmScreen from '../screens/delivery/DeliveryConfirmScreen';
+import UserConfirmScreen from '../screens/user/UserConfirmScreen';
+import NotificationDetailScreen from '../screens/user/NotificationDetailScreen';
+import DeliveryScanQrScreen from '../screens/delivery/DeliveryScanQrScreen';
+import DeliveryRouteScreen from '../screens/delivery/DeliveryRouteScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -29,6 +33,11 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
             name="DeliveryConfirm"
             component={DeliveryConfirmScreen}
           />
+          <Stack.Screen
+            name="DeliveryCompleteScreen"
+            component={DeliveryScanQrScreen}
+          />
+          <Stack.Screen name="DeliveryRoute" component={DeliveryRouteScreen} />
         </>
       ) : (
         <>
@@ -51,6 +60,15 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
             component={DeliveryRewardScreen}
           />
           <Stack.Screen name="DeliveryInfo" component={DeliveryInfoScreen} />
+          <Stack.Screen name="UserConfirm" component={UserConfirmScreen} />
+          <Stack.Screen
+            name="UserNotificationDetails"
+            component={NotificationDetailScreen}
+          />
+          <Stack.Screen
+            name="UserNotificationDetail"
+            component={NotificationDetailScreen}
+          />
         </>
       )}
     </Stack.Navigator>

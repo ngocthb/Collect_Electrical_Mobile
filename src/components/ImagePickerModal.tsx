@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  Pressable,
-  StyleSheet,
-} from 'react-native';
+import { Modal, View, Text, TouchableOpacity, Pressable } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 interface ImagePickerModalProps {
@@ -14,6 +7,7 @@ interface ImagePickerModalProps {
   onClose: () => void;
   onPickFromGallery: () => void;
   onTakePhoto: () => void;
+  onPickVideo: () => void;
 }
 
 const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
@@ -21,6 +15,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
   onClose,
   onPickFromGallery,
   onTakePhoto,
+  onPickVideo,
 }) => {
   return (
     <Modal
@@ -42,7 +37,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
           {/* Title */}
           <View className="px-6 pb-4">
             <Text className="text-lg font-semibold text-gray-800">
-              Chọn ảnh
+              Chọn ảnh hoặc video
             </Text>
           </View>
 
@@ -75,7 +70,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
                 onPickFromGallery();
                 onClose();
               }}
-              className="flex-row items-center px-4 py-4 bg-gray-50 rounded-xl"
+              className="flex-row items-center px-4 py-4 bg-gray-50 rounded-xl mb-3"
               activeOpacity={0.7}
             >
               <View className="w-12 h-12 bg-purple-100 rounded-full items-center justify-center mr-4">
@@ -87,6 +82,28 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
                 </Text>
                 <Text className="text-sm text-gray-500 mt-0.5">
                   Chọn ảnh có sẵn từ thư viện
+                </Text>
+              </View>
+              <Icon name="chevron-forward" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                onPickVideo();
+                onClose();
+              }}
+              className="flex-row items-center px-4 py-4 bg-gray-50 rounded-xl"
+              activeOpacity={0.7}
+            >
+              <View className="w-12 h-12 bg-red-100 rounded-full items-center justify-center mr-4">
+                <Icon name="videocam" size={24} color="#EF4444" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-base font-semibold text-gray-800">
+                  Chọn video
+                </Text>
+                <Text className="text-sm text-gray-500 mt-0.5">
+                  Chọn video từ thư viện
                 </Text>
               </View>
               <Icon name="chevron-forward" size={20} color="#9CA3AF" />

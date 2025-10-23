@@ -4,11 +4,12 @@ import IconOcticons from 'react-native-vector-icons/Octicons';
 import IconFeature from 'react-native-vector-icons/Feather';
 import HomeScreen from '../screens/user/HomeScreen';
 import RequestScreen from '../screens/user/RequestScreen';
-import NotificationsScreen from '../screens/user/NotificationsScreen';
+import NotificationsScreen from '../screens/delivery/NotificationsScreen';
 import ProfileScreen from '../screens/user/ProfileScreen';
 import { AuthContext } from '../context/AuthContext';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeDeliveryScreen from '../screens/delivery/HomeDeliveryScreen';
+import NotificationListScreen from '../screens/user/NotificationListScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -50,7 +51,7 @@ function BottomTabs() {
     >
       <Tab.Screen name="Trang chủ" component={HomeScreen} />
       <Tab.Screen name="Yêu cầu" component={RequestScreen} />
-      <Tab.Screen name="Thông báo" component={NotificationsScreen} />
+      <Tab.Screen name="Thông báo" component={NotificationListScreen} />
       <Tab.Screen name="Tài khoản" component={ProfileScreen} />
     </Tab.Navigator>
   );

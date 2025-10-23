@@ -21,6 +21,7 @@ import {
   openGallery,
   validateImageSize,
 } from '../../utils/imagePickerService';
+import { launchImageLibrary } from 'react-native-image-picker';
 import type { Asset } from 'react-native-image-picker';
 import AppButton from '../../components/ui/AppButton';
 
@@ -112,8 +113,45 @@ const CreateRequestScreen = () => {
     }
   };
 
+  const handlePickVideo = async () => {
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'video',
+        videoQuality: 'high',
+        selectionLimit: 1,
+      });
+
+      if (result.didCancel) {
+        return;
+      }
+
+      if (result.errorCode) {
+        Alert.alert('Lỗi', 'Không thể chọn video từ thư viện');
+        return;
+      }
+
+      if (result.assets && result.assets.length > 0) {
+        if (selectedImages.length >= 5) {
+          Alert.alert(
+            'Giới hạn media',
+            'Bạn chỉ có thể thêm tối đa 5 ảnh/video',
+          );
+          return;
+        }
+
+        setSelectedImages(prev => [...prev, ...result.assets!].slice(0, 5));
+      }
+    } catch (error) {
+      Alert.alert('Lỗi', 'Không thể chọn video từ thư viện');
+    }
+  };
+
   const removeImage = (index: number) => {
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const isVideo = (item: Asset) => {
+    return item.type?.startsWith('video/');
   };
 
   return (
@@ -200,7 +238,7 @@ const CreateRequestScreen = () => {
               <Text className="text-red-500"> *</Text>
             </Text>
             <Text className="text-gray-500 text-xs mb-3">
-              Tối đa 5 ảnh, mỗi ảnh không quá 10MB
+              Tối đa 5 ảnh/video, mỗi file không quá 10MB
             </Text>
 
             {selectedImages.length > 0 ? (
@@ -210,13 +248,28 @@ const CreateRequestScreen = () => {
                 className="mb-2"
               >
                 <View className="flex-row">
-                  {selectedImages.map((image, index) => (
+                  {selectedImages.map((item, index) => (
                     <View key={index} className="mr-3 relative">
                       <Image
-                        source={{ uri: image.uri }}
+                        source={{ uri: item.uri }}
                         className="w-24 h-24 rounded-xl"
                         resizeMode="cover"
                       />
+
+                      {/* Video play button overlay */}
+                      {isVideo(item) && (
+                        <View className="absolute inset-0 items-center justify-center bg-black/30 rounded-xl">
+                          <View className="w-10 h-10 rounded-full bg-white/90 items-center justify-center">
+                            <Icon
+                              name="play"
+                              size={20}
+                              color="#3B82F6"
+                              style={{ marginLeft: 2 }}
+                            />
+                          </View>
+                        </View>
+                      )}
+
                       <TouchableOpacity
                         onPress={() => removeImage(index)}
                         className="absolute top-0 -right-2 bg-red-500 rounded-full w-7 h-7 items-center justify-center"
@@ -252,7 +305,7 @@ const CreateRequestScreen = () => {
                   <MaterialIcon name="camera-plus" size={32} color="#3B82F6" />
                 </View>
                 <Text className="text-gray-900 font-semibold text-base">
-                  Thêm hình ảnh
+                  Thêm hình ảnh / video
                 </Text>
                 <Text className="text-gray-500 text-sm mt-1">
                   Chụp ảnh hoặc chọn từ thư viện
@@ -274,6 +327,7 @@ const CreateRequestScreen = () => {
         onClose={() => setShowImagePicker(false)}
         onPickFromGallery={handlePickFromGallery}
         onTakePhoto={handleTakePhoto}
+        onPickVideo={handlePickVideo}
       />
     </SubLayout>
   );

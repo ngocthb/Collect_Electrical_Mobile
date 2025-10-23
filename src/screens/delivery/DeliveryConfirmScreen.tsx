@@ -6,12 +6,16 @@ import {
   Alert,
   ScrollView,
   TouchableOpacity,
+  Modal,
+  Animated,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AppButton from '../../components/ui/AppButton';
 import QRCode from 'react-native-qrcode-svg';
 import type { Asset } from 'react-native-image-picker';
 import { openCamera, validateImageSize } from '../../utils/imagePickerService';
+import Icon from 'react-native-vector-icons/Feather';
+
 import SubLayout from '../../layout/SubLayout';
 
 const CONFIRM_CODE = 'DEL123456';
@@ -54,9 +58,17 @@ const DeliveryConfirmScreen = () => {
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleConfirm = () => {
+    if (selectedImages.length === 0) {
+      Alert.alert('Thông báo', 'Vui lòng chụp ít nhất 1 ảnh sản phẩm');
+      return;
+    }
+    navigation.navigate('DeliveryCompleteScreen');
+  };
+
   return (
     <SubLayout
-      title="Xác nhận lấy hàng"
+      title="Xác nhận giao hàng"
       onBackPress={() => navigation.goBack()}
     >
       <ScrollView className="flex-1 bg-gray-50">
@@ -80,44 +92,48 @@ const DeliveryConfirmScreen = () => {
                 Đã xác nhận lấy hàng!
               </Text>
 
-              {/* Hiển thị các ảnh đã chụp */}
-              {selectedImages.length > 0 && (
-                <View className="w-full mb-4">
-                  <Text className="text-sm font-medium mb-2 text-gray-700">
-                    Ảnh sản phẩm ( tối đa 5 ảnh) : {selectedImages.length}/5
-                  </Text>
-                  <View className="flex-row flex-wrap gap-4">
-                    {selectedImages.map((image, index) => (
-                      <View key={index} className="relative">
-                        <Image
-                          source={{ uri: image.uri }}
-                          className="w-28 h-28 rounded-lg"
-                        />
-                        <TouchableOpacity
-                          onPress={() => handleRemoveImage(index)}
-                          className="absolute -top-2 -right-2 bg-red-500 rounded-full w-6 h-6 items-center justify-center"
-                        >
-                          <Text className="text-white text-xs font-bold">
-                            ×
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              )}
+              {/* Hiển thị các ảnh đã chụp và nút thêm ảnh */}
+              <View className="w-full mb-4">
+                <Text className="text-sm font-medium mb-2 text-gray-700">
+                  Ảnh sản phẩm ({selectedImages.length}/5)
+                </Text>
+                <View className="flex-row flex-wrap gap-4">
+                  {selectedImages.map((image, index) => (
+                    <View key={index} className="relative">
+                      <Image
+                        source={{ uri: image.uri }}
+                        className="w-28 h-28 rounded-lg"
+                      />
+                      <TouchableOpacity
+                        onPress={() => handleRemoveImage(index)}
+                        className="absolute -top-2 -right-2 bg-red-500 rounded-full w-6 h-6 items-center justify-center"
+                      >
+                        <Text className="text-white text-xs font-bold">×</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
 
-              {/* Nút chụp ảnh - chỉ hiện nếu chưa đủ 5 ảnh */}
-              {selectedImages.length < 5 && (
-                <AppButton
-                  title={
-                    selectedImages.length > 0
-                      ? 'Thêm ảnh sản phẩm'
-                      : 'Chụp ảnh sản phẩm'
-                  }
-                  onPress={handleTakePhoto}
-                />
-              )}
+                  {/* Nút thêm ảnh - khung nét đứt với icon camera */}
+                  {selectedImages.length < 5 && (
+                    <TouchableOpacity
+                      onPress={handleTakePhoto}
+                      className="w-28 h-28 border-2 border-dashed border-gray-400 rounded-lg items-center justify-center bg-gray-50"
+                    >
+                      <Icon name="camera" size={32} color="#9CA3AF" />
+                      <Text className="text-gray-400 text-xs mt-1">
+                        Thêm ảnh
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+
+              {/* Nút xác nhận */}
+              <AppButton
+                title="Xác nhận giao hàng"
+                onPress={handleConfirm}
+                disabled={selectedImages.length === 0}
+              />
             </View>
           )}
         </View>

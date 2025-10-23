@@ -162,25 +162,6 @@ const DeliveryOrderMapScreen = () => {
                 </View>
               </View>
 
-              {/* Connecting Line */}
-              <View className="w-0.5 h-6 bg-gray-200 ml-[15px] mb-2" />
-
-              {/* Dropoff Address */}
-              <View className="flex-row items-start mb-4">
-                <View className="w-8 h-8 rounded-full bg-blue-100 items-center justify-center mr-3">
-                  <Icon name="map-marker" size={20} color="#3B82F6" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-xs text-gray-500 mb-1">Kho</Text>
-                  <Text className="text-base font-semibold text-gray-900 mb-0.5">
-                    {dropoffAddress.name}
-                  </Text>
-                  <Text className="text-sm text-gray-500">
-                    {dropoffAddress.detail}
-                  </Text>
-                </View>
-              </View>
-
               {isExpanded && (
                 <>
                   {/* Divider */}
@@ -226,7 +207,7 @@ const DeliveryOrderMapScreen = () => {
                   <View className="flex-row items-center bg-amber-50 rounded-xl p-4 mb-6">
                     <Icon name="information" size={20} color="#F59E0B" />
                     <Text className="flex-1 text-sm text-amber-900 ml-3">
-                      Vui lòng liên hệ người gửi trước khi đến lấy hàng
+                      Xảy ra sự cố ? Liên hệ với trung tâm hỗ trợ
                     </Text>
                   </View>
 

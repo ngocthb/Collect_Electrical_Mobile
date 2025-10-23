@@ -42,7 +42,9 @@ export default function HomeDeliveryScreen() {
       case 1:
         navigation.navigate('DeliveryOrder');
         break;
-
+      case 2:
+        navigation.navigate('DeliveryRoute');
+        break;
       default:
         break;
     }

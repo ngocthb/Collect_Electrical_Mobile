@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SubLayout from '../../layout/SubLayout';
 import { useNavigation } from '@react-navigation/core';
 import { Image } from 'react-native';
+import AppButton from '../../components/ui/AppButton';
 const shipper = {
   name: 'Nguyễn Văn A',
   phone: '0901234567',
@@ -49,9 +50,6 @@ const DeliveryInfoScreen = () => {
                       }}
                       resizeMode="cover"
                     />
-                  </View>
-                  <View className="absolute -bottom-1 -right-1 bg-green-500 rounded-full w-6 h-6 items-center justify-center border-2 border-white">
-                    <Icon name="check" size={14} color="white" />
                   </View>
                 </View>
 
@@ -179,7 +177,7 @@ const DeliveryInfoScreen = () => {
 
           {/* Help Section */}
           <TouchableOpacity
-            className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex-row items-center"
+            className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex-row items-center mb-4"
             onPress={() => {}}
           >
             <View className="w-12 h-12 rounded-full bg-amber-100 items-center justify-center mr-4">
@@ -195,6 +193,11 @@ const DeliveryInfoScreen = () => {
             </View>
             <Icon name="chevron-right" size={24} color="#F59E0B" />
           </TouchableOpacity>
+
+          <AppButton
+            title="Xác nhận"
+            onPress={() => navigation.navigate('UserConfirm')}
+          />
         </View>
       </ScrollView>
     </SubLayout>

@@ -45,7 +45,7 @@ const AppButton: React.FC<AppButtonProps> = ({
         backgroundColor: color,
         opacity: isDisabled ? 0.6 : 1,
       }}
-      className={`w-full flex-row items-center justify-center rounded-xl ${heightClass} ${className}`}
+      className={`w-full flex-col items-center justify-center rounded-xl ${heightClass} ${className}`}
     >
       {loading ? (
         <View className="flex-row items-center space-x-2">
@@ -54,7 +54,7 @@ const AppButton: React.FC<AppButtonProps> = ({
       ) : (
         <Text
           style={{ color: textColor }}
-          className={`font-semibold ${fontClass} ${textClassName}`}
+          className={`font-semibold text-center ${fontClass} ${textClassName}`}
         >
           {title}
         </Text>

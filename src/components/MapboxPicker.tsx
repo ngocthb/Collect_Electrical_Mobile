@@ -6,14 +6,16 @@ import {
   Text,
   FlatList,
   ActivityIndicator,
-  Platform,
-  PermissionsAndroid,
   Alert,
-  Linking,
   Keyboard,
 } from 'react-native';
 import MapboxGL from '@rnmapbox/maps';
-import Geolocation from 'react-native-geolocation-service';
+import {
+  checkAndRequestLocationPermission,
+  getCurrentLocation,
+  searchLocation as searchLocationService,
+  reverseGeocode as reverseGeocodeService,
+} from '../utils/mapboxService';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import type { Feature } from 'geojson';
 
@@ -70,137 +72,42 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
     [number, number] | null
   >(null);
   const [showCurrentLocation, setShowCurrentLocation] = useState<boolean>(true);
-  const [initialLocationSet, setInitialLocationSet] = useState<boolean>(false);
 
   const mapRef = useRef<MapboxGL.MapView>(null);
   const cameraRef = useRef<MapboxGL.Camera>(null);
 
   useEffect(() => {
-    checkAndRequestLocationPermission();
+    (async () => {
+      const granted = await checkAndRequestLocationPermission();
+      if (granted === true) {
+        try {
+          const coords = await getCurrentLocation();
+          setCurrentLocation(coords);
+          // Tự động zoom vào vị trí hiện tại khi lần đầu lấy được
+          cameraRef.current?.setCamera({
+            centerCoordinate: coords,
+            zoomLevel: 16,
+            animationDuration: 1000,
+          });
+        } catch (err) {
+          console.warn('Lỗi lấy vị trí:', err);
+        }
+      }
+    })();
   }, []);
 
-  const checkAndRequestLocationPermission = async () => {
-    if (Platform.OS === 'ios') {
-      Geolocation.requestAuthorization('whenInUse').then(status => {
-        console.log('iOS Location Permission:', status);
-        if (status === 'granted') {
-          getCurrentLocation();
-        } else if (status === 'denied') {
-          Alert.alert(
-            'Cần quyền truy cập vị trí',
-            'Vui lòng bật quyền vị trí trong Cài đặt',
-            [
-              { text: 'Huỷ', style: 'cancel' },
-              { text: 'Mở Cài đặt', onPress: () => Linking.openSettings() },
-            ],
-          );
-        }
-      });
-    } else {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-          {
-            title: 'Quyền truy cập vị trí',
-            message:
-              'Ứng dụng cần quyền truy cập vị trí của bạn để hiển thị trên bản đồ',
-            buttonNeutral: 'Hỏi lại sau',
-            buttonNegative: 'Từ chối',
-            buttonPositive: 'Đồng ý',
-          },
-        );
-
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          getCurrentLocation();
-        } else {
-          Alert.alert(
-            'Cần quyền truy cập vị trí',
-            'Vui lòng bật quyền vị trí trong Cài đặt',
-            [
-              { text: 'Huỷ', style: 'cancel' },
-              { text: 'Mở Cài đặt', onPress: () => Linking.openSettings() },
-            ],
-          );
-        }
-      } catch (err) {
-        console.warn('Permission error:', err);
-      }
-    }
-  };
-
-  const getCurrentLocation = () => {
-    Geolocation.getCurrentPosition(
-      position => {
-        const { latitude, longitude } = position.coords;
-        const coords: [number, number] = [longitude, latitude];
-        setCurrentLocation(coords);
-
-        if (!initialLocationSet && !initialLocation) {
-          setTimeout(() => {
-            cameraRef.current?.setCamera({
-              centerCoordinate: coords,
-              zoomLevel: 15,
-              animationDuration: 1500,
-            });
-            setInitialLocationSet(true);
-          }, 300);
-        }
-      },
-      error => {
-        console.error('❌ Geolocation Error:', error);
-        Alert.alert(
-          'Lỗi lấy vị trí',
-          `Không thể lấy vị trí hiện tại: ${error.message}. Vui lòng kiểm tra GPS.`,
-          [
-            { text: 'OK' },
-            { text: 'Mở Cài đặt', onPress: () => Linking.openSettings() },
-          ],
-        );
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 20000,
-        maximumAge: 1000,
-        showLocationDialog: true,
-      },
-    );
-  };
-
   const searchLocation = async (query: string): Promise<void> => {
-    if (!query.trim()) {
-      setSearchResults([]);
-      return;
-    }
-
     setLoading(true);
     try {
-      const vietnamBbox = '102.14,8.18,109.46,23.39';
-      const proximity = currentLocation
-        ? `${currentLocation[0]},${currentLocation[1]}`
-        : '105.8342,21.0278';
-
-      const url =
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-          query,
-        )}.json?` +
-        `access_token=pk.eyJ1IjoibmdvY3RoYiIsImEiOiJjbWgxdmdzMWowcjliZjFzYjMwaDlqamJiIn0.qna079CtYSrSqD-YhlQArg` +
-        `&country=VN` +
-        `&bbox=${vietnamBbox}` +
-        `&proximity=${proximity}` +
-        `&language=vi` +
-        `&limit=5` +
-        `&types=poi,address,place,locality,neighborhood`;
-
-      const response = await fetch(url);
-      const data = await response.json();
-
-      setSearchResults(data.features || []);
-
-      if (!data.features || data.features.length === 0) {
+      const results = await searchLocationService(
+        query,
+        currentLocation ?? undefined,
+      );
+      setSearchResults(results.features || []);
+      if (!results.features || results.features.length === 0) {
         Alert.alert('Thông báo', 'Không tìm thấy địa điểm nào ở Việt Nam');
       }
     } catch (error) {
-      console.error('Error searching location:', error);
       setSearchResults([]);
       Alert.alert('Lỗi', 'Không thể tìm kiếm địa điểm. Vui lòng thử lại.');
     } finally {
@@ -244,36 +151,19 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
 
   const reverseGeocode = async (longitude: number, latitude: number) => {
     try {
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?` +
-          `access_token=pk.eyJ1IjoibmdvY3RoYiIsImEiOiJjbWgxdmdzMWowcjliZjFzYjMwaDlqamJiIn0.qna079CtYSrSqD-YhlQArg` +
-          `&language=vi` +
-          `&country=VN`,
-      );
-      const data = await response.json();
-
-      const placeName = data.features?.[0]?.place_name || 'Vị trí đã chọn';
-
-      const location: LocationData = {
-        name: placeName,
-        latitude,
-        longitude,
-      };
-
+      const location = await reverseGeocodeService(longitude, latitude);
       setMarkerCoordinate([longitude, latitude]);
       setSelectedLocation(location);
-      setSearchQuery(placeName);
+      setSearchQuery(location.name);
       setShowCurrentLocation(false);
     } catch (error) {
-      console.error('Reverse geocoding error:', error);
-
-      const location: LocationData = {
+      const fallbackLocation: LocationData = {
         name: 'Vị trí đã chọn',
         latitude,
         longitude,
       };
       setMarkerCoordinate([longitude, latitude]);
-      setSelectedLocation(location);
+      setSelectedLocation(fallbackLocation);
       setSearchQuery('Vị trí đã chọn');
       setShowCurrentLocation(false);
     }
@@ -285,19 +175,24 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
     }
   };
 
-  const handleMyLocation = () => {
-    if (currentLocation) {
-      cameraRef.current?.setCamera({
-        centerCoordinate: currentLocation,
-        zoomLevel: 16,
-        animationDuration: 1000,
-      });
-      setShowCurrentLocation(true);
-      setMarkerCoordinate(null);
-      setSelectedLocation(null);
-      setSearchQuery('');
-    } else {
-      checkAndRequestLocationPermission();
+  const handleMyLocation = async () => {
+    const granted = await checkAndRequestLocationPermission();
+    if (granted === true) {
+      try {
+        const coords = await getCurrentLocation();
+        setCurrentLocation(coords);
+        cameraRef.current?.setCamera({
+          centerCoordinate: coords,
+          zoomLevel: 16,
+          animationDuration: 1000,
+        });
+        setShowCurrentLocation(true);
+        setMarkerCoordinate(null);
+        setSelectedLocation(null);
+        setSearchQuery('');
+      } catch (err) {
+        console.warn('Lỗi lấy vị trí:', err);
+      }
     }
   };
 
