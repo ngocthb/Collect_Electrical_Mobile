@@ -536,7 +536,7 @@ const MapboxTurnbyturn: React.FC<MapboxPickerProps> = ({
         ref={mapRef}
         style={{ flex: 1 }}
         styleURL={MapboxGL.StyleURL.Street}
-        // onPress removed to disable tap-to-select-location
+  // onPress removed to disable tap-to-select-location
         compassEnabled={true}
         logoEnabled={false}
       >

@@ -50,7 +50,7 @@ export default function HomeDeliveryScreen() {
 
   return (
     <MainLayout>
-      <ScrollView className="flex-1 px-6">
+      <ScrollView className="flex-1 px-6  mt-4">
         <View className="flex-row justify-between">
           <View className="mb-6">
             <Text className="text-gray-600 text-base mb-1">Xin chào!</Text>

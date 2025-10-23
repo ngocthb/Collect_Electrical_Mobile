@@ -4,7 +4,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
+  ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 
@@ -19,7 +19,7 @@ interface AppDropdownProps {
   placeholder?: string;
   onSelect: (option: Option) => void;
   title?: string;
-  required?: boolean; // Added required prop
+  required?: boolean;
 }
 
 const AppDropdown: React.FC<AppDropdownProps> = ({
@@ -31,12 +31,12 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
 }) => {
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(
-    options.length > 0 ? options[0].label : null, // Default to the first option
+    options.length > 0 ? options[0].label : null,
   );
 
   useEffect(() => {
     if (options.length > 0) {
-      onSelect(options[0]); // Automatically select the first option
+      onSelect(options[0]);
     }
   }, [options, onSelect]);
 
@@ -47,7 +47,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
   };
 
   return (
-    <View className="relative">
+    <View className="relative mb-4">
       {title && (
         <Text className="text-sm font-medium mb-2 text-text-main">
           {title} {required && <Text className="text-red-500">*</Text>}
@@ -55,29 +55,64 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
       )}
 
       <TouchableOpacity
-        className="border border-gray-300 rounded-md p-3 flex-row justify-between items-center"
+        className="border border-gray-300 rounded-xl p-4 flex-row justify-between items-center bg-white"
         onPress={() => setDropdownVisible(!isDropdownVisible)}
       >
-        <Text className="text-sm text-text-main">
-          {selectedOption || placeholder || 'Select an option'}
+        <Text
+          className={`text-sm ${
+            selectedOption ? 'text-gray-900' : 'text-gray-400'
+          }`}
+        >
+          {selectedOption || placeholder || 'Chọn một tùy chọn'}
         </Text>
-        <Icon name="chevron-down" size={20} color="gray" />
+        <Icon
+          name={isDropdownVisible ? 'chevron-up' : 'chevron-down'}
+          size={20}
+          color="#6B7280"
+        />
       </TouchableOpacity>
 
       {isDropdownVisible && (
-        <View className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-md mt-0 z-10">
-          <FlatList
-            data={options}
-            keyExtractor={item => String(item.id)}
-            renderItem={({ item }) => (
+        <View
+          className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl mt-2 z-50 shadow-lg"
+          style={{
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 5,
+          }}
+        >
+          <ScrollView
+            className="max-h-60"
+            nestedScrollEnabled={true}
+            showsVerticalScrollIndicator={false}
+          >
+            {options.map((item, index) => (
               <TouchableOpacity
-                className="p-3 border-b border-gray-200"
+                key={String(item.id)}
+                className={`p-4 ${
+                  index !== options.length - 1 ? 'border-b border-gray-100' : ''
+                } ${selectedOption === item.label ? 'bg-blue-50' : 'bg-white'}`}
                 onPress={() => handleSelect(item)}
               >
-                <Text className="text-sm text-text-main">{item.label}</Text>
+                <View className="flex-row items-center justify-between">
+                  <Text
+                    className={`text-sm ${
+                      selectedOption === item.label
+                        ? 'text-primary-100 font-semibold'
+                        : 'text-gray-700'
+                    }`}
+                  >
+                    {item.label}
+                  </Text>
+                  {selectedOption === item.label && (
+                    <Icon name="check" size={18} color="#4169E1" />
+                  )}
+                </View>
               </TouchableOpacity>
-            )}
-          />
+            ))}
+          </ScrollView>
         </View>
       )}
     </View>

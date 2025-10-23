@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SubLayout from '../../layout/SubLayout';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import AppButton from '../../components/ui/AppButton';
 import CustomTimeModal from '../../components/CustomTimeModal';
 import { useEffect, useRef } from 'react';
-import { ScrollView } from 'react-native';
+
 interface TimeSelectionScreenRouteParams {
   day: string;
   setTimeSlots: React.Dispatch<React.SetStateAction<Record<string, string[]>>>;
@@ -14,10 +15,25 @@ interface TimeSelectionScreenRouteParams {
 }
 
 const predefinedTimeSlots = [
-  { label: 'Cả ngày (9h - 21h hàng ngày)', times: ['09:00 AM', '09:00 PM'] },
-  { label: 'Giờ hành chính (9h - 17h)', times: ['09:00 AM', '05:00 PM'] },
-  { label: 'Chỉ buổi tối (17h - 21h)', times: ['05:00 PM', '09:00 PM'] },
-  { label: 'Khung giờ tự chọn', times: [] },
+  {
+    label: 'Cả ngày (9h - 21h hàng ngày)',
+    times: ['09:00 AM', '09:00 PM'],
+    icon: 'sunny',
+    color: '#F59E0B',
+  },
+  {
+    label: 'Giờ hành chính (9h - 17h)',
+    times: ['09:00 AM', '05:00 PM'],
+    icon: 'briefcase',
+    color: '#3B82F6',
+  },
+  {
+    label: 'Chỉ buổi tối (17h - 21h)',
+    times: ['05:00 PM', '09:00 PM'],
+    icon: 'moon',
+    color: '#8B5CF6',
+  },
+  { label: 'Khung giờ tự chọn', times: [], icon: 'time', color: '#10B981' },
 ];
 
 const TimeSelectionScreen = () => {
@@ -71,16 +87,39 @@ const TimeSelectionScreen = () => {
 
   return (
     <SubLayout title="Chọn khung giờ" onBackPress={() => navigation.goBack()}>
-      <View className="flex-1 bg-white px-4 py-6">
-        <Text className="text-lg font-semibold mb-4">
-          Chọn khung giờ cho {day}
-        </Text>
+      <View className="flex-1 bg-gray-50">
+        <ScrollView
+          className="flex-1 px-5 py-4"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Day Header */}
+          <View className="bg-primary-100 rounded-xl p-5 mb-5 flex-row items-center">
+            <View className="w-14 h-14 rounded-full bg-white/20 items-center justify-center mr-4">
+              <MaterialIcon name="calendar-today" size={28} color="white" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-blue-100 text-sm mb-1">
+                Chọn khung giờ cho
+              </Text>
+              <Text className="text-white font-bold text-2xl">{day}</Text>
+            </View>
+          </View>
 
-        {/* Restore custom time if user re-selects 'Khung giờ tự chọn' */}
-        <FlatList
-          data={predefinedTimeSlots}
-          keyExtractor={item => item.label}
-          renderItem={({ item }) => {
+          {/* Time Slots Section */}
+          <View className="flex-row items-center mb-4">
+            <MaterialIcon
+              name="clock-time-four-outline"
+              size={20}
+              color="#6B7280"
+            />
+            <Text className="text-gray-500 font-semibold text-sm ml-2">
+              Khung giờ phổ biến
+            </Text>
+            <View className="flex-1 h-px bg-gray-200 ml-3" />
+          </View>
+
+          {/* Time Slot Cards */}
+          {predefinedTimeSlots.map((item, index) => {
             let isSelected;
             if (
               item.label === 'Khung giờ tự chọn' &&
@@ -91,61 +130,120 @@ const TimeSelectionScreen = () => {
             } else {
               isSelected = getSelectedSlotLabel() === item.label;
             }
+
             return (
               <TouchableOpacity
-                className="flex-row items-center px-4 py-3 border rounded-md mb-2 border-gray-300"
+                key={item.label}
+                className={`bg-white rounded-2xl p-5 mb-3 border-2 ${
+                  isSelected ? 'border-green-500' : 'border-gray-100'
+                }`}
                 onPress={() => {
                   if (item.label === 'Khung giờ tự chọn') {
-                    // Restore previously saved custom time for the modal if available
                     if (customTime) {
                       setSelectedTimes(customTime);
                     }
-                    // Open the custom time modal without overwriting customTime
                     setCustomTimeModalVisible(true);
                   } else {
                     toggleTimeSelection(item.times);
                   }
                 }}
+                style={
+                  isSelected
+                    ? {
+                        shadowColor: '#10B981',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.2,
+                        shadowRadius: 4,
+                        elevation: 3,
+                      }
+                    : {}
+                }
               >
-                <Icon
-                  name={isSelected ? 'radio-button-on' : 'radio-button-off'}
-                  size={20}
-                  color={isSelected ? '#19CCA1' : '#9CA3AF'}
-                  className="mr-2"
-                />
-                <View className="flex-1">
-                  <Text className="text-base font-medium text-text-main">
-                    {item.label}
-                  </Text>
-                  {item.times.length > 0 && (
-                    <Text className="text-sm text-gray-500">
-                      {item.times[0]} - {item.times[1]}
+                <View className="flex-row items-center">
+                  {/* Icon Circle */}
+                  <View
+                    className="w-12 h-12 rounded-full items-center justify-center mr-4"
+                    style={{ backgroundColor: `${item.color}15` }}
+                  >
+                    <Icon name={item.icon} size={24} color={item.color} />
+                  </View>
+
+                  {/* Content */}
+                  <View className="flex-1">
+                    <Text className="text-gray-900 font-bold text-base mb-1">
+                      {item.label}
                     </Text>
-                  )}
-                  {/* Show custom time if selected and not a predefined slot */}
-                  {item.label === 'Khung giờ tự chọn' &&
-                    isSelected &&
-                    selectedTimes.length === 2 && (
-                      <Text className="text-sm text-blue-500">
-                        {selectedTimes[0]} - {selectedTimes[1]}
-                      </Text>
+                    {item.times.length > 0 && (
+                      <View className="flex-row items-center">
+                        <MaterialIcon
+                          name="clock-outline"
+                          size={14}
+                          color="#6B7280"
+                        />
+                        <Text className="text-gray-600 text-sm ml-1">
+                          {item.times[0]} - {item.times[1]}
+                        </Text>
+                      </View>
                     )}
+                    {/* Show custom time if selected */}
+                    {item.label === 'Khung giờ tự chọn' &&
+                      isSelected &&
+                      selectedTimes.length === 2 && (
+                        <View className="flex-row items-center mt-1">
+                          <MaterialIcon
+                            name="clock-check-outline"
+                            size={14}
+                            color="#10B981"
+                          />
+                          <Text className="text-green-600 text-sm font-semibold ml-1">
+                            {selectedTimes[0]} - {selectedTimes[1]}
+                          </Text>
+                        </View>
+                      )}
+                  </View>
+
+                  {/* Radio Button */}
+                  <View
+                    className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
+                      isSelected
+                        ? 'border-green-500 bg-green-500'
+                        : 'border-gray-300 bg-white'
+                    }`}
+                  >
+                    {isSelected && (
+                      <Icon name="checkmark" size={16} color="white" />
+                    )}
+                  </View>
                 </View>
               </TouchableOpacity>
             );
+          })}
+
+          <View className="h-24" />
+        </ScrollView>
+
+        {/* Fixed Bottom Button */}
+        <View
+          className="absolute bottom-0 left-0 right-0 bg-white px-5 py-4 border-t border-gray-100"
+          style={{
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 10,
           }}
-        />
+        >
+          <AppButton
+            title="Lưu khung giờ"
+            onPress={saveTimeSlots}
+            disabled={selectedTimes.length === 0}
+          />
+        </View>
 
         <CustomTimeModal
           visible={isCustomTimeModalVisible}
           onClose={() => setCustomTimeModalVisible(false)}
           onSave={handleSaveCustomTime}
-        />
-
-        <AppButton
-          title="Lưu khung giờ"
-          onPress={saveTimeSlots}
-          disabled={selectedTimes.length === 0}
         />
       </View>
     </SubLayout>

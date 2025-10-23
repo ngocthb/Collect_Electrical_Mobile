@@ -24,11 +24,13 @@ interface Address {
 interface PickupAddressSelectorProps {
   selectedAddress: Address;
   setSelectedAddress: (address: Address) => void;
+  onPress?: () => void;
 }
 
 const PickupAddressSelector: React.FC<PickupAddressSelectorProps> = ({
   selectedAddress,
   setSelectedAddress,
+  onPress,
 }) => {
   const navigation = useNavigation<NavigationProp>();
 
@@ -45,11 +47,14 @@ const PickupAddressSelector: React.FC<PickupAddressSelectorProps> = ({
         </View>
         <TouchableOpacity
           className="justify-center"
-          onPress={() =>
-            navigation.navigate('AddressSelectionScreen', {
-              setSelectedAddress,
-              selectedAddress,
-            })
+          onPress={
+            onPress
+              ? onPress
+              : () =>
+                  navigation.navigate('AddressSelectionScreen', {
+                    setSelectedAddress,
+                    selectedAddress,
+                  })
           }
         >
           <Icon name="chevron-right" size={20} color="gray" />

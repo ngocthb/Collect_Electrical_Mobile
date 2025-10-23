@@ -33,23 +33,21 @@ const DaySelection: React.FC<{
 
   return (
     <>
-      <Text className="text-sm font-medium mb-2 text-text-main">
+      <Text className="text-sm font-medium mb-3 text-text-main">
         Thời gian có thể lấy hàng <Text className="text-red-500">*</Text>
       </Text>
-      <View className="flex-row justify-between mb-4">
+      <View className="flex-row justify-between mb-5">
         {days.map(day => (
           <TouchableOpacity
             key={day}
             className={`px-4 py-2 rounded-full ${
-              selectedDays.includes(day)
-                ? 'bg-secondary-100'
-                : 'bg-secondary-50'
+              selectedDays.includes(day) ? 'bg-primary-100' : 'bg-primary-50'
             }`}
             onPress={() => toggleDaySelection(day)}
           >
             <Text
               className={`text-sm font-semibold ${
-                selectedDays.includes(day) ? 'text-white' : 'text-green-600'
+                selectedDays.includes(day) ? 'text-white' : 'text-primary-100'
               }`}
             >
               {day}

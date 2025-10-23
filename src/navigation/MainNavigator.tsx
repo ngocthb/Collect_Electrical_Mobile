@@ -8,6 +8,9 @@ import TimeSelectionScreen from '../screens/user/TimeSelectionScreen';
 import MapboxLocationPicker from '../screens/user/MapboxLocationPicker';
 import DeliveryOrdersScreen from '../screens/delivery/DeliveryOrdersScreen';
 import DeliveryOrderMapScreen from '../screens/delivery/DeliveryOrderMapScreen';
+import DeliveryRewardScreen from '../screens/user/DeliveryRewardScreen';
+import DeliveryInfoScreen from '../screens/user/DeliveryInfoScreen';
+import DeliveryConfirmScreen from '../screens/delivery/DeliveryConfirmScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +24,10 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
           <Stack.Screen
             name="DeliveryMapOrder"
             component={DeliveryOrderMapScreen}
+          />
+          <Stack.Screen
+            name="DeliveryConfirm"
+            component={DeliveryConfirmScreen}
           />
         </>
       ) : (
@@ -39,6 +46,11 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
             name="MapboxLocationScreen"
             component={MapboxLocationPicker}
           />
+          <Stack.Screen
+            name="DeliveryReward"
+            component={DeliveryRewardScreen}
+          />
+          <Stack.Screen name="DeliveryInfo" component={DeliveryInfoScreen} />
         </>
       )}
     </Stack.Navigator>

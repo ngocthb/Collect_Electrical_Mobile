@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SubLayout from '../../layout/SubLayout';
 import AppDropdown from '../../components/ui/AppDropdown';
 import AppInput from '../../components/ui/AppInput';
@@ -54,7 +55,6 @@ const CreateRequestScreen = () => {
       'Vinhomes Grand Park, Nguyễn Xiển Tòa S902, Phường Long Thạnh Mỹ, TP. Thủ Đức, TP.HCM',
   });
 
-  // Update address if coming from MapboxLocationPicker
   useEffect(() => {
     if (route.params?.location) {
       setSelectedAddress({ address: route.params.location.name });
@@ -68,10 +68,9 @@ const CreateRequestScreen = () => {
   };
 
   const handlePickFromGallery = async () => {
-    const result = await openGallery(true, 5); // Allow multiple selection, max 5 images
+    const result = await openGallery(true, 5);
 
     if (result.success && result.images) {
-      // Validate image sizes
       const invalidImages = result.images.filter(
         img => !validateImageSize(img.fileSize, 10),
       );
@@ -84,7 +83,7 @@ const CreateRequestScreen = () => {
         return;
       }
 
-      setSelectedImages(prev => [...prev, ...result.images!].slice(0, 5)); // Max 5 images
+      setSelectedImages(prev => [...prev, ...result.images!].slice(0, 5));
     } else if (result.error && result.error !== 'User cancelled') {
       Alert.alert('Lỗi', 'Không thể chọn ảnh từ thư viện');
     }
@@ -94,7 +93,6 @@ const CreateRequestScreen = () => {
     const result = await openCamera();
 
     if (result.success && result.images) {
-      // Validate image size
       if (!validateImageSize(result.images[0].fileSize, 10)) {
         Alert.alert(
           'Ảnh quá lớn',
@@ -128,105 +126,147 @@ const CreateRequestScreen = () => {
         })
       }
     >
-      <ScrollView className="flex-1 px-6 py-4">
-        <AppDropdown
-          title="Chọn danh mục sản phẩm"
-          options={categories}
-          placeholder="Chọn danh mục"
-          onSelect={option => console.log('Selected category:', option)}
-        />
+      <ScrollView className="flex-1 bg-white" nestedScrollEnabled={true}>
+        <View className="px-6 py-4">
+          {/* Category */}
+          <AppDropdown
+            title="Chọn danh mục sản phẩm"
+            options={categories}
+            placeholder="Chọn danh mục"
+            onSelect={option => console.log('Selected category:', option)}
+          />
 
-        <AppInput
-          label="Nhập tên sản phẩm"
-          placeholder="Ví dụ: Điện thoại Samsung Galaxy S21"
-          required
-        />
+          {/* Product Name */}
+          <AppInput
+            label="Nhập tên sản phẩm"
+            placeholder="Ví dụ: Điện thoại Samsung Galaxy S21"
+            required
+          />
 
-        <Text className="text-sm font-medium mb-2 text-text-main">
-          Nhập mô tả sản phẩm<Text className="text-red-500"> *</Text>
-        </Text>
-        <View className="flex-row flex-wrap mb-4">
-          {tags.map(tag => (
-            <TouchableOpacity
-              key={tag}
-              className={`px-4 py-2 rounded-full mr-2 mb-2 ${
-                selectedTags.includes(tag)
-                  ? 'bg-secondary-100'
-                  : 'bg-secondary-50'
-              }`}
-              onPress={() => toggleTag(tag)}
-            >
-              <Text
-                className={`text-sm font-semibold ${
-                  selectedTags.includes(tag)
-                    ? 'text-secondary-50'
-                    : 'text-secondary-100'
-                }`}
-              >
-                {tag}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <PickupAddressSelector
-          selectedAddress={selectedAddress}
-          setSelectedAddress={setSelectedAddress}
-        />
-
-        <PickupTimeSelector
-          selectedDays={selectedDays}
-          setSelectedDays={setSelectedDays}
-          timeSlots={timeSlots}
-          setTimeSlots={setTimeSlots}
-        />
-
-        <Text className="text-sm font-medium mb-2 text-text-main">
-          Hình ảnh / Video về sản phẩm<Text className="text-red-500"> *</Text>
-        </Text>
-        <Text className="text-gray-500 text-xs mb-3">
-          Tối đa 5 ảnh, mỗi ảnh không quá 10MB
-        </Text>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mb-6"
-        >
-          <View className="flex-row items-center">
-            {/* Selected Images */}
-            {selectedImages.map((image, index) => (
-              <View key={index} className="mr-3 relative overflow-visible">
-                <Image
-                  source={{ uri: image.uri }}
-                  className="w-20 h-20 rounded-lg"
-                  resizeMode="cover"
-                />
+          {/* Product Status Tags */}
+          <View className="mb-4">
+            <Text className="text-sm font-semibold mb-3 text-gray-900">
+              Nhập mô tả sản phẩm<Text className="text-red-500"> *</Text>
+            </Text>
+            <View className="flex-row flex-wrap">
+              {tags.map(tag => (
                 <TouchableOpacity
-                  onPress={() => removeImage(index)}
-                  className="absolute top-0 -right-2 bg-red-500 rounded-full w-6 h-6 items-center justify-center"
+                  key={tag}
+                  className={`px-4 py-2.5 rounded-full mr-2 mb-2 border-2 ${
+                    selectedTags.includes(tag)
+                      ? 'bg-blue-500 border-blue-500'
+                      : 'bg-white border-gray-200'
+                  }`}
+                  onPress={() => toggleTag(tag)}
                 >
-                  <Icon name="close" size={16} color="#FFF" />
+                  <Text
+                    className={`text-sm font-semibold ${
+                      selectedTags.includes(tag)
+                        ? 'text-white'
+                        : 'text-gray-600'
+                    }`}
+                  >
+                    {tag}
+                  </Text>
                 </TouchableOpacity>
-              </View>
-            ))}
+              ))}
+            </View>
+          </View>
 
-            {/* Add Button */}
-            {selectedImages.length < 5 && (
+          {/* Address */}
+          <PickupAddressSelector
+            selectedAddress={selectedAddress}
+            setSelectedAddress={setSelectedAddress}
+            onPress={() =>
+              navigation.navigate('AddressSelectionScreen', {
+                selectedAddress,
+                setSelectedAddress,
+              })
+            }
+          />
+
+          {/* Time */}
+          <PickupTimeSelector
+            selectedDays={selectedDays}
+            setSelectedDays={setSelectedDays}
+            timeSlots={timeSlots}
+            setTimeSlots={setTimeSlots}
+          />
+
+          {/* Images */}
+          <View className="mb-4">
+            <Text className="text-sm font-semibold mb-2 text-gray-900">
+              Hình ảnh / Video về sản phẩm
+              <Text className="text-red-500"> *</Text>
+            </Text>
+            <Text className="text-gray-500 text-xs mb-3">
+              Tối đa 5 ảnh, mỗi ảnh không quá 10MB
+            </Text>
+
+            {selectedImages.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="mb-2"
+              >
+                <View className="flex-row">
+                  {selectedImages.map((image, index) => (
+                    <View key={index} className="mr-3 relative">
+                      <Image
+                        source={{ uri: image.uri }}
+                        className="w-24 h-24 rounded-xl"
+                        resizeMode="cover"
+                      />
+                      <TouchableOpacity
+                        onPress={() => removeImage(index)}
+                        className="absolute top-0 -right-2 bg-red-500 rounded-full w-7 h-7 items-center justify-center"
+                        style={{
+                          shadowColor: '#EF4444',
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.4,
+                          shadowRadius: 4,
+                        }}
+                      >
+                        <Icon name="close" size={16} color="#FFF" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+
+                  {selectedImages.length < 5 && (
+                    <TouchableOpacity
+                      className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-xl items-center justify-center bg-gray-50"
+                      onPress={() => setShowImagePicker(true)}
+                    >
+                      <Icon name="add" size={32} color="#9CA3AF" />
+                      <Text className="text-gray-400 text-xs mt-1">Thêm</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </ScrollView>
+            ) : (
               <TouchableOpacity
-                className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg items-center justify-center bg-gray-50"
+                className="border-2 border-dashed border-gray-300 rounded-xl py-8 items-center bg-gray-50"
                 onPress={() => setShowImagePicker(true)}
               >
-                <Icon name="add" size={32} color="#9CA3AF" />
+                <View className="w-16 h-16 rounded-full bg-blue-100 items-center justify-center mb-3">
+                  <MaterialIcon name="camera-plus" size={32} color="#3B82F6" />
+                </View>
+                <Text className="text-gray-900 font-semibold text-base">
+                  Thêm hình ảnh
+                </Text>
+                <Text className="text-gray-500 text-sm mt-1">
+                  Chụp ảnh hoặc chọn từ thư viện
+                </Text>
               </TouchableOpacity>
             )}
           </View>
-        </ScrollView>
 
-        <AppButton
-          title="Tạo Yêu Cầu"
-          onPress={() => console.log('Create Request Pressed')}
-        />
+          {/* Submit Button */}
+          <AppButton
+            title="Tạo Yêu Cầu"
+            onPress={() => navigation.navigate('DeliveryReward')}
+          />
+        </View>
       </ScrollView>
 
       <ImagePickerModal

@@ -9,7 +9,7 @@ interface BackHeaderProps {
 
 const BackHeader: React.FC<BackHeaderProps> = ({ title, onBackPress }) => {
   return (
-    <View className="flex-row items-center px-4 py-6">
+    <View className="flex-row items-center px-4 py-6 bg-white">
       <TouchableOpacity onPress={onBackPress} className="mr-4">
         <Icon name="chevron-left" size={24} color="#333" />
       </TouchableOpacity>

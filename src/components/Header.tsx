@@ -12,7 +12,7 @@ const Header: React.FC<HeaderProps> = ({
   onNotificationPress,
 }) => {
   return (
-    <View className="flex-row items-center justify-between px-6 py-8 mb-6">
+    <View className="flex-row bg-white items-center justify-between px-6 py-8">
       <TouchableOpacity onPress={onMenuPress}>
         <Icon name="menu" size={28} color="#333" />
       </TouchableOpacity>
