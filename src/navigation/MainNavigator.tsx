@@ -15,6 +15,7 @@ import UserConfirmScreen from '../screens/user/UserConfirmScreen';
 import NotificationDetailScreen from '../screens/user/NotificationDetailScreen';
 import DeliveryScanQrScreen from '../screens/delivery/DeliveryScanQrScreen';
 import DeliveryRouteScreen from '../screens/delivery/DeliveryRouteScreen';
+import CreateAddressScreen from '../screens/user/CreateAddressScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -43,6 +44,7 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
         <>
           <Stack.Screen name="MainTabs" component={BottomTabs} />
           <Stack.Screen name="CreateRequest" component={CreateRequestScreen} />
+          <Stack.Screen name="CreateAddress" component={CreateAddressScreen} />
           <Stack.Screen
             name="AddressSelectionScreen"
             component={AddressSelectionScreen}

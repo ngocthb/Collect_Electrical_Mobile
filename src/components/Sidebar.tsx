@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import IconMaterial from 'react-native-vector-icons/MaterialIcons';
-import { AuthContext } from '../context/AuthContext';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { logout } from '../store/authSlice';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -26,9 +27,10 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ visible, onClose }: SidebarProps) => {
-  const { user, setUser, setRole } = useContext(AuthContext);
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector(s => s.auth);
   const slideAnim = useSharedValue(-300);
-  const navigation = useNavigation<any>();
+
   useEffect(() => {
     slideAnim.value = visible
       ? withTiming(0, { duration: 300 })
@@ -40,8 +42,7 @@ const Sidebar = ({ visible, onClose }: SidebarProps) => {
   }));
 
   const handleLogout = () => {
-    setUser(null);
-    setRole(null);
+    dispatch(logout());
     onClose();
   };
 
@@ -84,11 +85,14 @@ const Sidebar = ({ visible, onClose }: SidebarProps) => {
                   />
                 </View>
                 <View className="ml-4">
-                  <Text className="text-lg font-bold text-gray-800">
+                  <Text
+                    className="text-lg font-bold text-text-main flex-1"
+                    numberOfLines={2}
+                  >
                     {user?.name || 'Naruto'}
                   </Text>
                   <View className="flex-row items-center mt-2">
-                    <Text className="text-base font-bold text-gray-800 mr-2">
+                    <Text className="text-base font-bold text-text-main mr-2">
                       220
                     </Text>
                     <View className="w-6 h-6 bg-yellow-400 rounded-full items-center justify-center">

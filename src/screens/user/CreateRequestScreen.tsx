@@ -24,11 +24,11 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 import type { Asset } from 'react-native-image-picker';
 import AppButton from '../../components/ui/AppButton';
-
+import mockRequest from '../../services/mockRequestService';
+import draftService from '../../services/draftService';
 const categories = [
-  { id: 1, label: 'Điện tử' },
   { id: 2, label: 'Gia dụng' },
-  { id: 3, label: 'Thời trang' },
+  { id: 3, label: 'Điện thoại' },
   { id: 4, label: 'Khác' },
 ];
 
@@ -38,9 +38,12 @@ const CreateRequestScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [selectedImages, setSelectedImages] = useState<Asset[]>([]);
+  const [productName, setProductName] = useState<string>('');
+  const [submitting, setSubmitting] = useState(false);
   const [timeSlots, setTimeSlots] = useState<Record<string, string[]>>({
     T2: ['09:00 AM', '09:00 PM'],
     T3: ['09:00 AM', '09:00 PM'],
@@ -53,8 +56,100 @@ const CreateRequestScreen = () => {
 
   const [selectedAddress, setSelectedAddress] = useState({
     address:
-      'Vinhomes Grand Park, Nguyễn Xiển Tòa S902, Phường Long Thạnh Mỹ, TP. Thủ Đức, TP.HCM',
+      'Vinhomes Grand Park, Nguyễn Xiển Tòa S902, Phường Long Thạnh Mỹ, Thành Phố Thủ Đức, TP. Hồ Chí Minh',
   });
+
+  // Load draft on mount
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const d = await draftService.getCreateRequestDraft();
+        if (!d || !mounted) return;
+
+        if (d.name) setProductName(d.name);
+        if (d.category) {
+          const found = categories.find(c => c.label === d.category);
+          if (found) setSelectedCategory(found);
+        }
+        if (d.description)
+          setSelectedTags(
+            d.description
+              .split(',')
+              .map(s => s.trim())
+              .filter(Boolean),
+          );
+        if (d.images) setSelectedImages(d.images as any[]);
+
+        // ✅ CHỈ LOAD ADDRESS TỪ DRAFT NÕU KHÔNG CÓ PARAMS
+        if (d.address && !route.params?.selectedAddress) {
+          setSelectedAddress({ address: d.address });
+        }
+
+        if (d.timeSlots) setTimeSlots(d.timeSlots);
+      } catch (e) {
+        // ignore
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []); // ← Giữ nguyên dependency array rỗng
+  // Nhận params từ AddressSelection (dependency thêm selectedAddress để check)
+  useEffect(() => {
+    console.log(
+      '🟢 [CreateRequest] Checking params:',
+      route.params?.selectedAddress,
+    );
+
+    if (route.params?.selectedAddress?.address) {
+      console.log('🟢 [CreateRequest] Updating from params');
+      const newAddress = route.params.selectedAddress.address;
+
+      setSelectedAddress({ address: newAddress });
+
+      // Cập nhật draft ngay để lần sau load đúng
+      draftService
+        .saveCreateRequestDraft({
+          name: productName,
+          category: selectedCategory?.label,
+          description:
+            selectedTags?.length > 0 ? selectedTags.join(', ') : undefined,
+          address: newAddress, // ← Lưu địa chỉ mới vào draft
+          images: selectedImages,
+          timeSlots,
+        })
+        .catch(() => {});
+    }
+  }, [route.params?.selectedAddress?.address]); // ← Dependency cụ thể hơn
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await draftService.saveCreateRequestDraft({
+          name: productName,
+          category: selectedCategory?.label,
+          description:
+            selectedTags && selectedTags.length > 0
+              ? selectedTags.join(', ')
+              : undefined,
+          address: selectedAddress?.address,
+          images: selectedImages,
+          timeSlots,
+        });
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, [
+    productName,
+    selectedCategory,
+    selectedTags,
+    selectedImages,
+    selectedAddress,
+    timeSlots,
+  ]);
 
   useEffect(() => {
     if (route.params?.location) {
@@ -171,7 +266,7 @@ const CreateRequestScreen = () => {
             title="Chọn danh mục sản phẩm"
             options={categories}
             placeholder="Chọn danh mục"
-            onSelect={option => console.log('Selected category:', option)}
+            onSelect={option => setSelectedCategory(option)}
           />
 
           {/* Product Name */}
@@ -179,6 +274,8 @@ const CreateRequestScreen = () => {
             label="Nhập tên sản phẩm"
             placeholder="Ví dụ: Điện thoại Samsung Galaxy S21"
             required
+            value={productName}
+            onChangeText={setProductName}
           />
 
           {/* Product Status Tags */}
@@ -242,14 +339,10 @@ const CreateRequestScreen = () => {
             </Text>
 
             {selectedImages.length > 0 ? (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                className="mb-2"
-              >
-                <View className="flex-row">
+              <View className="mb-2">
+                <View className="flex-row flex-wrap">
                   {selectedImages.map((item, index) => (
-                    <View key={index} className="mr-3 relative">
+                    <View key={index} className="mr-3 mb-3 relative">
                       <Image
                         source={{ uri: item.uri }}
                         className="w-24 h-24 rounded-xl"
@@ -287,7 +380,7 @@ const CreateRequestScreen = () => {
 
                   {selectedImages.length < 5 && (
                     <TouchableOpacity
-                      className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-xl items-center justify-center bg-gray-50"
+                      className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-xl items-center justify-center bg-gray-50 mr-3 mb-3"
                       onPress={() => setShowImagePicker(true)}
                     >
                       <Icon name="add" size={32} color="#9CA3AF" />
@@ -295,7 +388,7 @@ const CreateRequestScreen = () => {
                     </TouchableOpacity>
                   )}
                 </View>
-              </ScrollView>
+              </View>
             ) : (
               <TouchableOpacity
                 className="border-2 border-dashed border-gray-300 rounded-xl py-8 items-center bg-gray-50"
@@ -317,7 +410,76 @@ const CreateRequestScreen = () => {
           {/* Submit Button */}
           <AppButton
             title="Tạo Yêu Cầu"
-            onPress={() => navigation.navigate('DeliveryReward')}
+            loading={submitting}
+            disabled={
+              submitting ||
+              !productName.trim() ||
+              !selectedAddress?.address ||
+              selectedImages.length === 0
+            }
+            onPress={async () => {
+              if (submitting) return;
+              setSubmitting(true);
+              try {
+                const mockReqService = mockRequest;
+                // build images array (uri objects or requires)
+                const imagesPayload = selectedImages.map(img =>
+                  img.uri ? { uri: img.uri } : img,
+                );
+
+                // only include timeSlots for days the user selected
+                const timeSlotsPayload: Record<string, string[]> | undefined =
+                  selectedDays && selectedDays.length > 0
+                    ? selectedDays.reduce(
+                        (acc: Record<string, string[]>, day) => {
+                          if (timeSlots[day] && Array.isArray(timeSlots[day])) {
+                            acc[day] = timeSlots[day];
+                          }
+                          return acc;
+                        },
+                        {},
+                      )
+                    : undefined;
+
+                const newReq = await mockReqService.create({
+                  name: productName || 'Yêu cầu mới',
+                  category: selectedCategory?.label || undefined,
+                  description:
+                    selectedTags && selectedTags.length > 0
+                      ? selectedTags.join(', ')
+                      : undefined,
+                  address: selectedAddress?.address,
+                  images: imagesPayload,
+                  timeSlots: timeSlotsPayload,
+                  status: selectedTags.includes('Đã hỏng')
+                    ? 'Đang chờ duyệt'
+                    : 'Đã duyệt',
+                });
+                Alert.alert('Thành công', 'Tạo yêu cầu thành công');
+
+                // clear draft after successful creation
+                try {
+                  await draftService.clearCreateRequestDraft();
+                } catch (e) {
+                  // ignore
+                }
+
+                // also clear any address draft to remove all draft data
+                try {
+                  await draftService.clearCreateAddressDraft();
+                } catch (e) {
+                  // ignore
+                }
+
+                // after creating a request, go to the DeliveryReward screen
+                navigation.navigate('DeliveryReward');
+              } catch (e) {
+                console.warn('Create request failed', e);
+                Alert.alert('Lỗi', 'Tạo yêu cầu thất bại. Vui lòng thử lại.');
+              } finally {
+                setSubmitting(false);
+              }
+            }}
           />
         </View>
       </ScrollView>

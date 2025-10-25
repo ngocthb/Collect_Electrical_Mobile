@@ -9,7 +9,8 @@ import {
   Modal,
   Animated,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useAppSelector } from '../../store/hooks';
 import AppButton from '../../components/ui/AppButton';
 import QRCode from 'react-native-qrcode-svg';
 import type { Asset } from 'react-native-image-picker';
@@ -20,8 +21,41 @@ import SubLayout from '../../layout/SubLayout';
 
 const CONFIRM_CODE = 'DEL123456';
 
+// Note: we'll build a dynamic payload inside the component using the logged-in user
+
 const DeliveryConfirmScreen = () => {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+
+  // get the currently logged-in user from the redux store (may contain name/email)
+  const currentUser = useAppSelector(s => s.auth?.user ?? null);
+
+  // optional product/request passed via route params when navigating here
+  const routeProduct = route.params?.product ?? route.params?.request ?? null;
+
+  // build the QR payload from the current user and the product info
+  const _cu: any = currentUser as any;
+  const userIdFallback = _cu?.id ?? _cu?.email ?? 'me';
+  const userNameFallback =
+    _cu?.fullName ?? _cu?.name ?? _cu?.email ?? 'Người giao hàng';
+  const userPhoneFallback = _cu?.phone ?? null;
+  const userAvatarFallback = _cu?.avatar ?? null;
+
+  const confirmPayload = {
+    code: CONFIRM_CODE,
+    shipper: {
+      id: userIdFallback,
+      name: userNameFallback,
+      phone: userPhoneFallback,
+      avatar: userAvatarFallback,
+    },
+    request: routeProduct ?? {
+      id: 1001,
+      name: 'Tủ lạnh',
+      description: 'Tủ lạnh 200L, màu trắng',
+      images: [],
+    },
+  };
   const [qrScanned, setQrScanned] = useState(false);
   const [selectedImages, setSelectedImages] = useState<Asset[]>([]);
 
@@ -78,7 +112,7 @@ const DeliveryConfirmScreen = () => {
             xác nhận lấy hàng.
           </Text>
           <View className="bg-white p-6 rounded-xl shadow mb-8 items-center">
-            <QRCode value={CONFIRM_CODE} size={160} />
+            <QRCode value={JSON.stringify(confirmPayload)} size={160} />
             <Text className="mt-4 text-lg font-semibold tracking-widest text-primary-600">
               {CONFIRM_CODE}
             </Text>

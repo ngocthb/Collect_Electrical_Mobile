@@ -18,17 +18,18 @@ const DeliveryRewardScreen = () => {
         {/* Title & Reward */}
         <Text className="text-center font-bold text-xl mb-2">Hurray!</Text>
         <Text className="text-center font-bold text-lg mb-4">
-          Bạn sẽ nhận được 100 <Text className="text-yellow-500">🪙</Text>
+          Bạn sẽ nhận được 100 <Text className="text-yellow-500">🪙</Text> sau
+          khi đơn hàng thành công
         </Text>
         {/* Description */}
         <Text className="text-center text-gray-500 mb-8">
           Chúng tôi sẽ cập nhật trạng thái yêu cầu nhanh nhất có thể. Bạn vui
           lòng theo dõi tiến trình của yêu cầu.
         </Text>
-        {/* Button */}
+
         <AppButton
-          title="Xem trạng thái yêu cầu"
-          onPress={() => navigation.navigate('DeliveryInfo')}
+          title="Đến trang chủ"
+          onPress={() => navigation.navigate('MainTabs')}
         />
       </View>
     </SubLayout>

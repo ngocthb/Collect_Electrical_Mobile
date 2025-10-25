@@ -1,4 +1,11 @@
-// Search location (geocoding)
+import { Platform, PermissionsAndroid, Alert, Linking } from 'react-native';
+import Geolocation from 'react-native-geolocation-service';
+import type { LineString } from 'geojson';
+
+import { MAPBOX_ACCESS_TOKEN } from '@env';
+
+const MAPBOX_TOKEN = MAPBOX_ACCESS_TOKEN;
+
 export async function searchLocation(
   query: string,
   currentLocation?: [number, number],
@@ -41,8 +48,7 @@ export async function reverseGeocode(longitude: number, latitude: number) {
     longitude,
   };
 }
-// Trả về dữ liệu route cho turn-by-turn navigation
-import type { LineString } from 'geojson';
+
 export interface NavigationStep {
   instruction: string;
   distance: number;
@@ -109,8 +115,6 @@ export function getCurrentLocation(): Promise<[number, number]> {
     );
   });
 }
-import { Platform, PermissionsAndroid, Alert, Linking } from 'react-native';
-import Geolocation from 'react-native-geolocation-service';
 
 export async function checkAndRequestLocationPermission() {
   if (Platform.OS === 'ios') {
@@ -160,9 +164,6 @@ export async function checkAndRequestLocationPermission() {
     }
   }
 }
-// Mapbox API service for geocoding and directions
-const MAPBOX_TOKEN =
-  'pk.eyJ1IjoibmdvY3RoYiIsImEiOiJjbWgxdmdzMWowcjliZjFzYjMwaDlqamJiIn0.qna079CtYSrSqD-YhlQArg';
 
 export async function mapboxGeocode(
   query: string,

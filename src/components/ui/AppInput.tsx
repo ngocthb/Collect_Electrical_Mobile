@@ -10,6 +10,8 @@ interface AppInputProps extends TextInputProps {
   error?: string;
   required?: boolean;
   disabled?: boolean;
+  // Nếu true sẽ dùng bàn phím số (phone-pad) và một số xử lý mặc định cho số điện thoại
+  isPhone?: boolean;
 }
 
 const AppInput = forwardRef<TextInput, AppInputProps>(
@@ -23,6 +25,7 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
       error,
       required = false,
       disabled = false,
+      isPhone = false,
       ...props
     },
     ref,
@@ -82,6 +85,7 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
             placeholder={placeholder}
             placeholderTextColor={disabled ? '#D1D5DB' : '#9CA3AF'}
             secureTextEntry={displaySecure}
+            keyboardType={isPhone ? 'phone-pad' : props.keyboardType}
             editable={!disabled}
             onFocus={handleFocus}
             onBlur={handleBlur}

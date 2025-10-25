@@ -20,6 +20,8 @@ interface CustomTimeModalProps {
   visible: boolean;
   onClose: () => void;
   onSave: (fromTime: string, toTime: string) => void;
+  initialFrom?: string;
+  initialTo?: string;
 }
 
 const ITEM_HEIGHT = 35;
@@ -125,6 +127,8 @@ const CustomTimeModal: React.FC<CustomTimeModalProps> = ({
   visible,
   onClose,
   onSave,
+  initialFrom,
+  initialTo,
 }) => {
   const [fromHour, setFromHour] = useState('08');
   const [fromMinute, setFromMinute] = useState('00');
@@ -147,6 +151,26 @@ const CustomTimeModal: React.FC<CustomTimeModalProps> = ({
       }, 300);
     }
   }, [visible]);
+
+  // If modal opens and initial times are provided, prefill pickers
+  useEffect(() => {
+    if (visible && initialFrom) {
+      const m = initialFrom.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      if (m) {
+        setFromHour(m[1].padStart(2, '0'));
+        setFromMinute(m[2]);
+        setFromPeriod(m[3].toUpperCase());
+      }
+    }
+    if (visible && initialTo) {
+      const m = initialTo.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      if (m) {
+        setToHour(m[1].padStart(2, '0'));
+        setToMinute(m[2]);
+        setToPeriod(m[3].toUpperCase());
+      }
+    }
+  }, [visible, initialFrom, initialTo]);
 
   const handleSave = useCallback(() => {
     const fromTime = `${fromHour}:${fromMinute} ${fromPeriod}`;

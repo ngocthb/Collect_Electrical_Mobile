@@ -1,12 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, ScrollView } from 'react-native';
+import { View, Text, Modal, ScrollView, Image } from 'react-native';
 
 import Icon from 'react-native-vector-icons/Feather';
 import ScanQrComponent from '../../components/ScanQrComponent';
 import AppButton from '../../components/ui/AppButton';
 import SubLayout from '../../layout/SubLayout';
 import { useNavigation } from '@react-navigation/core';
-
+const avatar = require('../../assets/images/avatar.jpg');
+const request = {
+  id: 1,
+  name: 'Tủ lạnh cũ',
+  category: 'Gia dụng',
+  description: 'Không lạnh, kêu to',
+  time: '3 phút trước',
+  address: 'Hẻm 123, Phường A, Quận B',
+  images: [require('../../assets/images/avatar.jpg')],
+  image: require('../../assets/images/avatar.jpg'),
+  status: 'Đang chờ duyệt',
+};
 const DeliveryScanQrScreen = () => {
   const [shipperId, setShipperId] = useState<string | null>(null);
   const navigation = useNavigation<any>();
@@ -18,11 +29,13 @@ const DeliveryScanQrScreen = () => {
       <ScrollView className="flex-1 bg-gray-50">
         <View className="flex-1 px-6 pt-12 pb-8">
           {/* Header */}
-          <View className="items-center">
-            <View className="w-20 h-20 bg-blue-100 rounded-full items-center justify-center ">
-              <Icon name="box" size={40} color="#3B82F6" />
+          {!shipperId && (
+            <View className="items-center">
+              <View className="w-20 h-20 bg-blue-100 rounded-full items-center justify-center ">
+                <Icon name="box" size={40} color="#3B82F6" />
+              </View>
             </View>
-          </View>
+          )}
 
           {/* Status Card */}
           {shipperId ? (
@@ -37,13 +50,70 @@ const DeliveryScanQrScreen = () => {
                 <Text className="text-sm text-gray-500 mb-4">
                   Sản phẩm đã được hệ thống ghi nhận
                 </Text>
-                <View className="bg-gray-50 rounded-xl p-4 w-full">
-                  <Text className="text-sm text-gray-600 text-center mb-1">
-                    ID sản phẩm
+                <View className=" flex-row justify-evenly  bg-gray-50 rounded-xl p-4 w-full mb-4">
+                  <View className="items-center mb-4">
+                    <Image
+                      source={avatar}
+                      className="w-20 h-20 rounded-full"
+                      style={{
+                        shadowColor: '#3B82F6',
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 8,
+                      }}
+                      resizeMode="cover"
+                    />
+                  </View>
+                  <View>
+                    <Text className="text-sm text-start text-gray-600  mb-1">
+                      Người gửi hàng
+                    </Text>
+                    <Text className="text-lg font-bold text-gray-900 text-start">{`Shipper ${shipperId}`}</Text>
+                    <Text className="text-sm text-gray-500 text-start mt-1">
+                      SĐT: 090123xxx
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Items to be delivered (from request) */}
+                <View className="bg-white rounded-lg w-full">
+                  <Text className="text-sm text-gray-500 mb-2">
+                    Danh sách vật phẩm
                   </Text>
-                  <Text className="text-lg font-bold text-gray-900 text-center">
-                    {shipperId}
-                  </Text>
+                  {request ? (
+                    <View>
+                      <Text className="text-base font-semibold mb-2">
+                        {request.name}
+                      </Text>
+                      {request.images && request.images.length > 0 && (
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          className="mb-2"
+                        >
+                          {request.images.map((img: any, idx: number) => (
+                            <Image
+                              key={idx}
+                              source={img && img.uri ? { uri: img.uri } : img}
+                              style={{
+                                width: 80,
+                                height: 80,
+                                borderRadius: 8,
+                                marginRight: 8,
+                              }}
+                            />
+                          ))}
+                        </ScrollView>
+                      )}
+                      <Text className="text-sm text-gray-600">
+                        Mô tả: {request.description ?? '—'}
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text className="text-sm text-gray-600">
+                      Không có thông tin đơn hàng
+                    </Text>
+                  )}
                 </View>
               </View>
             </View>

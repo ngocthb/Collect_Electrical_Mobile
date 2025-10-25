@@ -1,8 +1,8 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import { AuthContext } from '../../context/AuthContext';
+import { useAppSelector } from '../../store/hooks';
 import MainLayout from '../../layout/MainLayout';
 
 const avatar = require('../../assets/images/avatar.jpg');
@@ -12,7 +12,7 @@ const homepage3 = require('../../assets/images/homepage3.png');
 const homepage4 = require('../../assets/images/homepage4.png');
 
 export default function HomeScreen() {
-  const { user } = useContext(AuthContext);
+  const { user } = useAppSelector(s => s.auth);
   const navigation = useNavigation<any>();
 
   const menuItems = [

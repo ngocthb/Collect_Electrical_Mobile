@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import IconOcticons from 'react-native-vector-icons/Octicons';
 import IconFeature from 'react-native-vector-icons/Feather';
@@ -6,7 +6,7 @@ import HomeScreen from '../screens/user/HomeScreen';
 import RequestScreen from '../screens/user/RequestScreen';
 import NotificationsScreen from '../screens/delivery/NotificationsScreen';
 import ProfileScreen from '../screens/user/ProfileScreen';
-import { AuthContext } from '../context/AuthContext';
+import { useAppSelector } from '../store/hooks';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeDeliveryScreen from '../screens/delivery/HomeDeliveryScreen';
 import NotificationListScreen from '../screens/user/NotificationListScreen';
@@ -23,7 +23,7 @@ export default function AppNavigator() {
 }
 
 function BottomTabs() {
-  const { role } = useContext(AuthContext);
+  const { role } = useAppSelector(s => s.auth);
 
   const userTabs = (
     <Tab.Navigator

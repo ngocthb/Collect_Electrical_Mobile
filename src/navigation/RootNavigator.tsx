@@ -1,13 +1,13 @@
-import React, { useContext, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useState } from 'react';
+// NavigationContainer is provided by App.tsx to ensure a single root navigator
 import AuthNavigator from './AuthNavigator';
 import MainNavigator from './MainNavigator';
-import { AuthContext } from '../context/AuthContext';
+import { useAppSelector } from '../store/hooks';
 import SplashScreen from '../screens/public/SplashScreen';
 import OnboardingScreen from '../screens/public/OnboardingScreen';
 
 export default function RootNavigator() {
-  const { user, role, loading } = useContext(AuthContext);
+  const auth = useAppSelector(s => s.auth);
   const [showSplash, setShowSplash] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(true);
 
@@ -17,23 +17,22 @@ export default function RootNavigator() {
   }
 
   // Then show onboarding
-  if (showOnboarding && !user) {
+  if (showOnboarding && !auth.user) {
     return <OnboardingScreen onFinish={() => setShowOnboarding(false)} />;
   }
 
-  if (loading) {
-    return <SplashScreen onFinish={() => {}} />;
-  }
+  // Note: don't show global splash for transient auth.loading states
+  // (keeping auth screens mounted ensures Login/Register can show errors)
 
   return (
-    <NavigationContainer>
-      {!user ? (
+    <>
+      {!auth.user ? (
         <AuthNavigator />
-      ) : role === 'delivery' ? (
+      ) : auth.role === 'delivery' ? (
         <MainNavigator delivery />
       ) : (
         <MainNavigator />
       )}
-    </NavigationContainer>
+    </>
   );
 }

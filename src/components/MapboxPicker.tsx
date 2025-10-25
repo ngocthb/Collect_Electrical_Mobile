@@ -96,6 +96,25 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
     })();
   }, []);
 
+  // If initialLocation is supplied/updated asynchronously (for example when
+  // editing an existing address), update marker + selected location and
+  // move the camera to that coordinate so the user sees the address on map.
+  useEffect(() => {
+    if (!initialLocation) return;
+
+    const { latitude, longitude } = initialLocation;
+    const coord: [number, number] = [longitude, latitude];
+
+    setSelectedLocation(initialLocation);
+    setMarkerCoordinate(coord);
+    // Move camera to the provided location
+    cameraRef.current?.setCamera({
+      centerCoordinate: coord,
+      zoomLevel: 16,
+      animationDuration: 700,
+    });
+  }, [initialLocation]);
+
   const searchLocation = async (query: string): Promise<void> => {
     setLoading(true);
     try {

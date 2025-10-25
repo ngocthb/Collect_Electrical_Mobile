@@ -1,29 +1,48 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
+import mockRequestService from '../../services/mockRequestService';
 
 const RequestScreen = () => {
   const navigation = useNavigation<any>();
+  const [requests, setRequests] = useState<any[]>([]);
 
-  const requests = [
-    {
-      id: 1,
-      name: 'Tủ lạnh cũ',
-      time: '3 phút trước',
-      image: require('../../assets/images/avatar.jpg'),
-      status: 'Đang xử lý',
-      statusColor: 'bg-yellow-400',
-    },
-    {
-      id: 2,
-      name: 'Máy giặt cũ',
-      time: '3 tháng trước',
-      image: require('../../assets/images/avatar.jpg'),
-      status: 'Đã hoàn thành',
-      statusColor: 'bg-green-500',
-    },
-  ];
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      const list = await mockRequestService.list();
+      if (mounted) setRequests(list);
+    };
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const statusColorClass = (status: string) => {
+    switch ((status || '').toLowerCase()) {
+      case 'đang chờ duyệt':
+        return 'bg-yellow-400';
+      case 'đã duyệt':
+        return 'bg-blue-500';
+      case 'đã hoàn thành':
+        return 'bg-green-500';
+      default:
+        return 'bg-gray-400';
+    }
+  };
+
+  const openRequest = (request: any) => {
+    const status = (request.status || '').toLowerCase();
+    if (status === 'đã hoàn thành') {
+      // completed -> show notification/detail screen
+      navigation.navigate('UserNotificationDetail', { requestId: request.id });
+    } else {
+      // pending/other -> show delivery info
+      navigation.navigate('DeliveryInfo', { requestId: request.id });
+    }
+  };
 
   return (
     <View className="flex-1 bg-white">
@@ -57,13 +76,18 @@ const RequestScreen = () => {
           <TouchableOpacity
             key={request.id}
             className="flex-row items-center bg-white border border-gray-200 rounded-xl p-3 mb-3 shadow-sm"
+            onPress={() => openRequest(request)}
           >
             {/* Image */}
-            <Image
-              source={request.image}
-              className="w-16 h-16 rounded-lg"
-              resizeMode="cover"
-            />
+            {request.image ? (
+              <Image
+                source={request.image}
+                className="w-16 h-16 rounded-lg"
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="w-16 h-16 rounded-lg bg-gray-100" />
+            )}
 
             {/* Content */}
             <View className="flex-1 ml-3">
@@ -79,7 +103,11 @@ const RequestScreen = () => {
             </View>
 
             {/* Status Badge */}
-            <View className={`${request.statusColor} px-3 py-1 rounded-full`}>
+            <View
+              className={`${statusColorClass(
+                request.status,
+              )} px-3 py-1 rounded-lg`}
+            >
               <Text className="text-xs font-medium text-white">
                 {request.status}
               </Text>

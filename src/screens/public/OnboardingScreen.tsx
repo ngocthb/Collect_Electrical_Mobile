@@ -28,7 +28,7 @@ interface OnboardingItem {
 const onboardingData: OnboardingItem[] = [
   {
     id: '1',
-    title: 'Đồ cũ không dùng',
+    title: 'Đồ điện tử không dùng',
     description: 'Thu gom nhanh chóng, tiết kiệm thời gian',
     image: onboarding1,
     backgroundColor: '#19CCA1',

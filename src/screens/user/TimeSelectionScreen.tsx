@@ -10,13 +10,16 @@ import { useEffect, useRef } from 'react';
 
 interface TimeSelectionScreenRouteParams {
   day: string;
+  selectedDays?: string[];
   setTimeSlots: React.Dispatch<React.SetStateAction<Record<string, string[]>>>;
   currentTimes: string[];
+  applyToAll?: boolean;
+  presetLabel?: string;
 }
 
 const predefinedTimeSlots = [
   {
-    label: 'Cả ngày (9h - 21h hàng ngày)',
+    label: 'Cả ngày',
     times: ['09:00 AM', '09:00 PM'],
     icon: 'sunny',
     color: '#F59E0B',
@@ -40,7 +43,14 @@ const TimeSelectionScreen = () => {
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: TimeSelectionScreenRouteParams }, 'params'>>();
-  const { day, setTimeSlots, currentTimes } = route.params;
+  const {
+    day,
+    selectedDays,
+    setTimeSlots,
+    currentTimes,
+    applyToAll,
+    presetLabel,
+  } = route.params;
 
   const [selectedTimes, setSelectedTimes] = useState<string[]>(
     currentTimes && currentTimes.length === 2
@@ -64,17 +74,72 @@ const TimeSelectionScreen = () => {
   };
 
   const saveTimeSlots = () => {
-    setTimeSlots(prev => ({
-      ...prev,
-      [day]: selectedTimes,
-    }));
+    if (applyToAll && selectedDays && selectedDays.length > 0) {
+      setTimeSlots(prev => {
+        const updated = { ...prev };
+        selectedDays.forEach(d => {
+          updated[d] = selectedTimes;
+        });
+        return updated;
+      });
+    } else {
+      setTimeSlots(prev => ({
+        ...prev,
+        [day]: selectedTimes,
+      }));
+    }
     navigation.goBack();
   };
 
   const handleSaveCustomTime = (fromTime: string, toTime: string) => {
+    // Update local UI
     setSelectedTimes([fromTime, toTime]);
     setCustomTime([fromTime, toTime]);
+
+    // Persist immediately so parent PickupTimeSelector sees the custom times
+    // without the user having to press the bottom 'Lưu khung giờ' again.
+    if (setTimeSlots) {
+      if (applyToAll && selectedDays && selectedDays.length > 0) {
+        setTimeSlots((prev: Record<string, string[]>) => {
+          const updated = { ...prev };
+          selectedDays.forEach(d => {
+            updated[d] = [fromTime, toTime];
+          });
+          return updated;
+        });
+      } else {
+        setTimeSlots((prev: Record<string, string[]>) => ({
+          ...prev,
+          [day]: [fromTime, toTime],
+        }));
+      }
+    }
+
+    // Close modal and go back to previous screen (persisted)
+    setCustomTimeModalVisible(false);
+    navigation.goBack();
   };
+
+  // If we arrived with a presetLabel or applyToAll + custom times, initialize UI accordingly
+  useEffect(() => {
+    if (presetLabel && presetLabel !== 'Khung giờ tự chọn') {
+      const predefined = predefinedTimeSlots.find(p => p.label === presetLabel);
+      if (predefined) {
+        setSelectedTimes(predefined.times);
+      }
+    }
+
+    if (
+      presetLabel === 'Khung giờ tự chọn' &&
+      currentTimes &&
+      currentTimes.length === 2
+    ) {
+      // prefill and open custom modal so user sees the times
+      setSelectedTimes(currentTimes);
+      setCustomTime(currentTimes);
+      setCustomTimeModalVisible(true);
+    }
+  }, []);
 
   const getSelectedSlotLabel = () => {
     const found = predefinedTimeSlots.find(
@@ -144,6 +209,7 @@ const TimeSelectionScreen = () => {
                     }
                     setCustomTimeModalVisible(true);
                   } else {
+                    // Only update the UI selection here; actual save happens when user taps 'Lưu khung giờ'
                     toggleTimeSelection(item.times);
                   }
                 }}
@@ -173,7 +239,7 @@ const TimeSelectionScreen = () => {
                     <Text className="text-gray-900 font-bold text-base mb-1">
                       {item.label}
                     </Text>
-                    {item.times.length > 0 && (
+                    {item.times.length > 0 && item.label !== 'Cả ngày' && (
                       <View className="flex-row items-center">
                         <MaterialIcon
                           name="clock-outline"
@@ -244,6 +310,8 @@ const TimeSelectionScreen = () => {
           visible={isCustomTimeModalVisible}
           onClose={() => setCustomTimeModalVisible(false)}
           onSave={handleSaveCustomTime}
+          initialFrom={selectedTimes[0]}
+          initialTo={selectedTimes[1]}
         />
       </View>
     </SubLayout>
