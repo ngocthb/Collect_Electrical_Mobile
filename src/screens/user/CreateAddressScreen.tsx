@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, Alert } from 'react-native';
+import { View, TextInput, Alert } from 'react-native';
 import SubLayout from '../../layout/SubLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AppButton from '../../components/ui/AppButton';
@@ -8,6 +8,7 @@ import addrService from '../../services/mockAddressService';
 import draftService from '../../services/draftService';
 import { LocationData } from '../../components/MapboxPicker';
 import { useFocusEffect } from '@react-navigation/native';
+import { validatePhoneNumber, validateFullName } from '../../utils/validations';
 
 const CreateAddressScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -20,31 +21,21 @@ const CreateAddressScreen: React.FC = () => {
   );
   const [nameError, setNameError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
-  const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [forceUpdateKey, setForceUpdateKey] = useState(0);
 
   const nameRef = useRef<TextInput | null>(null);
   const phoneRef = useRef<TextInput | null>(null);
-  const hasLoadedRef = useRef(false); // Track đã load chưa
-  const processedLocationRef = useRef(false); // Track if a map-picked location was processed
+  const hasLoadedRef = useRef(false);
+  const processedLocationRef = useRef(false);
 
-  const action = route.params?.action || 'create'; // 'create' or 'edit'
+  const action = route.params?.action || 'create';
   const addressId = route.params?.addressId;
 
-  // DEBUG: Log mỗi khi addressInput thay đổi
-  useEffect(() => {
-    console.log('🔵 addressInput state changed to:', addressInput);
-  }, [addressInput]);
-
-  // Load existing address data for editing (only once on mount)
   useEffect(() => {
     if (action === 'edit' && addressId && !hasLoadedRef.current) {
-      console.log('📂 Loading address data for edit...');
       hasLoadedRef.current = true; // Đánh dấu đã load
       loadAddressData();
     }
-
-    // also try to load draft if any (only for create flow)
     (async () => {
       if (action !== 'edit') {
         const draft = await draftService.getCreateAddressDraft();
@@ -67,19 +58,15 @@ const CreateAddressScreen: React.FC = () => {
         }
       }
     })();
-  }, []); // FIXED: Empty dependency array - chỉ chạy 1 lần khi mount
+  }, []);
 
   const loadAddressData = async () => {
     try {
-      console.log('📥 Fetching address data...');
       const addr = await addrService.get(addressId);
       if (addr) {
-        console.log('📦 Loaded address:', addr.address);
         setName(addr.name || '');
         setPhone(addr.phone || '');
 
-        // If a map-picked location was processed while this async load
-        // was running, don't overwrite the user's picked address.
         if (!processedLocationRef.current) {
           setAddressInput(addr.address || '');
 
@@ -90,47 +77,31 @@ const CreateAddressScreen: React.FC = () => {
               longitude: addr.longitude,
             });
           }
-        } else {
-          console.log(
-            '[CreateAddress] Skipping overwrite because a map location was processed',
-          );
         }
-
-        setInitialLoadDone(true);
       }
     } catch (error) {
-      console.error('[CreateAddress] Load failed:', error);
       Alert.alert('Lỗi', 'Không thể tải thông tin địa chỉ');
       navigation.goBack();
     }
   };
 
-  // Handle location selected from map
   useFocusEffect(
     React.useCallback(() => {
       const loc = route.params?.location as LocationData | undefined;
-
       if (loc) {
         processedLocationRef.current = true;
         hasLoadedRef.current = true;
-
-        // Update location
         setSelectedLocation(loc);
-
-        // Force update address input
         const newAddress = loc.name || '';
-
         setAddressInput(newAddress);
-        setForceUpdateKey(prev => prev + 1); // Force re-render
+        setForceUpdateKey(prev => prev + 1);
 
-        // Clear location param
         try {
           navigation.setParams({ location: undefined });
         } catch (e) {
           console.warn('Failed to clear location param', e);
         }
 
-        // persist draft immediately so we don't lose this picked location
         try {
           draftService
             .saveCreateAddressDraft({
@@ -155,23 +126,65 @@ const CreateAddressScreen: React.FC = () => {
     });
   };
 
+  const handleNameChange = (t: string) => {
+    setName(t);
+    setNameError(null);
+
+    try {
+      draftService
+        .saveCreateAddressDraft({
+          name: t,
+          phone,
+          address: addressInput,
+          latitude: selectedLocation?.latitude,
+          longitude: selectedLocation?.longitude,
+        })
+        .catch(() => {});
+    } catch (e) {}
+  };
+
+  const handlePhoneChange = (t: string) => {
+    setPhone(t);
+    setPhoneError(null);
+    try {
+      draftService
+        .saveCreateAddressDraft({
+          name,
+          phone: t,
+          address: addressInput,
+          latitude: selectedLocation?.latitude,
+          longitude: selectedLocation?.longitude,
+        })
+        .catch(() => {});
+    } catch (e) {}
+  };
+
+  const handleAddressChange = (text: string) => {
+    setAddressInput(text);
+    draftService
+      .saveCreateAddressDraft({
+        name,
+        phone,
+        address: text,
+        latitude: selectedLocation?.latitude,
+        longitude: selectedLocation?.longitude,
+      })
+      .catch(() => {});
+  };
+
   const handleSave = async () => {
-    // Validate name: must contain at least one space (first + last name)
-    const hasSpace = name && name.trim().includes(' ');
-    if (!hasSpace) {
-      setNameError('Tên người dùng phải bao gồm họ và tên');
+    const nameValidation = validateFullName(name || '');
+    if (nameValidation) {
+      setNameError(nameValidation);
       nameRef.current?.focus();
       return;
     }
-
-    // Validate phone: only digits count, length 9..15
-    const digits = (phone || '').replace(/[^0-9]/g, '');
-    if (!/^\d{9,15}$/.test(digits)) {
-      setPhoneError('Số điện thoại không hợp lệ');
+    const phoneValidation = validatePhoneNumber(phone || '');
+    if (phoneValidation) {
+      setPhoneError(phoneValidation);
       phoneRef.current?.focus();
       return;
     }
-
     const finalAddress = selectedLocation?.name || addressInput;
     if (!finalAddress || !finalAddress.trim()) {
       Alert.alert(
@@ -183,7 +196,6 @@ const CreateAddressScreen: React.FC = () => {
 
     try {
       if (action === 'edit' && addressId) {
-        // Update existing address
         await addrService.update(addressId, {
           name: name || 'Người dùng',
           phone: phone || '+84 900 000 000',
@@ -198,7 +210,6 @@ const CreateAddressScreen: React.FC = () => {
           createdAddressId: addressId,
         });
       } else {
-        // Create new address
         const newAddr = await addrService.create({
           name: name || 'Người dùng',
           phone: phone || '+84 900 000 000',
@@ -215,10 +226,9 @@ const CreateAddressScreen: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('[CreateAddress] Save failed:', error);
       Alert.alert('Lỗi', 'Không thể lưu địa chỉ. Vui lòng thử lại.');
     }
-    // clear draft after successful save (create or update)
+
     try {
       draftService.clearCreateAddressDraft().catch(() => {});
     } catch (e) {}
@@ -235,22 +245,7 @@ const CreateAddressScreen: React.FC = () => {
           label="Tên người dùng"
           placeholder="Nhập tên người dùng"
           value={name}
-          onChangeText={t => {
-            setName(t);
-            setNameError(null);
-            // persist name immediately so it isn't lost when navigating away
-            try {
-              draftService
-                .saveCreateAddressDraft({
-                  name: t,
-                  phone,
-                  address: addressInput,
-                  latitude: selectedLocation?.latitude,
-                  longitude: selectedLocation?.longitude,
-                })
-                .catch(() => {});
-            } catch (e) {}
-          }}
+          onChangeText={handleNameChange}
           error={nameError ?? undefined}
           required
         />
@@ -260,22 +255,7 @@ const CreateAddressScreen: React.FC = () => {
           label="Số điện thoại liên hệ"
           placeholder="Nhập số điện thoại"
           value={phone}
-          onChangeText={t => {
-            setPhone(t);
-            setPhoneError(null);
-            // persist phone immediately so it isn't lost when navigating away
-            try {
-              draftService
-                .saveCreateAddressDraft({
-                  name,
-                  phone: t,
-                  address: addressInput,
-                  latitude: selectedLocation?.latitude,
-                  longitude: selectedLocation?.longitude,
-                })
-                .catch(() => {});
-            } catch (e) {}
-          }}
+          onChangeText={handlePhoneChange}
           error={phoneError ?? undefined}
           isPhone={true}
           required
@@ -286,20 +266,7 @@ const CreateAddressScreen: React.FC = () => {
           label="Địa chỉ"
           placeholder="Chọn vị trí từ bản đồ"
           value={addressInput}
-          onChangeText={text => {
-            console.log('📝 User typing:', text);
-            setAddressInput(text);
-            // save draft on user edits
-            draftService
-              .saveCreateAddressDraft({
-                name,
-                phone,
-                address: text,
-                latitude: selectedLocation?.latitude,
-                longitude: selectedLocation?.longitude,
-              })
-              .catch(() => {});
-          }}
+          onChangeText={handleAddressChange}
           required
         />
 

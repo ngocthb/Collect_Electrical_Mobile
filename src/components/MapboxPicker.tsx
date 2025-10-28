@@ -15,7 +15,7 @@ import {
   getCurrentLocation,
   searchLocation as searchLocationService,
   reverseGeocode as reverseGeocodeService,
-} from '../utils/mapboxService';
+} from '../services/mapboxService';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import type { Feature } from 'geojson';
 

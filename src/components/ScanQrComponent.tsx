@@ -130,9 +130,7 @@ const ScanQrComponent: React.FC<ScanQrComponentProps> = ({
             <Text className="text-lg font-semibold text-green-600 mb-2">
               Quét thành công!
             </Text>
-            <Text className="text-base font-medium mb-4 text-gray-700">
-              Mã QR: {qrId}
-            </Text>
+
             <AppButton title="Quét lại" onPress={handleScanAgain} />
           </View>
         )}

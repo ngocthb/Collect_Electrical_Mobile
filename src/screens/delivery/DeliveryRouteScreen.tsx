@@ -12,7 +12,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import {
   checkAndRequestLocationPermission,
   getCurrentLocation,
-} from '../../utils/mapboxService';
+} from '../../services/mapboxService';
 import type { Feature } from 'geojson';
 import SubLayout from '../../layout/SubLayout';
 import { useNavigation } from '@react-navigation/native';

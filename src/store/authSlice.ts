@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface PendingRegistration {
   username: string;
@@ -9,7 +10,14 @@ export interface PendingRegistration {
 }
 
 export interface UserState {
-  user: { email: string; name?: string } | null;
+  user: {
+    email: string;
+    name?: string;
+    userId?: string;
+    phone?: string;
+    address?: string;
+    avatar?: string;
+  } | null;
   role: 'user' | 'delivery' | null;
   loading: boolean;
   error: string | null;
@@ -24,7 +32,76 @@ const initialState: UserState = {
   pendingRegistration: null,
 };
 
-// Mock register: keep for backwards compatibility — not used in new flow
+const mockUsers = [
+  {
+    userId: '7f5c8b33-1b52-4d11-91b0-932c3d243c71',
+    name: 'Trần Văn An',
+    email: 'tran.van.an@example.com',
+    phone: '0901234567',
+    address: '123 Đường Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
+    avatar: 'https://picsum.photos/id/1011/200/200',
+    iat: 1050000,
+    ing: 10660000,
+    role: 'user',
+  },
+  {
+    userId: 'b73a62a7-8b90-43cf-9ad7-2abf96f34a52',
+    name: 'Lê Thị Mai',
+    email: 'le.thi.mai@example.com',
+    phone: '0987654321',
+    address: '45 Hàng Ngang, Quận Hoàn Kiếm, Hà Nội',
+    avatar: 'https://picsum.photos/id/1025/200/200',
+    iat: 2100000,
+    ing: 10580000,
+    role: 'user',
+  },
+  {
+    userId: 'e9b4b9de-b3b0-49ad-b90c-74c24a26b57a',
+    name: 'Nguyễn Minh Khôi',
+    email: 'nguyen.minh.khoi@example.com',
+    phone: '0908123456',
+    address: '22 Nguyễn Trãi, Quận 5, TP. Hồ Chí Minh',
+    avatar: 'https://picsum.photos/id/1033/200/200',
+    iat: 1055000,
+    ing: 10640000,
+    role: 'user',
+  },
+  {
+    userId: '72b4ad6a-0b5b-45a3-bb6b-6e1790c84b45',
+    name: 'Phạm Thị Hằng',
+    email: 'pham.thi.hang@example.com',
+    phone: '0911222333',
+    address: '89 Lê Lợi, Quận Hải Châu, Đà Nẵng',
+    avatar: 'https://picsum.photos/id/1045/200/200',
+    iat: 1600000,
+    ing: 10850000,
+    role: 'user',
+  },
+  {
+    userId: 'c40deff9-163b-49e8-b967-238f22882b63',
+    name: 'Đỗ Quốc Bảo',
+    email: 'do.quoc.bao@example.com',
+    phone: '0977222333',
+    address: '77 Lý Thường Kiệt, TP. Huế',
+    avatar: 'https://picsum.photos/id/1059/200/200',
+    iat: 1700000,
+    ing: 10770000,
+    role: 'user',
+  },
+  // Add the requested collector account (delivery)
+  {
+    userId: '6df4af85-6a59-4a0a-8513-1d7859fbd789',
+    name: 'Ngô Văn Dũng',
+    email: 'ngo.van.dung@ewc.vn',
+    phone: '0905999888',
+    avatar: 'https://picsum.photos/id/1062/200/200',
+    address: undefined,
+    iat: Date.now(),
+    ing: Date.now() + 1000000,
+    role: 'delivery',
+  },
+];
+
 export const registerMock = createAsyncThunk(
   'auth/registerMock',
   async (payload: {
@@ -34,7 +111,6 @@ export const registerMock = createAsyncThunk(
     username?: string;
   }) => {
     const { email } = payload;
-    // Simulate network latency
     await new Promise<void>(resolve => setTimeout(resolve, 600));
 
     if (email.includes('delivery')) {
@@ -45,7 +121,6 @@ export const registerMock = createAsyncThunk(
   },
 );
 
-// Login thunk: validate against pendingRegistration (after verify)
 export const loginMock = createAsyncThunk(
   'auth/loginMock',
   async (
@@ -55,6 +130,7 @@ export const loginMock = createAsyncThunk(
     const state = getState() as { auth: UserState };
     const pending = state.auth.pendingRegistration;
     // Simulate latency
+
     await new Promise<void>(resolve => setTimeout(resolve, 400));
 
     if (pending && pending.verified) {
@@ -69,10 +145,56 @@ export const loginMock = createAsyncThunk(
       return rejectWithValue('Tên đăng nhập hoặc mật khẩu không đúng');
     }
 
-    // fallback: reject if no pending/verified registration
+    // If there is no pending verified registration, try mock user store
+    const { identifier, password } = payload;
+
+    // allow login by email, phone, or userId against the small mockUsers list
+    const matched = mockUsers.find(
+      u =>
+        u.email === identifier ||
+        u.phone === identifier ||
+        u.userId === identifier,
+    );
+    if (matched) {
+      // For the mock users accept a simple password: '123456'
+      if (password === '123456') {
+        // prefer the role declared on the mock user (fallback to 'user')
+        const role = (matched as any).role || 'user';
+        return {
+          user: {
+            email: matched.email,
+            name: matched.name,
+            userId: matched.userId,
+            phone: matched.phone,
+            address: matched.address,
+            avatar: matched.avatar,
+          },
+          role: role,
+        };
+      }
+      return rejectWithValue('Tên đăng nhập hoặc mật khẩu không đúng');
+    }
+
+    // keep previous simple delivery fallback for addresses/emails containing 'delivery'
+    if (identifier && identifier.includes('delivery')) {
+      return { user: { email: identifier }, role: 'delivery' as const };
+    }
+
+    // final fallback
     return rejectWithValue('Tài khoản chưa được xác thực hoặc không tồn tại');
   },
 );
+
+// Hydrate auth state from AsyncStorage (call once on app startup)
+export const hydrateAuth = createAsyncThunk('auth/hydrate', async () => {
+  try {
+    const raw = await AsyncStorage.getItem('auth');
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+});
 
 const authSlice = createSlice({
   name: 'auth',
@@ -83,6 +205,12 @@ const authSlice = createSlice({
       state.role = null;
       state.error = null;
       state.pendingRegistration = null;
+      // remove persisted auth
+      try {
+        AsyncStorage.removeItem('auth');
+      } catch (e) {
+        // ignore
+      }
     },
     // store pending registration until user verifies
     setPendingRegistration(state, action: PayloadAction<PendingRegistration>) {
@@ -132,6 +260,14 @@ const authSlice = createSlice({
         (action.payload as string) || action.error.message || 'Lỗi đăng ký';
     });
 
+    // hydrate handlers
+    builder.addCase(hydrateAuth.fulfilled, (state, action) => {
+      if (action.payload) {
+        state.user = action.payload.user || null;
+        state.role = action.payload.role || null;
+      }
+    });
+
     // loginMock handlers
     builder.addCase(loginMock.pending, state => {
       state.loading = true;
@@ -146,6 +282,18 @@ const authSlice = createSlice({
         state.error = null;
         // clear pending registration after successful login
         state.pendingRegistration = null;
+        // persist auth to AsyncStorage for session restore
+        try {
+          AsyncStorage.setItem(
+            'auth',
+            JSON.stringify({
+              user: action.payload.user,
+              role: action.payload.role,
+            }),
+          );
+        } catch (e) {
+          // ignore storage errors
+        }
       },
     );
     builder.addCase(loginMock.rejected, (state, action) => {

@@ -1,36 +1,147 @@
-import React, { useState } from 'react';
-import { View, Text, Modal, ScrollView, Image } from 'react-native';
-
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, Image, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
+import routeService from '../../services/routeService';
+import mockRequestService from '../../services/mockRequestService';
+import { maskPhone } from '../../utils/validations';
 import ScanQrComponent from '../../components/ScanQrComponent';
 import AppButton from '../../components/ui/AppButton';
+import AppAvatar from '../../components/ui/AppAvatar';
 import SubLayout from '../../layout/SubLayout';
-import { useNavigation } from '@react-navigation/core';
-const avatar = require('../../assets/images/avatar.jpg');
-const request = {
-  id: 1,
-  name: 'Tủ lạnh cũ',
-  category: 'Gia dụng',
-  description: 'Không lạnh, kêu to',
-  time: '3 phút trước',
-  address: 'Hẻm 123, Phường A, Quận B',
-  images: [require('../../assets/images/avatar.jpg')],
-  image: require('../../assets/images/avatar.jpg'),
-  status: 'Đang chờ duyệt',
-};
-const DeliveryScanQrScreen = () => {
+
+interface DeliveryScanQrScreenProps {
+  navigation: any;
+  route: any;
+}
+
+const DeliveryScanQrScreen = ({
+  navigation,
+  route,
+}: DeliveryScanQrScreenProps) => {
   const [shipperId, setShipperId] = useState<string | null>(null);
-  const navigation = useNavigation<any>();
+
+  const [showScanner, setShowScanner] = useState(true);
+
+  const routeRaw = route.params?.requestId;
+  // resolve requestId when caller passes an object or primitive
+  const resolvedRequestId =
+    typeof routeRaw === 'object' && routeRaw != null
+      ? routeRaw?.id ?? routeRaw
+      : routeRaw;
+
+  const [request, setRequest] = useState<any>();
+  const [senderInfo, setSenderInfo] = useState<any | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      try {
+        // prefer fetching real data from API
+        const r = await (async () => {
+          try {
+            return await routeService.getDetail(String(resolvedRequestId));
+          } catch (e) {
+            console.warn(
+              'routeService.getDetail failed, falling back to mock',
+              e,
+            );
+            // fallback to mock service if available
+            try {
+              // eslint-disable-next-line @typescript-eslint/no-var-requires
+              const mock = require('../../services/mockRequestService');
+              return await mock.getDelivery(Number(resolvedRequestId));
+            } catch (err) {
+              return null;
+            }
+          }
+        })();
+        if (!mounted) return;
+        if (r) {
+          setRequest(r);
+
+          if (r.sender) {
+            setSenderInfo(r.sender as any);
+          }
+        }
+      } catch (e) {
+        console.warn('DeliveryScanQr: failed to load request by id', e);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [route.params]);
+
+  useEffect(() => {
+    const candidateSender =
+      route.params?.request?.sender ??
+      route.params?.sender ??
+      routeRaw?.sender ??
+      null;
+    if (candidateSender) setSenderInfo(candidateSender);
+  }, [route.params, routeRaw]);
+
+  useEffect(() => {
+    if (shipperId && !senderInfo) {
+      const candidateSender =
+        route.params?.request?.sender ??
+        route.params?.sender ??
+        routeRaw?.sender ??
+        null;
+      if (candidateSender) setSenderInfo(candidateSender);
+    }
+  }, [shipperId, senderInfo, route.params, routeRaw]);
+
+  const handleScanSuccess = (id: string) => {
+    setShipperId(id);
+    setShowScanner(false);
+
+    (async () => {
+      try {
+        const detail = await routeService.getDetail(String(id));
+        const detailData: any = detail;
+
+        if (detailData) {
+          setRequest(detailData);
+          if (detailData.sender) setSenderInfo(detailData.sender);
+        }
+      } catch (e) {
+        console.warn('Failed to load detail for scanned code', e);
+      }
+    })();
+  };
+
+  const handleScanClose = () => {
+    Alert.alert('Hủy quét mã?', 'Bạn có muốn quay lại trang trước không?', [
+      {
+        text: 'Tiếp tục quét',
+        style: 'cancel',
+      },
+      {
+        text: 'Quay lại',
+        onPress: () => navigation.goBack(),
+      },
+    ]);
+  };
+
+  const handleDone = async () => {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'DeliveryOrder' }],
+    });
+    await mockRequestService.completedDelivery(request.id);
+  };
+
   return (
     <SubLayout
       title="Xác thực sản phẩm"
       onBackPress={() => navigation.goBack()}
     >
       <ScrollView className="flex-1 bg-gray-50">
-        <View className="flex-1 px-6 pt-12 pb-8">
-          {/* Header */}
+        <View className="flex-1 px-6  pb-8">
           {!shipperId && (
-            <View className="items-center">
+            <View className="items-center pt-12">
               <View className="w-20 h-20 bg-blue-100 rounded-full items-center justify-center ">
                 <Icon name="box" size={40} color="#3B82F6" />
               </View>
@@ -50,29 +161,49 @@ const DeliveryScanQrScreen = () => {
                 <Text className="text-sm text-gray-500 mb-4">
                   Sản phẩm đã được hệ thống ghi nhận
                 </Text>
-                <View className=" flex-row justify-evenly  bg-gray-50 rounded-xl p-4 w-full mb-4">
-                  <View className="items-center mb-4">
-                    <Image
-                      source={avatar}
-                      className="w-20 h-20 rounded-full"
-                      style={{
-                        shadowColor: '#3B82F6',
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 8,
-                      }}
-                      resizeMode="cover"
-                    />
+                <Text className="text-sm text-text-main mb-4">
+                  Mã sản phẩm : {shipperId}
+                </Text>
+                <View className=" justify-between  bg-gray-50 rounded-xl py-4 px-2 w-full mb-4 items-center gap-2">
+                  <View className="flex-row  items-center  w-full">
+                    <View className="w-1/3 items-center">
+                      {senderInfo?.avatar ? (
+                        <Image
+                          source={{ uri: senderInfo.avatar }}
+                          className="w-20 h-20 rounded-full"
+                          style={{
+                            shadowColor: '#3B82F6',
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.3,
+                            shadowRadius: 8,
+                          }}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <AppAvatar name={senderInfo?.name} size={70} />
+                      )}
+                    </View>
+                    <View className="w-2/3 ">
+                      <Text className="text-sm text-start text-gray-600  mb-1">
+                        Người gửi hàng
+                      </Text>
+                      <Text className="text-lg font-bold text-gray-900 text-start">
+                        {senderInfo?.name}
+                      </Text>
+                      <Text className="text-sm text-gray-500 text-start mt-1">
+                        SĐT: {maskPhone(senderInfo?.phone) || '—'}
+                      </Text>
+                    </View>
                   </View>
-                  <View>
-                    <Text className="text-sm text-start text-gray-600  mb-1">
-                      Người gửi hàng
+                  {senderInfo?.address && (
+                    <Text
+                      className="text-sm flex-1 text-gray-500 text-start mt-1"
+                      numberOfLines={3}
+                      ellipsizeMode="tail"
+                    >
+                      Đ/c: {senderInfo.address}
                     </Text>
-                    <Text className="text-lg font-bold text-gray-900 text-start">{`Shipper ${shipperId}`}</Text>
-                    <Text className="text-sm text-gray-500 text-start mt-1">
-                      SĐT: 090123xxx
-                    </Text>
-                  </View>
+                  )}
                 </View>
 
                 {/* Items to be delivered (from request) */}
@@ -83,20 +214,32 @@ const DeliveryScanQrScreen = () => {
                   {request ? (
                     <View>
                       <Text className="text-base font-semibold mb-2">
-                        {request.name}
+                        {request.itemName ?? request.name}
                       </Text>
-                      {request.images && request.images.length > 0 && (
+                      {(request.pickUpItemImages ||
+                        request.confirmImages ||
+                        request.images) && (
                         <ScrollView
                           horizontal
                           showsHorizontalScrollIndicator={false}
                           className="mb-2"
                         >
-                          {request.images.map((img: any, idx: number) => (
+                          {(
+                            request.pickUpItemImages ??
+                            request.confirmImages ??
+                            request.images
+                          ).map((img: any, idx: number) => (
                             <Image
                               key={idx}
-                              source={img && img.uri ? { uri: img.uri } : img}
+                              source={
+                                typeof img === 'string'
+                                  ? { uri: img }
+                                  : img && img.uri
+                                  ? { uri: img.uri }
+                                  : img
+                              }
                               style={{
-                                width: 80,
+                                width: 120,
                                 height: 80,
                                 borderRadius: 8,
                                 marginRight: 8,
@@ -108,6 +251,16 @@ const DeliveryScanQrScreen = () => {
                       <Text className="text-sm text-gray-600">
                         Mô tả: {request.description ?? '—'}
                       </Text>
+                      {request.licensePlate && (
+                        <Text className="text-sm text-gray-600 mt-1">
+                          Biển số: {request.licensePlate}
+                        </Text>
+                      )}
+                      {request.collectionRouteId && (
+                        <Text className="text-sm text-gray-600 mt-1">
+                          Mã lộ trình: {request.collectionRouteId}
+                        </Text>
+                      )}
                     </View>
                   ) : (
                     <Text className="text-sm text-gray-600">
@@ -118,23 +271,40 @@ const DeliveryScanQrScreen = () => {
               </View>
             </View>
           ) : (
-            <ScanQrComponent
-              title=" Xác thực sản phẩm"
-              subtitle="Quét mã QR đã dán trên sản phẩm để xác thực"
-              instruction="Nhân viên vui lòng quét mã QR trên sản phẩm để xác thực trước khi chuyển hàng về kho"
-              onScan={id => setShipperId(id)}
-              onClose={() => {}}
-            />
+            <>
+              {showScanner && (
+                <ScanQrComponent
+                  title=" Xác thực sản phẩm"
+                  subtitle="Quét mã QR đã dán trên sản phẩm để xác thực"
+                  instruction="Nhân viên vui lòng quét mã QR trên sản phẩm để xác thực trước khi chuyển hàng về kho"
+                  onScan={handleScanSuccess}
+                  onClose={handleScanClose}
+                />
+              )}
+
+              <View className="mt-4 px-2">
+                <AppButton
+                  title="Giả lập quét QR thành công"
+                  onPress={() => {
+                    const simulatedSender = {
+                      id: 'SIM123',
+                      name: 'Người gửi GT',
+                      phone: '0909999888',
+                      address: 'Số 10, Đường Lê Lợi, Quận 1, TP.HCM',
+                      lat: 10.77653,
+                      lng: 106.70098,
+                    };
+                    setSenderInfo(simulatedSender);
+                    setShipperId(simulatedSender.id);
+                    setShowScanner(false);
+                  }}
+                />
+              </View>
+            </>
           )}
 
-          {/* Scan Button */}
-          <AppButton
-            title="Về trang chủ"
-            onPress={() =>
-              navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] })
-            }
-            className="mb-4"
-          />
+          {/* Complete Button */}
+          <AppButton title="Hoàn thành" onPress={handleDone} className="mb-4" />
 
           {/* Additional Info */}
           {!shipperId && (

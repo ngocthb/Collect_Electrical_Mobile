@@ -6,16 +6,18 @@ import CreateRequestScreen from '../screens/user/CreateRequestScreen';
 import AddressSelectionScreen from '../screens/user/AddressSelectionScreen';
 import TimeSelectionScreen from '../screens/user/TimeSelectionScreen';
 import MapboxLocationPicker from '../screens/user/MapboxLocationPicker';
-import DeliveryOrdersScreen from '../screens/delivery/DeliveryOrdersScreen';
-import DeliveryOrderMapScreen from '../screens/delivery/DeliveryOrderMapScreen';
+import DeliveryListScreen from '../screens/delivery/DeliveryListScreen';
+import DeliveryMapScreen from '../screens/delivery/DeliveryMapScreen';
 import DeliveryRewardScreen from '../screens/user/DeliveryRewardScreen';
 import DeliveryInfoScreen from '../screens/user/DeliveryInfoScreen';
-import DeliveryConfirmScreen from '../screens/delivery/DeliveryConfirmScreen';
+import DeliveryQrScreen from '../screens/delivery/DeliveryQrScreen';
+import DeliveryPhotoConfirmScreen from '../screens/delivery/DeliveryPhotoConfirmScreen';
 import UserConfirmScreen from '../screens/user/UserConfirmScreen';
 import NotificationDetailScreen from '../screens/user/NotificationDetailScreen';
 import DeliveryScanQrScreen from '../screens/delivery/DeliveryScanQrScreen';
 import DeliveryRouteScreen from '../screens/delivery/DeliveryRouteScreen';
 import CreateAddressScreen from '../screens/user/CreateAddressScreen';
+import DeliveryCancelScreen from '../screens/delivery/DeliveryCancelScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -25,14 +27,16 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
       {delivery ? (
         <>
           <Stack.Screen name="MainTabs" component={BottomTabs} />
-          <Stack.Screen name="DeliveryOrder" component={DeliveryOrdersScreen} />
+          <Stack.Screen name="DeliveryOrder" component={DeliveryListScreen} />
+          <Stack.Screen name="DeliveryMapOrder" component={DeliveryMapScreen} />
+          <Stack.Screen name="DeliveryConfirm" component={DeliveryQrScreen} />
           <Stack.Screen
-            name="DeliveryMapOrder"
-            component={DeliveryOrderMapScreen}
+            name="DeliveryPhotoConfirm"
+            component={DeliveryPhotoConfirmScreen}
           />
           <Stack.Screen
-            name="DeliveryConfirm"
-            component={DeliveryConfirmScreen}
+            name="DeliveryCancel"
+            component={DeliveryCancelScreen}
           />
           <Stack.Screen
             name="DeliveryCompleteScreen"

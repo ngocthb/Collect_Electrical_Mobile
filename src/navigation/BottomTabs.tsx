@@ -8,7 +8,7 @@ import NotificationsScreen from '../screens/delivery/NotificationsScreen';
 import ProfileScreen from '../screens/user/ProfileScreen';
 import { useAppSelector } from '../store/hooks';
 import { createStackNavigator } from '@react-navigation/stack';
-import HomeDeliveryScreen from '../screens/delivery/HomeDeliveryScreen';
+import DeliveryHomeScreen from '../screens/delivery/DeliveryHomeScreen';
 import NotificationListScreen from '../screens/user/NotificationListScreen';
 
 const Tab = createBottomTabNavigator();
@@ -78,7 +78,7 @@ function BottomTabs() {
         },
       })}
     >
-      <Tab.Screen name="Trang chủ" component={HomeDeliveryScreen} />
+      <Tab.Screen name="Trang chủ" component={DeliveryHomeScreen} />
       <Tab.Screen name="Thông báo" component={NotificationsScreen} />
       <Tab.Screen name="Tài khoản" component={ProfileScreen} />
     </Tab.Navigator>

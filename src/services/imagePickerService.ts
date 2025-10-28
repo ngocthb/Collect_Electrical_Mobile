@@ -205,23 +205,3 @@ export const openGallery = async (
     return { success: false, error: 'Failed to open gallery' };
   }
 };
-
-/**
- * Get image file size in MB
- */
-export const getImageSizeInMB = (fileSize?: number): number => {
-  if (!fileSize) return 0;
-  return fileSize / (1024 * 1024);
-};
-
-/**
- * Validate image size
- */
-export const validateImageSize = (
-  fileSize: number | undefined,
-  maxSizeMB: number = 10,
-): boolean => {
-  if (!fileSize) return false;
-  const sizeMB = getImageSizeInMB(fileSize);
-  return sizeMB <= maxSizeMB;
-};

@@ -8,6 +8,7 @@ import SubLayout from '../../layout/SubLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AppButton from '../../components/ui/AppButton';
 import addrService from '../../services/mockAddressService';
+import { maskPhone } from '../../utils/validations';
 
 type AddressItem = {
   id: number;
@@ -21,25 +22,11 @@ const AddressSelectionScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const [loading, setLoading] = useState(false);
-
-  const maskPhone = (p?: string) => {
-    if (!p) return '';
-    const chars = p.split('');
-    let toMask = 3;
-    for (let i = chars.length - 1; i >= 0 && toMask > 0; i--) {
-      if (/\d/.test(chars[i])) {
-        chars[i] = 'x';
-        toMask -= 1;
-      }
-    }
-    return chars.join('');
-  };
-
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
     null,
   );
   const [addresses, setAddresses] = useState<AddressItem[]>([]);
-  // load addresses on mount
+  const createdId = route.params?.createdAddressId;
   useEffect(() => {
     let mounted = true;
     const load = async () => {
@@ -52,19 +39,13 @@ const AddressSelectionScreen = () => {
     };
   }, []);
 
-  // reload addresses whenever this screen is focused (so newly created
-  // addresses from CreateAddressScreen appear immediately)
   useFocusEffect(
     useCallback(() => {
       reloadAddresses();
 
-      // if a createdId (or createdAddressId) was passed, pre-select it
-      const createdId =
-        route.params?.createdId || route.params?.createdAddressId;
       if (createdId) {
         setSelectedAddressId(createdId);
         try {
-          // clear both possible param names to be safe
           navigation.setParams({
             createdId: undefined,
             createdAddressId: undefined,
@@ -74,7 +55,6 @@ const AddressSelectionScreen = () => {
     }, [route.params?.createdId]),
   );
 
-  // When route provides a selectedAddress, try to pre-select it after addresses load
   useEffect(() => {
     if (!route.params?.selectedAddress || addresses.length === 0) return;
 
@@ -114,22 +94,16 @@ const AddressSelectionScreen = () => {
       })();
 
       const match = a === inNorm || a.includes(inNorm) || inNorm.includes(a);
-      // eslint-disable-next-line no-console
-      console.log('[AddressSelection] comparing', {
-        incoming: inNorm,
-        candidate: a,
-        match,
-      });
+
       return match;
     });
 
     if (defaultAddress) setSelectedAddressId(defaultAddress.id);
   }, [route.params?.selectedAddress, addresses]);
 
-  // Handle returned location from MapboxLocationPicker for create/update
   useEffect(() => {
     const loc = route.params?.location;
-    const action = route.params?.action; // 'create' | 'edit'
+    const action = route.params?.action;
     const addressId = route.params?.addressId;
     if (!loc || !action) return;
 
@@ -137,7 +111,6 @@ const AddressSelectionScreen = () => {
       setLoading(true);
       try {
         if (action === 'create') {
-          // Protect against race: do not create if already at max
           if ((await addrService.list()).length >= 5) {
             Alert.alert(
               'Giới hạn địa chỉ',
@@ -146,7 +119,6 @@ const AddressSelectionScreen = () => {
           } else {
             const creatorName = route.params?.creatorName;
             const creatorPhone = route.params?.creatorPhone;
-
             const newAddr = await addrService.create({
               name: creatorName || 'Người dùng',
               phone: creatorPhone || '+84 900 000 000',
@@ -161,7 +133,6 @@ const AddressSelectionScreen = () => {
         } else if (action === 'edit' && addressId) {
           const creatorName = route.params?.creatorName;
           const creatorPhone = route.params?.creatorPhone;
-
           const patch: any = {
             address: loc.name || loc.place_name || 'Địa chỉ cập nhật',
             latitude: loc.latitude,
@@ -176,18 +147,13 @@ const AddressSelectionScreen = () => {
         }
       } finally {
         setLoading(false);
-        // clear params to avoid re-processing
-        try {
-          navigation.setParams({
-            location: undefined,
-            action: undefined,
-            addressId: undefined,
-            creatorName: undefined,
-            creatorPhone: undefined,
-          });
-        } catch (e) {
-          // ignore if not supported
-        }
+        navigation.setParams({
+          location: undefined,
+          action: undefined,
+          addressId: undefined,
+          creatorName: undefined,
+          creatorPhone: undefined,
+        });
       }
     };
 
@@ -200,20 +166,15 @@ const AddressSelectionScreen = () => {
   };
 
   const createNewAddress = () => {
-    // Enforce max 5 addresses
     if (addresses.length >= 5) {
       Alert.alert('Giới hạn địa chỉ', 'Bạn đã đạt số lượng tối đa 5 địa chỉ.');
       return;
     }
 
-    // Navigate to the new CreateAddress form where user can enter name/phone
-    // before choosing the location on the map.
     navigation.navigate('CreateAddress');
   };
 
   const handleEditAddress = (id: number) => {
-    // Open the CreateAddress form in edit mode so user sees existing name/phone
-    // and can choose to edit them before picking a new map location.
     const item = addresses.find(a => a.id === id);
     navigation.navigate('CreateAddress', {
       action: 'edit',
@@ -224,7 +185,6 @@ const AddressSelectionScreen = () => {
   };
 
   const handleDeleteAddress = async (id: number) => {
-    // Prevent deleting the last remaining address
     if (addresses.length <= 1) {
       Alert.alert('Không thể xóa', 'Phải có ít nhất một địa chỉ.');
       return;
@@ -248,24 +208,15 @@ const AddressSelectionScreen = () => {
       );
       return;
     }
-
     const selectedAddress = addresses.find(
       addr => addr.id === selectedAddressId,
     );
-
     if (!selectedAddress) {
       Alert.alert('Lỗi', 'Không tìm thấy địa chỉ đã chọn.');
       return;
     }
-
     setLoading(true);
-
     if (route.params?.setSelectedAddress) {
-      // ✅ THÊM LOG
-      console.log('[handleSelectAddress] Calling setter with:', {
-        address: selectedAddress.address,
-      });
-
       try {
         route.params.setSelectedAddress({ address: selectedAddress.address });
       } catch (e) {
@@ -278,12 +229,6 @@ const AddressSelectionScreen = () => {
       }, 250);
       return;
     }
-
-    // ✅ THÊM LOG
-    console.log('[handleSelectAddress] Navigating to CreateRequest with:', {
-      address: selectedAddress.address,
-    });
-
     navigation.navigate({
       name: 'CreateRequest',
       params: { selectedAddress: { address: selectedAddress.address } },
@@ -410,33 +355,24 @@ const AddressSelectionScreen = () => {
                 </View>
               </View>
 
-              {/* Action Buttons */}
               {selectedAddressId === item.id && (
-                <View className="flex-row gap-2 mt-3 pt-3 border-t border-gray-100">
-                  <TouchableOpacity
-                    className="flex-1 bg-blue-50 rounded-xl py-2.5 flex-row items-center justify-center"
-                    onPress={() => handleEditAddress(item.id)}
-                    disabled={loading}
-                  >
-                    <MaterialIcon name="pencil" size={16} color="#3B82F6" />
-                    <Text className="text-blue-600 font-semibold text-sm ml-1.5">
-                      Sửa
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    className={`flex-1 rounded-xl py-2.5 flex-row items-center justify-center ${
-                      loading || addresses.length <= 1
-                        ? 'opacity-50'
-                        : 'bg-red-50'
-                    }`}
-                    onPress={() => handleDeleteAddress(item.id)}
-                    disabled={loading || addresses.length <= 1}
-                  >
-                    <MaterialIcon name="delete" size={16} color="#EF4444" />
-                    <Text className="text-red-600 font-semibold text-sm ml-1.5">
-                      Xóa
-                    </Text>
-                  </TouchableOpacity>
+                <View className="flex-row justify-evenly mt-3 pt-3 border-t border-gray-100">
+                  <View className="w-2/5">
+                    <AppButton
+                      title="Sửa"
+                      onPress={() => handleEditAddress(item.id)}
+                      disabled={loading}
+                    />
+                  </View>
+
+                  <View className="w-2/5">
+                    <AppButton
+                      title="Xóa"
+                      onPress={() => handleDeleteAddress(item.id)}
+                      disabled={loading || addresses.length <= 1}
+                      color="#EF4444"
+                    />
+                  </View>
                 </View>
               )}
             </TouchableOpacity>

@@ -9,7 +9,7 @@ const homepage5 = require('../../assets/images/homepage5.png');
 const homepage6 = require('../../assets/images/homepage6.png');
 const homepage3 = require('../../assets/images/homepage3.png');
 
-export default function HomeDeliveryScreen() {
+export default function DeliveryHomeScreen() {
   const navigation = useNavigation<any>();
   const { user } = useAppSelector(s => s.auth);
 

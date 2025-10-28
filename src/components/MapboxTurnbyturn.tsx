@@ -14,7 +14,7 @@ import {
   getCurrentLocation,
   getDirections as getDirectionsService,
   checkAndRequestLocationPermission,
-} from '../utils/mapboxService';
+} from '../services/mapboxService';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import type { LineString } from 'geojson';

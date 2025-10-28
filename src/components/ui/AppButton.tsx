@@ -18,6 +18,7 @@ interface AppButtonProps {
   textClassName?: string;
   spinnerColor?: string;
   size?: 'small' | 'large';
+  icon?: React.ReactNode;
 }
 
 const AppButton: React.FC<AppButtonProps> = ({
@@ -31,6 +32,7 @@ const AppButton: React.FC<AppButtonProps> = ({
   className = '',
   textClassName = '',
   size = 'large',
+  icon,
 }) => {
   const isDisabled = disabled || loading;
   const heightClass = size === 'small' ? 'py-2' : 'py-4';
@@ -52,12 +54,15 @@ const AppButton: React.FC<AppButtonProps> = ({
           <ActivityIndicator size="small" color={spinnerColor} />
         </View>
       ) : (
-        <Text
-          style={{ color: textColor }}
-          className={`font-semibold text-center ${fontClass} ${textClassName}`}
-        >
-          {title}
-        </Text>
+        <View className="flex-row items-center justify-center">
+          {icon ? <View className="mr-2">{icon}</View> : null}
+          <Text
+            style={{ color: textColor }}
+            className={`font-semibold text-center ${fontClass} ${textClassName}`}
+          >
+            {title}
+          </Text>
+        </View>
       )}
     </TouchableOpacity>
   );

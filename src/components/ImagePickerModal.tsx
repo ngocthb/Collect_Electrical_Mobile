@@ -1,22 +1,108 @@
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, Pressable } from 'react-native';
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  Pressable,
+  Alert,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { openCamera, openGallery } from '../services/imagePickerService';
+import { validateImageSize } from '../utils/validations';
+import type { Asset } from 'react-native-image-picker';
 
 interface ImagePickerModalProps {
   visible: boolean;
   onClose: () => void;
-  onPickFromGallery: () => void;
-  onTakePhoto: () => void;
-  onPickVideo: () => void;
+  /** returns selected assets (may be multiple) to parent */
+  onSelect: (assets: Asset[]) => void;
+  currentCount?: number;
+  maxItems?: number;
 }
 
 const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
   visible,
   onClose,
-  onPickFromGallery,
-  onTakePhoto,
-  onPickVideo,
+  onSelect,
+  currentCount = 0,
+  maxItems = 5,
 }) => {
+  const handlePickFromGallery = async () => {
+    const allowed = Math.max(1, maxItems - currentCount);
+    try {
+      const result = await openGallery(true, allowed);
+      if (result.success && result.images) {
+        const invalidImages = result.images.filter(
+          (img: Asset) => !validateImageSize(img.fileSize, 10),
+        );
+
+        if (invalidImages.length > 0) {
+          Alert.alert(
+            'Ảnh quá lớn',
+            'Một số ảnh có kích thước >= 10MB. Vui lòng chọn ảnh nhỏ hơn 10MB.',
+          );
+          return;
+        }
+
+        onSelect(result.images.slice(0, allowed));
+      } else if (result.error && result.error !== 'User cancelled') {
+        Alert.alert('Lỗi', 'Không thể chọn ảnh từ thư viện');
+      }
+    } catch (e) {
+      console.warn('openGallery failed', e);
+      Alert.alert('Lỗi', 'Không thể chọn ảnh từ thư viện');
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      const result = await openCamera();
+      if (result.success && result.images) {
+        if (!validateImageSize(result.images[0].fileSize, 10)) {
+          Alert.alert(
+            'Ảnh quá lớn',
+            'Ảnh có kích thước >= 10MB. Vui lòng chụp lại.',
+          );
+          return;
+        }
+
+        const allowed = Math.max(1, maxItems - currentCount);
+        onSelect(result.images.slice(0, allowed));
+      } else if (result.error && result.error !== 'User cancelled') {
+        Alert.alert('Lỗi', 'Không thể chụp ảnh');
+      }
+    } catch (e) {
+      console.warn('openCamera failed', e);
+      Alert.alert('Lỗi', 'Không thể chụp ảnh');
+    }
+  };
+
+  const handlePickVideo = async () => {
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'video',
+        videoQuality: 'high',
+        selectionLimit: 1,
+      });
+
+      if (result.didCancel) return;
+      if (result.errorCode) {
+        Alert.alert('Lỗi', 'Không thể chọn video từ thư viện');
+        return;
+      }
+
+      if (result.assets && result.assets.length > 0) {
+        const allowed = Math.max(1, maxItems - currentCount);
+        onSelect(result.assets.slice(0, allowed) as Asset[]);
+      }
+    } catch (e) {
+      console.warn('pick video failed', e);
+      Alert.alert('Lỗi', 'Không thể chọn video từ thư viện');
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -45,7 +131,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
           <View className="px-4 pb-6">
             <TouchableOpacity
               onPress={() => {
-                onTakePhoto();
+                handleTakePhoto();
                 onClose();
               }}
               className="flex-row items-center px-4 py-4 bg-gray-50 rounded-xl mb-3"
@@ -67,7 +153,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
 
             <TouchableOpacity
               onPress={() => {
-                onPickFromGallery();
+                handlePickFromGallery();
                 onClose();
               }}
               className="flex-row items-center px-4 py-4 bg-gray-50 rounded-xl mb-3"
@@ -89,7 +175,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
 
             <TouchableOpacity
               onPress={() => {
-                onPickVideo();
+                handlePickVideo();
                 onClose();
               }}
               className="flex-row items-center px-4 py-4 bg-gray-50 rounded-xl"

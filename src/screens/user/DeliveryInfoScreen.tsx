@@ -10,7 +10,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SubLayout from '../../layout/SubLayout';
 import { useNavigation } from '@react-navigation/core';
 import { useRoute } from '@react-navigation/native';
-import mockRequestService from '../../services/mockRequestService';
+import axiosClient from '../../config/axios';
 import { Image } from 'react-native';
 import AppButton from '../../components/ui/AppButton';
 const shipper = {
@@ -29,7 +29,7 @@ const estimatedDistance = '5.2 km';
 const DeliveryInfoScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const requestId: number | undefined = route.params?.requestId;
+  const requestId: string | undefined = route.params?.requestId;
 
   const [request, setRequest] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
@@ -41,9 +41,36 @@ const DeliveryInfoScreen = () => {
       console.log('[DeliveryInfo] loading requestId=', requestId);
       setLoading(true);
       try {
-        const r = await mockRequestService.get(requestId);
-        console.log('[DeliveryInfo] fetched request=', r);
-        if (mounted) setRequest(r ?? null);
+        const r = await axiosClient.get(`/posts/${requestId}`);
+        console.log('[DeliveryInfo] fetched request raw=', r);
+
+        const data = r as any;
+        const normalized: any = { ...data };
+
+        if (Array.isArray(data.images)) {
+          normalized.images = data.images.map((u: string) => ({ uri: u }));
+          normalized.image = normalized.images[0] || null;
+        }
+
+        if (Array.isArray(data.schedule)) {
+          const slotsObj: Record<string, string[]> = {};
+          data.schedule.forEach((item: any) => {
+            if (
+              item &&
+              item.dayName &&
+              Array.isArray(item.slots) &&
+              item.slots.length > 0
+            ) {
+              const s = item.slots[0];
+              const start = s.startTime || '';
+              const end = s.endTime || '';
+              slotsObj[item.dayName] = [start, end];
+            }
+          });
+          normalized.timeSlots = slotsObj;
+        }
+
+        if (mounted) setRequest(normalized ?? null);
       } catch (e) {
         console.warn('Failed to load request', e);
       } finally {
@@ -59,6 +86,7 @@ const DeliveryInfoScreen = () => {
   const statusColorClass = (status: string) => {
     switch ((status || '').toLowerCase()) {
       case 'đang chờ duyệt':
+      case 'chờ duyệt':
         return 'bg-yellow-400';
       case 'đã duyệt':
         return 'bg-blue-500';
@@ -68,6 +96,10 @@ const DeliveryInfoScreen = () => {
         return 'bg-gray-400';
     }
   };
+
+  const statusLower = (request?.status || '').toLowerCase();
+  const isPending =
+    statusLower.includes('chờ duyệt') || statusLower.includes('đã duyệt');
 
   const dayLabel = (code: string) => {
     switch (code) {
@@ -125,106 +157,105 @@ const DeliveryInfoScreen = () => {
       <ScrollView className="flex-1">
         <View className="p-5">
           {/* Shipper Profile Card - hidden when request is pending */}
-          {request &&
-            (request.status || '').toLowerCase() !== 'đang chờ duyệt' && (
-              <View className="bg-white rounded-3xl shadow-md mb-5 overflow-hidden">
-                <View className="p-6">
-                  <Text className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
-                    Thông tin tài xế
-                  </Text>
+          {request && !isPending && (
+            <View className="bg-white rounded-3xl shadow-md mb-5 overflow-hidden">
+              <View className="p-6">
+                <Text className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
+                  Thông tin tài xế
+                </Text>
 
-                  <View className="flex-row items-center mb-5">
-                    <View className="relative">
-                      <View className="mr-4">
-                        <Image
-                          source={avatar}
-                          className="w-20 h-20 rounded-full"
-                          style={{
-                            shadowColor: '#3B82F6',
-                            shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: 0.3,
-                            shadowRadius: 8,
-                          }}
-                          resizeMode="cover"
-                        />
-                      </View>
-                    </View>
-
-                    <View className="flex-1">
-                      <Text className="font-bold text-2xl text-gray-900 mb-1">
-                        {shipper.name}
-                      </Text>
+                <View className="flex-row items-center mb-5">
+                  <View className="relative">
+                    <View className="mr-4">
+                      <Image
+                        source={avatar}
+                        className="w-20 h-20 rounded-full"
+                        style={{
+                          shadowColor: '#3B82F6',
+                          shadowOffset: { width: 0, height: 4 },
+                          shadowOpacity: 0.3,
+                          shadowRadius: 8,
+                        }}
+                        resizeMode="cover"
+                      />
                     </View>
                   </View>
 
-                  {/* Vehicle Info */}
-                  <View className="flex-row gap-3 mb-5">
-                    <View className="flex-1 bg-gray-50 rounded-2xl p-4">
-                      <View className="flex-row items-center mb-2">
-                        <Icon name="motorbike" size={20} color="#3B82F6" />
-                        <Text className="text-gray-500 text-xs ml-2">
-                          Phương tiện
-                        </Text>
-                      </View>
-                      <Text className="text-gray-900 font-semibold text-base">
-                        {shipper.vehicle}
-                      </Text>
-                    </View>
-
-                    <View className="flex-1 bg-gray-50 rounded-2xl p-4">
-                      <View className="flex-row items-center mb-2">
-                        <Icon
-                          name="card-text-outline"
-                          size={20}
-                          color="#3B82F6"
-                        />
-                        <Text className="text-gray-500 text-xs ml-2">
-                          Biển số xe
-                        </Text>
-                      </View>
-                      <Text className="text-gray-900 font-semibold text-base">
-                        {shipper.licensePlate}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Action Buttons */}
-                  <View className="flex-row gap-3">
-                    <TouchableOpacity
-                      className="flex-1 bg-secondary-100 rounded-2xl py-4 flex-row items-center justify-center"
-                      onPress={() => {}}
-                      style={{
-                        shadowColor: '#10B981',
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 8,
-                      }}
-                    >
-                      <Icon name="phone" size={22} color="white" />
-                      <Text className="text-white font-bold text-base ml-2">
-                        Gọi điện
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      className="flex-1 bg-primary-100 rounded-2xl py-4 flex-row items-center justify-center"
-                      onPress={() => {}}
-                      style={{
-                        shadowColor: '#3B82F6',
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 8,
-                      }}
-                    >
-                      <Icon name="message-text" size={22} color="white" />
-                      <Text className="text-white font-bold text-base ml-2">
-                        Nhắn tin
-                      </Text>
-                    </TouchableOpacity>
+                  <View className="flex-1">
+                    <Text className="font-bold text-2xl text-gray-900 mb-1">
+                      {shipper.name}
+                    </Text>
                   </View>
                 </View>
+
+                {/* Vehicle Info */}
+                <View className="flex-row gap-3 mb-5">
+                  <View className="flex-1 bg-gray-50 rounded-2xl p-4">
+                    <View className="flex-row items-center mb-2">
+                      <Icon name="motorbike" size={20} color="#3B82F6" />
+                      <Text className="text-gray-500 text-xs ml-2">
+                        Phương tiện
+                      </Text>
+                    </View>
+                    <Text className="text-gray-900 font-semibold text-base">
+                      {shipper.vehicle}
+                    </Text>
+                  </View>
+
+                  <View className="flex-1 bg-gray-50 rounded-2xl p-4">
+                    <View className="flex-row items-center mb-2">
+                      <Icon
+                        name="card-text-outline"
+                        size={20}
+                        color="#3B82F6"
+                      />
+                      <Text className="text-gray-500 text-xs ml-2">
+                        Biển số xe
+                      </Text>
+                    </View>
+                    <Text className="text-gray-900 font-semibold text-base">
+                      {shipper.licensePlate}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Action Buttons */}
+                <View className="flex-row gap-3">
+                  <TouchableOpacity
+                    className="flex-1 bg-secondary-100 rounded-2xl py-4 flex-row items-center justify-center"
+                    onPress={() => {}}
+                    style={{
+                      shadowColor: '#10B981',
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 8,
+                    }}
+                  >
+                    <Icon name="phone" size={22} color="white" />
+                    <Text className="text-white font-bold text-base ml-2">
+                      Gọi điện
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    className="flex-1 bg-primary-100 rounded-2xl py-4 flex-row items-center justify-center"
+                    onPress={() => {}}
+                    style={{
+                      shadowColor: '#3B82F6',
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 8,
+                    }}
+                  >
+                    <Icon name="message-text" size={22} color="white" />
+                    <Text className="text-white font-bold text-base ml-2">
+                      Nhắn tin
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            )}
+            </View>
+          )}
 
           {/* Order Details Card */}
           <View className="bg-white rounded-3xl shadow-md mb-5 p-6">
@@ -287,9 +318,21 @@ const DeliveryInfoScreen = () => {
                   </View>
                   <Text className="text-gray-600 text-base">Mã đơn hàng</Text>
                 </View>
-                <Text className="text-gray-900 font-semibold text-base">
-                  {request ? `#${request.id}` : '#DH123456'}
-                </Text>
+                <View
+                  style={{
+                    flex: 1,
+                    marginLeft: 12,
+                    alignItems: 'flex-end',
+                    minHeight: 20,
+                  }}
+                >
+                  <Text
+                    style={{ textAlign: 'right' }}
+                    className="text-gray-900 font-semibold text-base"
+                  >
+                    {request ? `#${request.id}` : '—'}
+                  </Text>
+                </View>
               </View>
 
               {/* Address row (from request) */}
@@ -322,36 +365,40 @@ const DeliveryInfoScreen = () => {
               </View>
 
               {/* Distance row (fallback to estimated) */}
-              <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
-                <View className="flex-row items-center">
-                  <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center mr-3">
-                    <Icon
-                      name="map-marker-distance"
-                      size={20}
-                      color="#3B82F6"
-                    />
+              {!isPending && (
+                <>
+                  <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
+                    <View className="flex-row items-center">
+                      <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center mr-3">
+                        <Icon
+                          name="map-marker-distance"
+                          size={20}
+                          color="#3B82F6"
+                        />
+                      </View>
+                      <Text className="text-gray-600 text-base">
+                        Khoảng cách
+                      </Text>
+                    </View>
+                    <Text className="text-gray-900 font-semibold text-base">
+                      {request?.distance ?? estimatedDistance}
+                    </Text>
                   </View>
-                  <Text className="text-gray-600 text-base">Khoảng cách</Text>
-                </View>
-                <Text className="text-gray-900 font-semibold text-base">
-                  {request?.distance ?? estimatedDistance}
-                </Text>
-              </View>
-
-              {/* Estimated time */}
-              <View className="flex-row items-center justify-between py-3">
-                <View className="flex-row items-center">
-                  <View className="w-10 h-10 rounded-full bg-green-100 items-center justify-center mr-3">
-                    <Icon name="clock-outline" size={20} color="#10B981" />
+                  <View className="flex-row items-center justify-between py-3">
+                    <View className="flex-row items-center">
+                      <View className="w-10 h-10 rounded-full bg-green-100 items-center justify-center mr-3">
+                        <Icon name="clock-outline" size={20} color="#10B981" />
+                      </View>
+                      <Text className="text-gray-600 text-base">
+                        Thời gian dự kiến
+                      </Text>
+                    </View>
+                    <Text className="text-gray-900 font-semibold text-base">
+                      {request?.estimatedTime ?? request?.time ?? estimatedTime}
+                    </Text>
                   </View>
-                  <Text className="text-gray-600 text-base">
-                    Thời gian dự kiến
-                  </Text>
-                </View>
-                <Text className="text-gray-900 font-semibold text-base">
-                  {request?.estimatedTime ?? request?.time ?? estimatedTime}
-                </Text>
-              </View>
+                </>
+              )}
             </View>
           </View>
 
@@ -419,15 +466,12 @@ const DeliveryInfoScreen = () => {
             <Icon name="chevron-right" size={24} color="#F59E0B" />
           </TouchableOpacity>
 
-          {request &&
-            (request.status || '').toLowerCase() !== 'đang chờ duyệt' && (
-              <AppButton
-                title="Xác nhận"
-                onPress={() =>
-                  navigation.navigate('UserConfirm', { requestId: request?.id })
-                }
-              />
-            )}
+          <AppButton
+            title="Xác nhận"
+            onPress={() =>
+              navigation.navigate('UserConfirm', { requestId: request?.id })
+            }
+          />
         </View>
       </ScrollView>
     </SubLayout>
