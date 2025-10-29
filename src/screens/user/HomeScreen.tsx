@@ -25,18 +25,18 @@ export default function HomeScreen() {
     },
     {
       id: 2,
-      title: 'Ví của bạn',
+      title: 'Ví của tôi',
       image: homepage2,
       color: '#E8F5E8',
       textColor: '#388E3C',
     },
-    {
-      id: 3,
-      title: 'Nhắc nhở',
-      image: homepage3,
-      color: '#FFF3E0',
-      textColor: '#F57C00',
-    },
+    // {
+    //   id: 3,
+    //   title: 'Nhắc nhở',
+    //   image: homepage3,
+    //   color: '#FFF3E0',
+    //   textColor: '#F57C00',
+    // },
     {
       id: 4,
       title: 'Các điểm thu',
@@ -50,6 +50,12 @@ export default function HomeScreen() {
     switch (id) {
       case 1:
         navigation.navigate('CreateRequest');
+        break;
+      case 2:
+        navigation.navigate('Wallet');
+        break;
+      case 4:
+        navigation.navigate('WarehouseLocation');
         break;
       default:
         break;

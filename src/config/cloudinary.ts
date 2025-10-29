@@ -1,4 +1,4 @@
-import { UPLOAD_PRESET, CLOUD_NAME } from '@env';
+import Config from './env';
 
 interface UploadImage {
   uri: string;
@@ -9,8 +9,8 @@ interface UploadImage {
 export const uploadImageToCloudinary = async (
   image: UploadImage,
 ): Promise<string> => {
-  const cloudName = CLOUD_NAME;
-  const uploadPreset = UPLOAD_PRESET;
+  const cloudName = Config.CLOUD_NAME;
+  const uploadPreset = Config.UPLOAD_PRESET;
 
   if (!cloudName || !uploadPreset) {
     throw new Error('Cloudinary environment variables are missing.');

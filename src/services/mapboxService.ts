@@ -2,9 +2,9 @@ import { Platform, PermissionsAndroid, Alert, Linking } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import type { LineString } from 'geojson';
 
-import { MAPBOX_ACCESS_TOKEN } from '@env';
+import Config from '../config/env';
 
-const MAPBOX_TOKEN = MAPBOX_ACCESS_TOKEN;
+const MAPBOX_TOKEN = Config.MAPBOX_ACCESS_TOKEN;
 
 export async function searchLocation(
   query: string,

@@ -12,6 +12,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import SubLayout from '../../layout/SubLayout';
 import AppButton from '../../components/ui/AppButton';
 import Icon from 'react-native-vector-icons/Feather';
+import AppImageGallery from '../../components/ui/AppImageGallery';
 import { openCamera } from '../../services/imagePickerService';
 import { uploadImageToCloudinary } from '../../config/cloudinary';
 import { validateImageSize } from '../../utils/validations';
@@ -128,7 +129,10 @@ const DeliveryCancelScreen = () => {
       );
 
       Alert.alert('Hoàn tất', 'Đã hủy đơn hàng');
-      navigation.navigate('DeliveryOrder');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'DeliveryOrder' }],
+      });
     } catch (e) {
       console.warn('Failed to cancel route', e);
       Alert.alert('Lỗi', 'Không thể hủy đơn hàng, thử lại sau');
@@ -199,46 +203,29 @@ const DeliveryCancelScreen = () => {
           </View>
 
           <View className="bg-white rounded-xl p-4 mb-6">
-            <Text className="text-base font-medium text-gray-900 mb-2">
-              Ảnh (tùy chọn)
-            </Text>
-            <Text className="text-sm text-gray-500 mb-3">
-              Chụp ảnh hiện trạng nếu cần làm bằng chứng
-            </Text>
-
-            <View className="flex-row flex-wrap gap-4">
-              {selectedImages.map((image, index) => (
-                <View key={index} className="relative">
-                  <Image
-                    source={{ uri: image.uri }}
-                    className="w-28 h-28 rounded-lg"
-                  />
-                  <TouchableOpacity
-                    onPress={() => handleRemoveImage(index)}
-                    className="absolute -top-2 -right-2 bg-red-500 rounded-full w-6 h-6 items-center justify-center"
-                  >
-                    <Text className="text-white text-xs font-bold">×</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-
-              {selectedImages.length < 5 && (
-                <TouchableOpacity
-                  onPress={handleTakePhoto}
-                  className="w-28 h-28 border-2 border-dashed border-gray-400 rounded-lg items-center justify-center bg-gray-50"
-                >
-                  <Icon name="camera" size={32} color="#9CA3AF" />
-                  <Text className="text-gray-400 text-xs mt-1">Thêm ảnh</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+            <AppImageGallery
+              images={selectedImages as any as any[]}
+              onRemove={handleRemoveImage}
+              onAddPress={handleTakePhoto}
+            />
           </View>
+
+          {/* Require at least one badge (reason) and at least one image before allowing submit */}
+          {selectedBadges.length === 0 || selectedImages.length === 0 ? (
+            <Text className="text-sm text-red-500 mb-2">
+              Vui lòng chọn lý do và thêm ít nhất 1 ảnh để xác nhận từ chối
+            </Text>
+          ) : null}
 
           <AppButton
             title="Xác nhận từ chối"
             color="#E53935"
             loading={isSubmitting}
-            disabled={isSubmitting}
+            disabled={
+              isSubmitting ||
+              selectedBadges.length === 0 ||
+              selectedImages.length === 0
+            }
             onPress={handleCancelConfirm}
           />
         </View>

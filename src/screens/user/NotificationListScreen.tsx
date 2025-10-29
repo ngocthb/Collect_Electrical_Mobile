@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import MainLayout from '../../layout/MainLayout';
 
@@ -9,7 +16,8 @@ interface NotificationItemProps {
   subtitle: string;
   date: string;
   amount?: string;
-  isRead?: boolean;
+  isFinish?: boolean;
+  status?: string;
   onPress: () => void;
 }
 
@@ -19,70 +27,132 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   subtitle,
   date,
   amount,
-  isRead = false,
+  status,
   onPress,
-}) => (
-  <TouchableOpacity
-    className={`flex-row items-center p-4 mx-4 mb-3 rounded-2xl shadow-sm active:scale-[0.98] ${
-      isRead ? 'bg-white' : 'bg-teal-50 border-2 border-teal-100'
-    }`}
-    onPress={onPress}
-    activeOpacity={0.7}
-  >
-    {/* Image with gradient overlay */}
-    <View className="relative">
-      <View className="w-16 h-16 rounded-2xl overflow-hidden bg-gray-100">
-        <Image
-          source={{ uri: image }}
-          className="w-full h-full"
-          resizeMode="cover"
-        />
+}) => {
+  return (
+    <TouchableOpacity
+      className={`flex-row items-center p-3 mb-3 rounded-lg border border-gray-200 bg-white active:scale-[0.98]`}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      {/* Image with gradient overlay */}
+      <View className="relative">
+        <View className="w-16 h-16 rounded-2xl overflow-hidden bg-gray-100">
+          <Image
+            source={{ uri: image }}
+            className="w-full h-full"
+            resizeMode="cover"
+          />
+        </View>
       </View>
 
-      {!isRead && (
-        <View className="absolute -top-1 -left-1 w-3 h-3 bg-teal-500 rounded-full border-2 border-white" />
+      {/* Content */}
+      <View className="flex-1 ml-4 min-w-0">
+        <Text
+          className={`font-bold text-base mb-1 ${'text-gray-900'}`}
+          numberOfLines={1}
+        >
+          {title}
+        </Text>
+        <Text className="text-sm mb-2 text-gray-700" numberOfLines={2}>
+          {subtitle}
+        </Text>
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <Icon name="clock" size={12} color="#9ca3af" />
+            <Text className="text-xs text-gray-400 ml-1" numberOfLines={1}>
+              {date}
+            </Text>
+          </View>
+
+          {status && (
+            <View style={{ marginLeft: 8 }}>
+              {status === 'completed' && (
+                <View
+                  style={{
+                    backgroundColor: '#16a34a',
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 999,
+                  }}
+                >
+                  <Text
+                    style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}
+                  >
+                    Đã hoàn thành
+                  </Text>
+                </View>
+              )}
+              {status === 'in_progress' && (
+                <View
+                  style={{
+                    backgroundColor: '#f59e0b',
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 999,
+                  }}
+                >
+                  <Text
+                    style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}
+                  >
+                    Đang tiến hành
+                  </Text>
+                </View>
+              )}
+              {status === 'scheduled' && (
+                <View
+                  style={{
+                    backgroundColor: '#2563EB',
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 999,
+                  }}
+                >
+                  <Text
+                    style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}
+                  >
+                    Sắp tiến hành
+                  </Text>
+                </View>
+              )}
+              {status === 'on_the_way' && (
+                <View
+                  style={{
+                    backgroundColor: '#4169E1',
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 999,
+                  }}
+                >
+                  <Text
+                    style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}
+                  >
+                    Đang trên đường
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* Amount Badge */}
+      {amount && (
+        <View className="ml-2  px-4 py-2 ">
+          <Text className="font-bold text-secondary-100 text-base">
+            +{amount} 🪙
+          </Text>
+        </View>
       )}
-    </View>
 
-    {/* Content */}
-    <View className="flex-1 ml-4 min-w-0">
-      <Text
-        className={`font-bold text-base mb-1 ${
-          isRead ? 'text-gray-700' : 'text-gray-900'
-        }`}
-        numberOfLines={1}
-      >
-        {title}
-      </Text>
-      <Text
-        className={`text-sm mb-2 ${isRead ? 'text-gray-500' : 'text-gray-700'}`}
-        numberOfLines={2}
-      >
-        {subtitle}
-      </Text>
-      <View className="flex-row items-center">
-        <Icon name="clock" size={12} color="#9ca3af" />
-        <Text className="text-xs text-gray-400 ml-1" numberOfLines={1}>
-          {date}
-        </Text>
+      {/* Arrow indicator */}
+      <View className="ml-2">
+        <Icon name="chevron-right" size={20} color="#cbd5e1" />
       </View>
-    </View>
-
-    {/* Amount Badge */}
-    {amount && (
-      <View className="ml-2  px-4 py-2 ">
-        <Text className="font-bold text-secondary-100 text-base">
-          +{amount} 🪙
-        </Text>
-      </View>
-    )}
-
-    {/* Arrow indicator */}
-    <View className="ml-2">
-      <Icon name="chevron-right" size={20} color="#cbd5e1" />
-    </View>
-  </TouchableOpacity>
-);
+    </TouchableOpacity>
+  );
+};
 
 interface NotificationListScreenProps {
   navigation: any;
@@ -93,7 +163,7 @@ const NotificationListScreen: React.FC<NotificationListScreenProps> = ({
 }) => {
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
-  const notifications = [
+  const [notifications, setNotifications] = useState([
     {
       id: '1',
       image:
@@ -101,7 +171,18 @@ const NotificationListScreen: React.FC<NotificationListScreenProps> = ({
       title: 'Tủ lạnh',
       subtitle: 'Sản phẩm sẽ được đến lấy vào ngày mai lúc 9:00 AM',
       date: 'Thứ 4, 3 Tháng 08 2025',
-      isRead: false,
+      isFinish: false,
+      status: 'in_progress',
+    },
+    {
+      id: '4',
+      image:
+        'https://images.unsplash.com/photo-1541532713592-79a0317b6b77?w=100&h=100&fit=crop',
+      title: 'Điện thoại cũ',
+      subtitle: 'Người thu gom đã lên lịch lấy trong tuần tới',
+      date: 'Thứ 2, 3 Tháng 11 2025',
+      isFinish: false,
+      status: 'scheduled',
     },
     {
       id: '2',
@@ -111,7 +192,8 @@ const NotificationListScreen: React.FC<NotificationListScreenProps> = ({
       subtitle: 'Bạn đã thu được điểm thưởng từ việc tái chế',
       amount: '12,000',
       date: 'Thứ 4, 10 Tháng 10 2025',
-      isRead: false,
+      isFinish: true,
+      status: 'completed',
     },
     {
       id: '3',
@@ -121,14 +203,37 @@ const NotificationListScreen: React.FC<NotificationListScreenProps> = ({
       subtitle: 'Bạn đã thu được điểm thưởng',
       amount: '2,000',
       date: 'Thứ 3, 3 Tháng 08 2025',
-      isRead: true,
+      isFinish: true,
+      status: 'completed',
     },
-  ];
+  ]);
+
+  const updateNotificationStatus = (id: string, newStatus: string) => {
+    setNotifications(prev =>
+      prev.map(n =>
+        n.id === id
+          ? { ...n, status: newStatus, isFinish: newStatus === 'completed' }
+          : n,
+      ),
+    );
+    const label =
+      newStatus === 'completed'
+        ? 'Đã hoàn thành'
+        : newStatus === 'in_progress'
+        ? 'Đang tiến hành'
+        : newStatus === 'scheduled'
+        ? 'Sắp tiến hành'
+        : 'Đang trên đường';
+    Alert.alert('Cập nhật trạng thái', `Đã chuyển thông báo thành: ${label}`);
+    // TODO: persist change to server/store if required
+  };
 
   const filteredNotifications =
-    filter === 'unread' ? notifications.filter(n => !n.isRead) : notifications;
+    filter === 'unread'
+      ? notifications.filter(n => !n.isFinish)
+      : notifications;
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter(n => !n.isFinish).length;
 
   return (
     <MainLayout>
@@ -151,7 +256,7 @@ const NotificationListScreen: React.FC<NotificationListScreenProps> = ({
 
         {/* Notifications List */}
         <ScrollView
-          className="flex-1 mt-2"
+          className="flex-1 mt-2 px-4"
           showsVerticalScrollIndicator={false}
         >
           {filteredNotifications.length > 0 ? (
@@ -164,9 +269,14 @@ const NotificationListScreen: React.FC<NotificationListScreenProps> = ({
                   subtitle={notification.subtitle}
                   date={notification.date}
                   amount={notification.amount}
-                  isRead={notification.isRead}
+                  isFinish={notification.isFinish}
+                  status={notification.status}
                   onPress={() => {
-                    if (notification.amount) {
+                    if (notification.status === 'in_progress') {
+                      navigation.navigate('Delivering', { notification });
+                    } else if (!notification.isFinish) {
+                      navigation.navigate('ShipmentDetail', { notification });
+                    } else if (notification.amount) {
                       navigation.navigate('UserNotificationDetail', {
                         notification,
                       });

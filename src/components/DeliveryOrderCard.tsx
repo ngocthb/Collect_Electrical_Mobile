@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AppButton from '../components/ui/AppButton';
 import {
-  getOrderId,
   getOrderName,
   getOrderTime,
   getOrderAddress,
@@ -23,8 +22,7 @@ type Props = {
 
 const DeliveryOrderCard = ({
   order,
-  idx,
-  isLast,
+
   isSelectedDateToday,
   onOpenMap,
   onReject,

@@ -20,6 +20,7 @@ interface AppDropdownProps {
   onSelect: (option: Option) => void;
   title?: string;
   required?: boolean;
+  value?: Option | null;
 }
 
 const AppDropdown: React.FC<AppDropdownProps> = ({
@@ -28,17 +29,15 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
   onSelect,
   title,
   required,
+  value,
 }) => {
   const [isDropdownVisible, setDropdownVisible] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string | null>(
-    options.length > 0 ? options[0].label : null,
-  );
+  // don't auto-select the first option — show placeholder until user explicitly picks
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
   useEffect(() => {
-    if (options.length > 0) {
-      onSelect(options[0]);
-    }
-  }, [options, onSelect]);
+    if (value && value.label) setSelectedOption(value.label);
+  }, [value]);
 
   const handleSelect = (option: Option) => {
     setSelectedOption(option.label);

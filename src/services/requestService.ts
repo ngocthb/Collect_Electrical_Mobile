@@ -15,8 +15,6 @@ interface CreateRequestPayload {
 
 const create = async (payload: CreateRequestPayload) => {
   try {
-    console.log(JSON.stringify(payload, null, 2));
-
     const response = await axiosClient.post('posts', payload);
     return response;
   } catch (error) {

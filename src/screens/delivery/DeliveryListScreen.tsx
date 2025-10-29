@@ -9,20 +9,15 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import routeService from '../../services/routeService';
+import WeeklyCalendar from '../../components/ui/WeeklyCalendar';
+import WeekStrip from '../../components/ui/WeekStrip';
 import DeliveryOrderCard from '../../components/DeliveryOrderCard';
 import {
   getOrderId,
   getOrderDate,
   resolveStatus,
-  getOrderName,
-  getOrderTime,
-  getOrderAddress,
-  getStatusColor,
 } from '../../utils/deliveryHelpers';
-// Badge modal removed in favor of a dedicated cancel screen
 import SubLayout from '../../layout/SubLayout';
-import { DEFAULT_BADGES } from '../../components/BadgeModal';
-import AppButton from '../../components/ui/AppButton';
 
 const statusOptions = [
   { value: 'all', label: 'Tất cả', color: '#666' },
@@ -38,17 +33,24 @@ export default function DeliveryListScreen() {
   const [lineHeight, setLineHeight] = useState(0);
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showWeekCalendar, setShowWeekCalendar] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [badgeModalVisible, setBadgeModalVisible] = useState(false);
-  const [activeOrder, setActiveOrder] = useState<any | null>(null);
 
-  // Whether the currently selected date is today (used to enable/disable action buttons)
-  const isSelectedDateToday =
-    selectedDate.toDateString() === new Date().toDateString();
+  const isSelectedDateToday = (() => {
+    const s = new Date(selectedDate);
+    const day = s.getDay();
+    const monday = new Date(s);
+    const diff = (day === 0 ? -6 : 1) - day;
+    monday.setDate(s.getDate() + diff);
+    monday.setHours(0, 0, 0, 0);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today >= monday && today <= sunday;
+  })();
 
-  // Load orders from API for the selected date
   const formatAPIDate = (date: Date) => {
     const yyyy = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -56,12 +58,33 @@ export default function DeliveryListScreen() {
     return `${yyyy}-${mm}-${dd}`;
   };
 
-  const fetchOrdersForDate = async (date: Date) => {
+  const startOfWeek = (d: Date) => {
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = (day === 0 ? -6 : 1) - day; // Monday as start
+    date.setDate(date.getDate() + diff);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  };
+
+  const fetchOrdersForWeek = async (date: Date) => {
     setIsLoading(true);
     try {
-      const dateStr = formatAPIDate(date);
-      const res: any = await routeService.listByDate(dateStr);
-      setOrders((res || []) as any[]);
+      const start = startOfWeek(date);
+      const acc: any[] = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        const dateStr = formatAPIDate(d);
+        try {
+          const res: any = await routeService.listByDate(dateStr);
+          if (res && Array.isArray(res)) acc.push(...res);
+        } catch (e) {
+          // continue if one day fails
+          console.warn('failed loading day', dateStr, (e as any)?.message ?? e);
+        }
+      }
+      setOrders(acc);
     } catch (e: any) {
       console.warn('Failed to load orders from API', e?.message ?? e);
       setOrders([]);
@@ -73,30 +96,32 @@ export default function DeliveryListScreen() {
   useEffect(() => {
     let mounted = true;
     if (!mounted) return;
-    fetchOrdersForDate(selectedDate);
+    fetchOrdersForWeek(selectedDate);
     return () => {
       mounted = false;
     };
   }, [selectedDate]);
 
-  // helper functions moved to src/utils/deliveryHelpers.ts
-
-  const reloadOrders = async () => {
-    try {
-      await fetchOrdersForDate(selectedDate);
-    } catch (e) {
-      console.warn('Failed to reload orders', e);
-    }
-  };
-
-  // Filter orders based on status and date (use accessors that support raw/mapped objects)
-  const filteredOrders = orders.filter(order => {
+  // Filter orders by status (orders already constrained to selected week)
+  let filteredOrders = orders.filter(order => {
     const matchesStatus =
       selectedStatus === 'all' || resolveStatus(order) === selectedStatus;
-    const od = getOrderDate(order);
-    const matchesDate = od && od.toDateString() === selectedDate.toDateString();
-    return matchesStatus && matchesDate;
+    return matchesStatus;
   });
+
+  // If viewing "all", move completed and failed orders to the bottom while preserving relative order
+  if (selectedStatus === 'all') {
+    const top: any[] = [];
+    const middle: any[] = [];
+    const bottom: any[] = [];
+    filteredOrders.forEach(o => {
+      const s = resolveStatus(o);
+      if (s === 'completed' || s === 'failed') bottom.push(o);
+      else if (s === 'pending') top.push(o);
+      else middle.push(o);
+    });
+    filteredOrders = [...top, ...middle, ...bottom];
+  }
 
   // Debug: log status changes to help diagnose UI issues
   useEffect(() => {}, [selectedStatus, filteredOrders.length]);
@@ -119,17 +144,20 @@ export default function DeliveryListScreen() {
     }
   }, [filteredOrders]);
 
-  const formatDate = (date: Date) => {
-    const day = date.getDate();
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+  const changeWeek = (weeks: number) => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + weeks * 7);
+    setSelectedDate(newDate);
   };
 
-  const changeDate = (days: number) => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + days);
-    setSelectedDate(newDate);
+  const formatWeekLabel = (date: Date) => {
+    const s = startOfWeek(date);
+    const e = new Date(s);
+    e.setDate(s.getDate() + 6);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(s.getDate())}/${pad(s.getMonth() + 1)} - ${pad(
+      e.getDate(),
+    )}/${pad(e.getMonth() + 1)}`;
   };
 
   return (
@@ -142,29 +170,34 @@ export default function DeliveryListScreen() {
           navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
         }
       }}
-    >
-      {/* Date Picker */}
-      <View className="px-4">
-        <View className="flex-row items-center justify-between bg-white rounded-xl p-3 shadow-sm">
-          <TouchableOpacity onPress={() => changeDate(-1)} className="p-2">
-            <Icon name="chevron-left" size={24} color="#4169E1" />
-          </TouchableOpacity>
-
+      rightComponent={
+        <View className="flex-row items-center bg-gray-100 rounded-xl p-2 shadow-sm">
           <TouchableOpacity
-            onPress={() => setShowDatePicker(true)}
-            className="flex-row items-center"
+            onPress={() => setShowWeekCalendar(true)}
+            className="flex-row items-center px-2"
           >
-            <Icon name="calendar" size={20} color="#4169E1" />
+            <Icon name="calendar" size={18} color="#4169E1" />
             <Text className="ml-2 text-sm font-semibold text-text-main">
-              {formatDate(selectedDate)}
+              {formatWeekLabel(selectedDate)}
             </Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => changeDate(1)} className="p-2">
-            <Icon name="chevron-right" size={24} color="#4169E1" />
-          </TouchableOpacity>
         </View>
-      </View>
+      }
+    >
+      <WeeklyCalendar
+        visible={showWeekCalendar}
+        initialDate={selectedDate}
+        onClose={() => setShowWeekCalendar(false)}
+        onSelect={d => setSelectedDate(d)}
+      />
+
+      {/* Inline week selector under header */}
+      <WeekStrip
+        selectedDate={selectedDate}
+        onSelectDate={d => setSelectedDate(d)}
+        onPrevWeek={() => changeWeek(-1)}
+        onNextWeek={() => changeWeek(1)}
+      />
 
       {/* Status Tabs */}
       <View className="px-4 py-1">

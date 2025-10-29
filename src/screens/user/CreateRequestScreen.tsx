@@ -246,6 +246,7 @@ const CreateRequestScreen = () => {
             title="Chọn danh mục sản phẩm"
             options={categories}
             placeholder="Chọn danh mục"
+            value={selectedCategory}
             onSelect={option => setSelectedCategory(option)}
           />
 
