@@ -12,15 +12,13 @@ import Icon from 'react-native-vector-icons/Feather';
 import IconMaterial from 'react-native-vector-icons/MaterialIcons';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { logout } from '../store/authSlice';
+import AppAvatar from './ui/AppAvatar';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
-import { useNavigation } from '@react-navigation/core';
-
-const avatar = require('../assets/images/avatar.jpg');
-
+import { uninitZegoService } from '../config/zego';
 interface SidebarProps {
   visible: boolean;
   onClose: () => void;
@@ -41,7 +39,8 @@ const Sidebar = ({ visible, onClose }: SidebarProps) => {
     transform: [{ translateX: slideAnim.value }],
   }));
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await uninitZegoService();
     dispatch(logout());
     onClose();
   };
@@ -78,10 +77,11 @@ const Sidebar = ({ visible, onClose }: SidebarProps) => {
             <View className="px-6 py-8 border-b border-gray-200 bg-gray-50">
               <View className="flex-row items-center">
                 <View className="relative bg-secondary-100 rounded-full p-1">
-                  <Image
-                    source={avatar}
-                    className="w-16 h-16 rounded-full border-4 border-white"
-                    resizeMode="cover"
+                  <AppAvatar
+                    name={user?.name}
+                    uri={user?.avatar ?? null}
+                    size={64}
+                    style={{ borderWidth: 4, borderColor: '#fff' }}
                   />
                 </View>
                 <View className="ml-4">

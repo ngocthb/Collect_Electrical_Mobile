@@ -38,17 +38,19 @@ export default function DeliveryListScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const isSelectedDateToday = (() => {
-    const s = new Date(selectedDate);
-    const day = s.getDay();
-    const monday = new Date(s);
-    const diff = (day === 0 ? -6 : 1) - day;
-    monday.setDate(s.getDate() + diff);
-    monday.setHours(0, 0, 0, 0);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
+    const selected = new Date(selectedDate);
+    selected.setHours(0, 0, 0, 0);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return today >= monday && today <= sunday;
+    return selected.getTime() === today.getTime();
+  })();
+
+  const isSelectedDatePast = (() => {
+    const selected = new Date(selectedDate);
+    selected.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return selected.getTime() < today.getTime();
   })();
 
   const formatAPIDate = (date: Date) => {

@@ -41,9 +41,9 @@ const WeekStrip: React.FC<Props> = ({
   return (
     <View className="px-4">
       <View className="flex-row items-center mb-2">
-        <TouchableOpacity onPress={onPrevWeek} className="p-2">
+        {/* <TouchableOpacity onPress={onPrevWeek} className="p-2">
           <Icon name="chevron-left" size={20} color="#4169E1" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <ScrollView
           horizontal
@@ -86,9 +86,9 @@ const WeekStrip: React.FC<Props> = ({
           })}
         </ScrollView>
 
-        <TouchableOpacity onPress={onNextWeek} className="p-2">
+        {/* <TouchableOpacity onPress={onNextWeek} className="p-2">
           <Icon name="chevron-right" size={20} color="#4169E1" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );

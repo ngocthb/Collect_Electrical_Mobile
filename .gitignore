@@ -76,3 +76,6 @@ yarn-error.log
 .cxx 
 .env
 .env.*.local
+
+# Environment config
+src/config/env.ts

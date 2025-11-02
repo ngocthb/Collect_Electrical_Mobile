@@ -23,7 +23,10 @@ import WalletScreen from '../screens/user/WalletScreen';
 import VoucherScreen from '../screens/user/VoucherScreen';
 import ShipmentDetailScreen from '../screens/user/ShipmentDetailScreen';
 import DeliveringScreen from '../screens/user/DeliveringScreenClean';
-
+import {
+  ZegoUIKitPrebuiltCallInCallScreen,
+  ZegoUIKitPrebuiltCallWaitingScreen,
+} from '@zegocloud/zego-uikit-prebuilt-call-rn';
 const Stack = createNativeStackNavigator();
 
 export default function MainNavigator({ delivery }: { delivery?: boolean }) {
@@ -93,6 +96,18 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
           <Stack.Screen name="Delivering" component={DeliveringScreen} />
         </>
       )}
+      <Stack.Screen
+        options={{ headerShown: false }}
+        // DO NOT change the name
+        name="ZegoUIKitPrebuiltCallWaitingScreen"
+        component={ZegoUIKitPrebuiltCallWaitingScreen}
+      />
+      <Stack.Screen
+        options={{ headerShown: false }}
+        // DO NOT change the name
+        name="ZegoUIKitPrebuiltCallInCallScreen"
+        component={ZegoUIKitPrebuiltCallInCallScreen}
+      />
     </Stack.Navigator>
   );
 }

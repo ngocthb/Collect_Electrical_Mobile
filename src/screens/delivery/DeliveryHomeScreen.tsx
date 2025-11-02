@@ -3,8 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '../../store/hooks';
 import MainLayout from '../../layout/MainLayout';
-
-const avatar = require('../../assets/images/avatar.jpg');
+import AppAvatar from '../../components/ui/AppAvatar';
 const homepage5 = require('../../assets/images/homepage5.png');
 const homepage6 = require('../../assets/images/homepage6.png');
 const homepage3 = require('../../assets/images/homepage3.png');
@@ -63,11 +62,15 @@ export default function DeliveryHomeScreen() {
 
           <View className="flex-row items-center mb-8">
             <View className="relative">
-              <Image
-                source={avatar}
-                className="w-16 h-16 rounded-lg"
-                resizeMode="cover"
-              />
+              {user?.avatar ? (
+                <Image
+                  source={{ uri: user.avatar }}
+                  className="w-20 h-20 rounded-lg"
+                  resizeMode="cover"
+                />
+              ) : (
+                <AppAvatar name={user?.name} size={64} />
+              )}
             </View>
           </View>
         </View>

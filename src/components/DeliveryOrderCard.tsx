@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AppButton from '../components/ui/AppButton';
@@ -9,6 +9,11 @@ import {
   resolveStatus,
   getStatusColor,
 } from '../utils/deliveryHelpers';
+import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
+
+const cleanUserIdForZego = (userId: string) => {
+  return userId.replace(/[^a-zA-Z0-9_]/g, '');
+};
 
 type Props = {
   order: any;
@@ -22,7 +27,6 @@ type Props = {
 
 const DeliveryOrderCard = ({
   order,
-
   isSelectedDateToday,
   onOpenMap,
   onReject,
@@ -31,9 +35,30 @@ const DeliveryOrderCard = ({
   const status = resolveStatus(order);
   const actionsDisabled = status === 'failed' || status === 'completed';
 
+  const receiver = order?.sender;
+  const cleanReceiverId = receiver?.userId
+    ? cleanUserIdForZego(receiver.userId)
+    : null;
+
+  if (!cleanReceiverId && receiver) {
+    console.warn('[DeliveryOrderCard] Cannot get userId from receiver:', {
+      orderId: order?.id,
+      receiver,
+    });
+  }
+
+  const invitees = useMemo(() => {
+    if (!cleanReceiverId) return [];
+    return [
+      {
+        userID: String(cleanReceiverId),
+        userName: String(receiver?.name || 'User'),
+      },
+    ];
+  }, [cleanReceiverId, receiver?.name]);
+
   return (
     <View className="flex-row mb-8 relative z-10">
-      {/* Timeline icon */}
       <View className="items-center mr-3">
         <View
           className="w-10 h-10 rounded-full items-center justify-center"
@@ -60,11 +85,11 @@ const DeliveryOrderCard = ({
         <View className="flex-row justify-between mb-1">
           <View className="flex-col flex-1">
             <View className="flex-row items-center mb-1">
-              <TouchableOpacity onPress={() => onConfirm(order)}>
+              <View>
                 <Text className="text-sm font-bold text-text-main">
                   {getOrderName(order)}
                 </Text>
-              </TouchableOpacity>
+              </View>
             </View>
             <Text className="text-xs text-text-muted mb-2">
               {getOrderTime(order)}
@@ -73,41 +98,38 @@ const DeliveryOrderCard = ({
 
           <View className="flex-row gap-3 items-start">
             <TouchableOpacity
-              onPress={() => isSelectedDateToday && onOpenMap(order)}
+              onPress={() =>
+                isSelectedDateToday && !actionsDisabled && onOpenMap(order)
+              }
               className="bg-primary-50 rounded-full p-2"
               disabled={!isSelectedDateToday || actionsDisabled}
               style={{
                 opacity: !isSelectedDateToday || actionsDisabled ? 0.4 : 1,
               }}
             >
-              <Icon name="directions" size={18} color="#4169E1" />
+              <Icon name="directions" size={26} color="#4169E1" />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              className="bg-primary-50 rounded-full p-2"
-              disabled={!isSelectedDateToday || actionsDisabled}
-              onPress={() => {
-                if (!isSelectedDateToday || actionsDisabled) return;
-              }}
-              style={{
-                opacity: !isSelectedDateToday || actionsDisabled ? 0.4 : 1,
-              }}
-            >
-              <Icon name="phone" size={18} color="#4169E1" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="bg-primary-50 rounded-full p-2"
-              disabled={!isSelectedDateToday || actionsDisabled}
-              onPress={() => {
-                if (!isSelectedDateToday || actionsDisabled) return;
-              }}
-              style={{
-                opacity: !isSelectedDateToday || actionsDisabled ? 0.4 : 1,
-              }}
-            >
-              <Icon name="message-text" size={18} color="#4169E1" />
-            </TouchableOpacity>
+            {invitees.length > 0 && isSelectedDateToday && !actionsDisabled ? (
+              <ZegoSendCallInvitationButton
+                invitees={invitees}
+                isVideoCall={false}
+                resourceID="thugom_data"
+              />
+            ) : invitees.length > 0 ? (
+              <View
+                className="bg-primary-50 rounded-full p-2"
+                style={{ opacity: 0.4 }}
+              >
+                <Icon name="phone" size={26} color="#4169E1" />
+              </View>
+            ) : (
+              <View>
+                <Text style={{ color: 'red', fontSize: 10 }}>
+                  No receiver ID
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -119,13 +141,13 @@ const DeliveryOrderCard = ({
             </Text>
           </View>
 
-          {status === 'pending' && (
+          {status === 'pending' && isSelectedDateToday && (
             <View className="flex-row justify-evenly">
               <View className="w-2/5">
                 <AppButton
                   title="Từ chối"
                   size="small"
-                  disabled={!isSelectedDateToday}
+                  disabled={actionsDisabled}
                   onPress={() => onReject(order)}
                   color="#E53935"
                 />
@@ -134,8 +156,8 @@ const DeliveryOrderCard = ({
                 <AppButton
                   title="Xác nhận"
                   size="small"
-                  disabled={!isSelectedDateToday}
-                  onPress={() => isSelectedDateToday && onConfirm(order)}
+                  disabled={actionsDisabled}
+                  onPress={() => !actionsDisabled && onConfirm(order)}
                 />
               </View>
             </View>
