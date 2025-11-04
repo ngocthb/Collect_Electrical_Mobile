@@ -18,6 +18,7 @@ import {
   resolveStatus,
 } from '../../utils/deliveryHelpers';
 import SubLayout from '../../layout/SubLayout';
+import StatusFilter from '../../components/ui/StatusFilter';
 
 const statusOptions = [
   { value: 'all', label: 'Tất cả', color: '#666' },
@@ -43,14 +44,6 @@ export default function DeliveryListScreen() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return selected.getTime() === today.getTime();
-  })();
-
-  const isSelectedDatePast = (() => {
-    const selected = new Date(selectedDate);
-    selected.setHours(0, 0, 0, 0);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return selected.getTime() < today.getTime();
   })();
 
   const formatAPIDate = (date: Date) => {
@@ -203,47 +196,11 @@ export default function DeliveryListScreen() {
 
       {/* Status Tabs */}
       <View className="px-4 py-1">
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: '#F3F4F6',
-            borderRadius: 12,
-            padding: 4,
-          }}
-        >
-          {statusOptions.map(status => {
-            const selected = selectedStatus === status.value;
-            return (
-              <TouchableOpacity
-                key={status.value}
-                onPress={() => setSelectedStatus(status.value)}
-                style={{
-                  flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 10,
-                  backgroundColor: selected ? '#FFFFFF' : 'transparent',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  shadowColor: selected ? '#000' : undefined,
-                  shadowOpacity: selected ? 0.05 : 0,
-                  shadowOffset: { width: 0, height: selected ? 2 : 0 },
-                  shadowRadius: selected ? 4 : 0,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '700',
-                    textAlign: 'center',
-                    color: selected ? '#3B82F6' : '#9CA3AF',
-                  }}
-                >
-                  {status.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        <StatusFilter
+          options={statusOptions}
+          selectedStatus={selectedStatus}
+          onStatusChange={setSelectedStatus}
+        />
       </View>
       <ScrollView className="flex-1">
         {/* Orders List */}

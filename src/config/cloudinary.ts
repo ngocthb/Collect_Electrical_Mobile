@@ -1,13 +1,8 @@
+import { Asset } from 'react-native-image-picker';
 import Config from './env';
 
-interface UploadImage {
-  uri: string;
-  mimeType?: string;
-  fileName?: string;
-}
-
 export const uploadImageToCloudinary = async (
-  image: UploadImage,
+  image: Asset,
 ): Promise<string> => {
   const cloudName = Config.CLOUD_NAME;
   const uploadPreset = Config.UPLOAD_PRESET;
@@ -21,7 +16,7 @@ export const uploadImageToCloudinary = async (
   // ⚠️ Khi dùng FormData trong React Native, cần cast rõ ràng
   data.append('file', {
     uri: image.uri,
-    type: image.mimeType || 'image/jpeg',
+    type: image.type || 'image/jpeg',
     name: image.fileName || 'upload.jpg',
   } as any);
 

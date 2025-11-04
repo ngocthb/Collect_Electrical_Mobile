@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import BottomTabs from './BottomTabs';
 
 import CreateRequestScreen from '../screens/user/CreateRequestScreen';
-import AddressSelectionScreen from '../screens/user/AddressSelectionScreen';
+
 import TimeSelectionScreen from '../screens/user/TimeSelectionScreen';
 import MapboxLocationPicker from '../screens/user/MapboxLocationPicker';
 import DeliveryListScreen from '../screens/delivery/DeliveryListScreen';
@@ -22,11 +22,13 @@ import WarehouseLocationScreen from '../screens/user/WarehouseLocationScreen';
 import WalletScreen from '../screens/user/WalletScreen';
 import VoucherScreen from '../screens/user/VoucherScreen';
 import ShipmentDetailScreen from '../screens/user/ShipmentDetailScreen';
-import DeliveringScreen from '../screens/user/DeliveringScreenClean';
-import {
+import DeliveringScreen from '../screens/user/DeliveringScreen';
+// @ts-ignore - no TypeScript declarations for this module
+const {
   ZegoUIKitPrebuiltCallInCallScreen,
   ZegoUIKitPrebuiltCallWaitingScreen,
-} from '@zegocloud/zego-uikit-prebuilt-call-rn';
+} = require('@zegocloud/zego-uikit-prebuilt-call-rn');
+
 const Stack = createNativeStackNavigator();
 
 export default function MainNavigator({ delivery }: { delivery?: boolean }) {
@@ -57,10 +59,7 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
           <Stack.Screen name="MainTabs" component={BottomTabs} />
           <Stack.Screen name="CreateRequest" component={CreateRequestScreen} />
           <Stack.Screen name="CreateAddress" component={CreateAddressScreen} />
-          <Stack.Screen
-            name="AddressSelectionScreen"
-            component={AddressSelectionScreen}
-          />
+
           <Stack.Screen
             name="TimeSelectionScreen"
             component={TimeSelectionScreen}

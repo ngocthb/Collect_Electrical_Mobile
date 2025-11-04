@@ -13,11 +13,13 @@ import requestService from '../../services/requestService';
 import { useIsFocused } from '@react-navigation/native';
 import { useAppSelector } from '../../store/hooks';
 import MainLayout from '../../layout/MainLayout';
+import StatusFilter from '../../components/ui/StatusFilter';
 
 const RequestScreen = () => {
   const navigation = useNavigation<any>();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
   const auth = useAppSelector(s => s.auth);
   const isFocused = useIsFocused();
 
@@ -75,6 +77,10 @@ const RequestScreen = () => {
     };
   }, [isFocused]);
 
+  const filteredRequests = selectedStatus
+    ? requests.filter(request => request.status === selectedStatus)
+    : requests;
+
   const statusColorClass = (status: string) => {
     switch ((status || '').toLowerCase()) {
       case 'đã từ chối':
@@ -99,43 +105,51 @@ const RequestScreen = () => {
     }
   };
 
+  const statusOptions = [
+    { value: '', label: 'Tất cả', color: 'gray' },
+    { value: 'đã từ chối', label: 'Từ chối', color: 'red' },
+    { value: 'chờ duyệt', label: 'Chờ duyệt', color: 'yellow' },
+    { value: 'đã duyệt', label: 'Đã duyệt', color: 'blue' },
+    { value: 'đã hoàn thành', label: 'Hoàn thành', color: 'green' },
+  ];
+
   return (
-    <MainLayout>
+    <MainLayout headerTitle="Yêu cầu của bạn">
       <View className="flex-1 bg-white">
-        {/* Title Section */}
-        <View className="flex-row items-center justify-between px-4 py-4">
-          <Text className="text-xl font-bold text-gray-900">
-            Yêu cầu của tôi
-          </Text>
-          <TouchableOpacity
-            className="flex-row items-center bg-teal-50 px-3 py-2 rounded-lg"
-            onPress={() => navigation.navigate('CreateRequest')}
-          >
-            <Icon name="plus-square" size={18} color="#14b8a6" />
-            <Text className="text-secondary-100 font-semibold ml-2">
-              Tạo yêu cầu
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {/* Status Filter */}
+        <StatusFilter
+          options={statusOptions}
+          selectedStatus={selectedStatus}
+          onStatusChange={setSelectedStatus}
+        />
 
         {/* Request List */}
-        <ScrollView className="flex-1 px-4">
-          {loading && (
-            <View className="w-full items-center justify-center py-20">
+        <ScrollView className="flex-1 px-4 mt-2">
+          {loading ? (
+            <View className="items-center justify-center py-12">
               <ActivityIndicator size="large" color="#4169E1" />
+              <Text className="text-text-muted mt-4 text-center">
+                Đang tải...
+              </Text>
             </View>
-          )}
-          {!loading &&
-            requests.map((request: any) => (
+          ) : filteredRequests.length === 0 ? (
+            <View className="items-center justify-center py-12">
+              <Icon name="inbox" size={64} color="#DDD" />
+              <Text className="text-text-muted mt-4 text-center">
+                Không có đơn hàng nào
+              </Text>
+            </View>
+          ) : (
+            filteredRequests.map((request: any) => (
               <TouchableOpacity
                 key={request.id}
                 className="flex-row items-center bg-white border border-gray-200 rounded-xl p-3 mb-3 shadow-sm"
                 onPress={() => openRequest(request)}
               >
                 {/* Image */}
-                {request.images && request.images.length > 0 ? (
+                {request.imageUrls && request.imageUrls.length > 0 ? (
                   <Image
-                    source={{ uri: request.images[0] }}
+                    source={{ uri: request.imageUrls[0] }}
                     className="w-16 h-16 rounded-lg"
                     resizeMode="cover"
                   />
@@ -186,7 +200,8 @@ const RequestScreen = () => {
                   </Text>
                 </View>
               </TouchableOpacity>
-            ))}
+            ))
+          )}
         </ScrollView>
       </View>
     </MainLayout>

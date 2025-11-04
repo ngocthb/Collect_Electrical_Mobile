@@ -46,7 +46,7 @@ const cancelRoute = async (
 
 const confirmRoute = async (
   postId: string,
-  payload: { confirmImages: string[] },
+  payload: { qrCode: string; confirmImages: string[] },
 ) => {
   try {
     const res = await axiosClient.put(`/routes/confirm/${postId}`, payload);
@@ -56,4 +56,21 @@ const confirmRoute = async (
   }
 };
 
-export default { listByDate, getDetail, cancelRoute, confirmRoute };
+const userConfirmRouter = async (routeId: string, isConfirm: boolean) => {
+  try {
+    const res = await axiosClient.put(`/routes/user-confirm/${routeId}`, {
+      isConfirm,
+    });
+    return res;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export default {
+  listByDate,
+  getDetail,
+  cancelRoute,
+  confirmRoute,
+  userConfirmRouter,
+};

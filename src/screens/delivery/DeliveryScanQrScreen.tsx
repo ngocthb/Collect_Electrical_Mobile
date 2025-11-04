@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Image, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import routeService from '../../services/routeService';
-import mockRequestService from '../../services/mockRequestService';
 import { maskPhone } from '../../utils/validations';
 import ScanQrComponent from '../../components/ScanQrComponent';
 import AppButton from '../../components/ui/AppButton';
 import AppAvatar from '../../components/ui/AppAvatar';
 import SubLayout from '../../layout/SubLayout';
+import { useSelector } from 'react-redux';
 
 interface DeliveryScanQrScreenProps {
   navigation: any;
@@ -21,9 +21,10 @@ const DeliveryScanQrScreen = ({
   const [shipperId, setShipperId] = useState<string | null>(null);
 
   const [showScanner, setShowScanner] = useState(true);
-
+  const imageUrl: string[] = useSelector(
+    (state: any) => state.deliveryConfirmImage.imageUrls,
+  );
   const routeRaw = route.params?.requestId;
-  // resolve requestId when caller passes an object or primitive
   const resolvedRequestId =
     typeof routeRaw === 'object' && routeRaw != null
       ? routeRaw?.id ?? routeRaw
@@ -37,31 +38,16 @@ const DeliveryScanQrScreen = ({
 
     (async () => {
       try {
-        // prefer fetching real data from API
-        const r = await (async () => {
-          try {
-            return await routeService.getDetail(String(resolvedRequestId));
-          } catch (e) {
-            console.warn(
-              'routeService.getDetail failed, falling back to mock',
-              e,
-            );
-            // fallback to mock service if available
-            try {
-              // eslint-disable-next-line @typescript-eslint/no-var-requires
-              const mock = require('../../services/mockRequestService');
-              return await mock.getDelivery(Number(resolvedRequestId));
-            } catch (err) {
-              return null;
-            }
-          }
-        })();
+        const response = await routeService.getDetail(
+          String(resolvedRequestId),
+        );
+        const r: any = response;
         if (!mounted) return;
         if (r) {
           setRequest(r);
 
           if (r.sender) {
-            setSenderInfo(r.sender as any);
+            setSenderInfo(r.sender);
           }
         }
       } catch (e) {
@@ -126,11 +112,15 @@ const DeliveryScanQrScreen = ({
   };
 
   const handleDone = async () => {
+    await routeService.confirmRoute(String(resolvedRequestId), {
+      qrCode: shipperId || '',
+      confirmImages: imageUrl,
+    });
+    Alert.alert('Hoàn thành', 'Xác thực sản phẩm thành công!');
     navigation.reset({
       index: 0,
       routes: [{ name: 'DeliveryOrder' }],
     });
-    await mockRequestService.completedDelivery(request.id);
   };
 
   return (
@@ -208,12 +198,9 @@ const DeliveryScanQrScreen = ({
 
                 {/* Items to be delivered (from request) */}
                 <View className="bg-white rounded-lg w-full">
-                  <Text className="text-sm text-gray-500 mb-2">
-                    Danh sách vật phẩm
-                  </Text>
                   {request ? (
                     <View>
-                      <Text className="text-base font-semibold mb-2">
+                      <Text className="text-sm text-gray-500 mb-2">
                         {request.itemName ?? request.name}
                       </Text>
                       {(request.pickUpItemImages ||
@@ -248,25 +235,44 @@ const DeliveryScanQrScreen = ({
                           ))}
                         </ScrollView>
                       )}
-                      <Text className="text-sm text-gray-600">
-                        Mô tả: {request.description ?? '—'}
-                      </Text>
-                      {request.licensePlate && (
-                        <Text className="text-sm text-gray-600 mt-1">
-                          Biển số: {request.licensePlate}
-                        </Text>
-                      )}
-                      {request.collectionRouteId && (
-                        <Text className="text-sm text-gray-600 mt-1">
-                          Mã lộ trình: {request.collectionRouteId}
-                        </Text>
-                      )}
                     </View>
                   ) : (
                     <Text className="text-sm text-gray-600">
                       Không có thông tin đơn hàng
                     </Text>
                   )}
+
+                  <View>
+                    <Text className="text-base font-semibold mb-2">
+                      Ảnh xác nhận
+                    </Text>
+                    {imageUrl.length > 0 && (
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        className="mb-2"
+                      >
+                        {imageUrl.map((img: any, idx: number) => (
+                          <Image
+                            key={idx}
+                            source={
+                              typeof img === 'string'
+                                ? { uri: img }
+                                : img && img.uri
+                                ? { uri: img.uri }
+                                : img
+                            }
+                            style={{
+                              width: 120,
+                              height: 80,
+                              borderRadius: 8,
+                              marginRight: 8,
+                            }}
+                          />
+                        ))}
+                      </ScrollView>
+                    )}
+                  </View>
                 </View>
               </View>
             </View>
@@ -281,25 +287,6 @@ const DeliveryScanQrScreen = ({
                   onClose={handleScanClose}
                 />
               )}
-
-              <View className="mt-4 px-2">
-                <AppButton
-                  title="Giả lập quét QR thành công"
-                  onPress={() => {
-                    const simulatedSender = {
-                      id: 'SIM123',
-                      name: 'Người gửi GT',
-                      phone: '0909999888',
-                      address: 'Số 10, Đường Lê Lợi, Quận 1, TP.HCM',
-                      lat: 10.77653,
-                      lng: 106.70098,
-                    };
-                    setSenderInfo(simulatedSender);
-                    setShipperId(simulatedSender.id);
-                    setShowScanner(false);
-                  }}
-                />
-              </View>
             </>
           )}
 

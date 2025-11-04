@@ -33,40 +33,22 @@ export default function ShipmentDetailScreen() {
   const initialStatus = notification?.status || 'on_the_way';
   const [status, setStatus] = useState<string>(initialStatus);
 
-  const statusConfig: Record<
-    string,
-    { label: string; bg: string; text: string }
-  > = {
-    completed: {
-      label: 'Đã hoàn thành',
-      bg: 'bg-green-100',
-      text: 'text-green-800',
-    },
+  const statusConfig = {
     scheduled: {
       label: 'Sắp tiến hành',
-      bg: 'bg-teal-100',
-      text: 'text-teal-800',
-    },
-    in_progress: {
-      label: 'Đang tiến hành',
-      bg: 'bg-yellow-100',
-      text: 'text-yellow-800',
-    },
-    on_the_way: {
-      label: 'Đang trên đường tới',
       bg: 'bg-blue-100',
       text: 'text-blue-800',
     },
   };
 
-  const updateStatus = (newStatus: string) => {
+  const cfg = statusConfig['scheduled'];
+
+  const updateStatus = (newStatus: 'scheduled') => {
     setStatus(newStatus);
     const label = statusConfig[newStatus]?.label || newStatus;
     Alert.alert('Cập nhật trạng thái', `Đã chuyển sang: ${label}`);
     // TODO: persist to server/store if needed
   };
-
-  const cfg = statusConfig[status] || statusConfig['on_the_way'];
 
   const handleCall = async (phone?: string) => {
     if (!phone) return;
@@ -105,19 +87,9 @@ export default function ShipmentDetailScreen() {
           <View className="flex-row">
             <TouchableOpacity
               onPress={() => handleCall(shipper.phone)}
-              className="p-2 mr-2 bg-green-50 rounded-lg"
+              className="p-2 mr-2 bg-blue-50 rounded-lg"
             >
-              <Icon name="phone" size={18} color="#059669" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('DeliveryInfo', {
-                  orderId: shipper.orderId,
-                })
-              }
-              className="p-2 bg-gray-50 rounded-lg"
-            >
-              <Icon name="info" size={18} color="#6b7280" />
+              <Icon name="phone" size={18} color="#4169E1" />
             </TouchableOpacity>
           </View>
         </View>
@@ -131,34 +103,12 @@ export default function ShipmentDetailScreen() {
                 {shipper.eta}
               </Text>
             </View>
+            {/* Status */}
             <View className="items-end">
               <Text className="text-sm text-gray-500">Trạng thái</Text>
               <View className={`mt-1 px-3 py-1 rounded-full ${cfg.bg}`}>
                 <Text className={`${cfg.text} font-semibold`}>{cfg.label}</Text>
               </View>
-
-              {status === 'on_the_way' && (
-                <View className="flex-row mt-3">
-                  <TouchableOpacity
-                    onPress={() => updateStatus('completed')}
-                    className="px-3 py-1 mr-2 rounded-full bg-green-50 border border-green-200"
-                  >
-                    <Text className="text-green-700">Đã hoàn thành</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => updateStatus('scheduled')}
-                    className="px-3 py-1 mr-2 rounded-full bg-teal-50 border border-teal-200"
-                  >
-                    <Text className="text-teal-700">Sắp tiến hành</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => updateStatus('in_progress')}
-                    className="px-3 py-1 rounded-full bg-yellow-50 border border-yellow-200"
-                  >
-                    <Text className="text-yellow-700">Đang tiến hành</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
             </View>
           </View>
         </View>
@@ -170,7 +120,7 @@ export default function ShipmentDetailScreen() {
             <Text className="font-semibold">1 x Máy giặt (Model XYZ)</Text>
             <Text className="text-sm text-gray-500">Trọng lượng: ~12 kg</Text>
             <Text className="text-sm text-gray-500 mt-2">
-              Ghi chú: Tháo dây điện trước khi thu gom
+              Mô tả: Vẫn còn dùng được
             </Text>
 
             {/* Images list below details */}
@@ -193,15 +143,6 @@ export default function ShipmentDetailScreen() {
               </ScrollView>
             </View>
           </View>
-        </View>
-
-        <View className="mt-auto mb-6">
-          <TouchableOpacity
-            onPress={() => handleCall(shipper.phone)}
-            className="py-3 rounded-xl bg-green-600 items-center"
-          >
-            <Text className="text-white font-semibold">Gọi shipper</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </SubLayout>

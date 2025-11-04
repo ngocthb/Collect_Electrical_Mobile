@@ -1,345 +1,394 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
-  Image,
+  ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+
+import type { Asset } from 'react-native-image-picker';
+
+import { useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+
+import {
+  getSubcategories,
+  getSizeOptions,
+  getAttributes,
+} from '../../services/categoryService';
+
 import SubLayout from '../../layout/SubLayout';
 import AppDropdown from '../../components/ui/AppDropdown';
 import AppInput from '../../components/ui/AppInput';
 import PickupTimeSelector from '../../components/PickupTimeSelector';
-import PickupAddressSelector from '../../components/PickupAddressSelector';
+
 import ImagePickerModal from '../../components/ImagePickerModal';
 import AppImageGallery from '../../components/ui/AppImageGallery';
-import type { Asset } from 'react-native-image-picker';
 import AppButton from '../../components/ui/AppButton';
-import draftService from '../../services/draftService';
-import requestService from '../../services/requestService';
+import SizeOptions from '../../components/SizeOptions';
+import AddressSelector from '../../components/AddressSelector';
+
+import tags from '../../data/tags';
+import type { Attribute, SizeTier, SubCategory } from '../../types/Category';
+import type { Address } from '../../types/Address';
+
 import { useAppSelector } from '../../store/hooks';
 import { uploadImageToCloudinary } from '../../config/cloudinary';
-const categories = [
-  { id: 1, label: 'Điện tử Tiêu dùng' },
-  { id: 2, label: 'Điện tử Gia dụng' },
-];
-
-const tags = ['Đã hỏng', 'Có thể sửa', 'Không hoạt động'];
-
+import create from '../../services/requestService';
+import { clearTimeSlot } from '../../store/slices/timeSlotSlice';
+import { CreateRequestPayload } from '../../types/Request';
+import { TimeSlot } from '../../types/TimeSlot';
+import { useDispatch } from 'react-redux';
 const CreateRequestScreen = () => {
-  const route = useRoute<any>();
+  const router = useRoute<any>();
   const navigation = useNavigation<any>();
+  const categoryId = router?.params?.parentCategoryId;
+  const user = useAppSelector(state => state.auth.user);
+  const timeSlots: TimeSlot[] = useAppSelector(state => state.timeSlots.list);
+  const address = useAppSelector(state => state.address.current);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [productName, setProductName] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [showImagePicker, setShowImagePicker] = useState(false);
+  const dispatch = useDispatch();
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [categories, setCategories] = useState<SubCategory[]>([]);
+  const [sizeOptions, setSizeOptions] = useState<SizeTier[]>([]);
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<SubCategory | null>(
+    null,
+  );
+  const [selectedSizeTier, setSelectedSizeTier] = useState<SizeTier | null>(
+    null,
+  );
+  const [customInputEnabled, setCustomInputEnabled] = useState(false);
+  const [attributeValues, setAttributeValues] = useState<
+    Record<string, string>
+  >({});
+  const [isLoadingSizeOptions, setIsLoadingSizeOptions] = useState(false);
+  const [isLoadingAttributes, setIsLoadingAttributes] = useState(false);
   const [selectedImages, setSelectedImages] = useState<Asset[]>([]);
-  const [productName, setProductName] = useState<string>('');
-  const [submitting, setSubmitting] = useState(false);
-  const [timeSlots, setTimeSlots] = useState<Record<string, string[]>>({
-    T2: ['09:00 AM', '09:00 PM'],
-    T3: ['09:00 AM', '09:00 PM'],
-    T4: ['09:00 AM', '09:00 PM'],
-    T5: ['09:00 AM', '09:00 PM'],
-    T6: ['09:00 AM', '09:00 PM'],
-    T7: ['09:00 AM', '09:00 PM'],
-    CN: ['09:00 AM', '09:00 PM'],
-  });
+  const [isImagePickerVisible, setIsImagePickerVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [selectedAddress, setSelectedAddress] = useState({
-    address:
-      'Vinhomes Grand Park, Nguyễn Xiển Tòa S902, Phường Long Thạnh Mỹ, Thành Phố Thủ Đức, TP. Hồ Chí Minh',
-  });
-  const auth = useAppSelector(s => s.auth);
+  const goToNextStep = () => {
+    if (currentStep < 2) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
 
-  // Load draft on mount
+  const goToPreviousStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    } else {
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+    }
+  };
+
+  const allAttributesFilled =
+    attributes.length > 0 &&
+    attributes.every(attr => {
+      const val = attributeValues[attr.id];
+      return typeof val === 'string' && val.trim() !== '';
+    });
+
+  const hasSizeTier = selectedSizeTier !== null;
+  const hasSizeOptions = sizeOptions.length > 0;
+
+  const isStep1Valid =
+    productName.trim() !== '' &&
+    selectedCategory !== null &&
+    selectedTags.length > 0 &&
+    selectedImages.length > 0 &&
+    (!hasSizeOptions ||
+      hasSizeTier ||
+      (customInputEnabled && allAttributesFilled));
+
+  const isStep2Valid = address !== null && timeSlots.length > 0;
+
+  const getSubCategories = async (categoryId: string) => {
+    try {
+      const data = await getSubcategories(categoryId);
+      setCategories(data);
+    } catch (error) {
+      console.error('Failed to fetch sub-categories', error);
+    }
+  };
+
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const d = await draftService.getCreateRequestDraft();
-        if (!d || !mounted) return;
-
-        if (d.name) setProductName(d.name);
-        if (d.category) {
-          const found = categories.find(c => c.label === d.category);
-          if (found) setSelectedCategory(found);
-        }
-        if (d.description)
-          setSelectedTags(
-            d.description
-              .split(',')
-              .map(s => s.trim())
-              .filter(Boolean),
-          );
-        if (d.images) setSelectedImages(d.images as any[]);
-
-        // ✅ CHỈ LOAD ADDRESS TỪ DRAFT NÕU KHÔNG CÓ PARAMS
-        if (d.address && !route.params?.selectedAddress) {
-          setSelectedAddress({ address: d.address });
-        }
-
-        if (d.timeSlots) setTimeSlots(d.timeSlots);
-      } catch (e) {
-        // ignore
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
+    if (categoryId) {
+      getSubCategories(categoryId);
+    }
   }, []);
 
   useEffect(() => {
-    if (route.params?.selectedAddress?.address) {
-      const newAddress = route.params.selectedAddress.address;
-
-      setSelectedAddress({ address: newAddress });
-      draftService
-        .saveCreateRequestDraft({
-          name: productName,
-          category: selectedCategory?.label,
-          description:
-            selectedTags?.length > 0 ? selectedTags.join(', ') : undefined,
-          address: newAddress, // ← Lưu địa chỉ mới vào draft
-          images: selectedImages,
-          timeSlots,
-        })
-        .catch(() => {});
-    }
-  }, [route.params?.selectedAddress?.address]); // ← Dependency cụ thể hơn
-
-  useEffect(() => {
-    (async () => {
-      try {
-        await draftService.saveCreateRequestDraft({
-          name: productName,
-          category: selectedCategory?.label,
-          description:
-            selectedTags && selectedTags.length > 0
-              ? selectedTags.join(', ')
-              : undefined,
-          address: selectedAddress?.address,
-          images: selectedImages,
-          timeSlots,
-        });
-      } catch (e) {
-        // ignore
+    const fetchSizeOptions = async () => {
+      if (selectedCategory) {
+        setIsLoadingSizeOptions(true);
+        try {
+          const sizes = await getSizeOptions(selectedCategory.id);
+          setSizeOptions(sizes);
+        } catch (error) {
+          console.error('Failed to fetch size tiers:', error);
+        } finally {
+          setIsLoadingSizeOptions(false);
+        }
+      } else {
+        setSizeOptions([]);
       }
-    })();
-  }, [
-    productName,
-    selectedCategory,
-    selectedTags,
-    selectedImages,
-    selectedAddress,
-    timeSlots,
-  ]);
+    };
+    setSelectedSizeTier(null);
+    setCustomInputEnabled(false);
+    setAttributes([]);
+    setAttributeValues({});
+    fetchSizeOptions();
+  }, [selectedCategory]);
 
-  useEffect(() => {
-    if (route.params?.location) {
-      setSelectedAddress({ address: route.params.location.name });
+  const handleCustomInputToggle = async () => {
+    setSelectedSizeTier(null);
+    setCustomInputEnabled(true);
+
+    if (selectedCategory) {
+      setIsLoadingAttributes(true);
+      try {
+        const fetchedAttributes = await getAttributes(selectedCategory.id);
+        setAttributes(fetchedAttributes);
+      } catch (error) {
+        console.error('Failed to fetch attributes:', error);
+      } finally {
+        setIsLoadingAttributes(false);
+      }
     }
-  }, [route.params?.location]);
-
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag],
-    );
   };
 
-  const removeImage = (index: number) => {
+  const handleSizeTierSelect = (size: SizeTier | null) => {
+    setSelectedSizeTier(size);
+    setCustomInputEnabled(false);
+    setAttributes([]);
+    setAttributeValues({});
+  };
+
+  const handleAddImage = (assets: Asset[]) => {
+    setSelectedImages(prev => [...prev, ...assets]);
+    setIsImagePickerVisible(false);
+  };
+
+  const handleRemoveImage = (index: number) => {
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleCreateRequest = async () => {
-    if (submitting) return;
-    setSubmitting(true);
+  const handleUploadImages = async (images: Asset[]): Promise<string[]> => {
     try {
-      const imagesPayload: string[] = [];
-      try {
-        const uploadTasks = selectedImages.map(async img => {
-          const uri = img.uri ? img.uri : (img as any);
-          if (
-            typeof uri === 'string' &&
-            (uri.startsWith('http://') || uri.startsWith('https://'))
-          ) {
-            return uri;
-          }
-          const uploaded = await uploadImageToCloudinary({
-            uri: uri as string,
-          });
-          return uploaded;
-        });
-        const results = await Promise.all(uploadTasks);
-        imagesPayload.push(...results.filter(Boolean));
-      } catch (uploadErr) {
-        console.warn(
-          'Image upload to Cloudinary failed, falling back to original URIs',
-          uploadErr,
-        );
-        const raw = selectedImages.map(img =>
-          img.uri ? img.uri : (img as any),
-        );
-        imagesPayload.push(...(raw as any));
-      }
+      const formattedImages = images.map(image => ({
+        uri: image.uri,
+        mimeType: image.type,
+        fileName: image.fileName,
+      }));
 
-      const collectionSchedule =
-        selectedDays && selectedDays.length > 0
-          ? selectedDays.map(day => {
-              const slotsArr = Array.isArray(timeSlots[day])
-                ? timeSlots[day]
-                : [];
-              const slots = [] as Array<{ startTime: string; endTime: string }>;
-              if (slotsArr.length >= 2) {
-                slots.push({ startTime: slotsArr[0], endTime: slotsArr[1] });
-              } else if (slotsArr.length === 1) {
-                slots.push({ startTime: slotsArr[0], endTime: slotsArr[0] });
-              }
-              return { dayName: day, slots };
-            })
-          : undefined;
+      const uploadedUrls = await Promise.all(
+        formattedImages.map(image => uploadImageToCloudinary(image)),
+      );
 
-      const senderId = auth.user?.userId;
+      return uploadedUrls;
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      throw error;
+    }
+  };
 
-      const payload = {
-        senderId,
-        name: productName || 'Yêu cầu mới',
-        category: selectedCategory?.label || undefined,
-        description:
-          selectedTags && selectedTags.length > 0
-            ? selectedTags.join(', ')
-            : undefined,
-        address: selectedAddress?.address,
-        images: imagesPayload,
-        collectionSchedule,
+  const handleCreateRequest = async () => {
+    try {
+      setLoading(true);
+      const urls = await handleUploadImages(selectedImages);
+      const formattedAttributes =
+        Object.entries(attributeValues).map(([key, value]) => ({
+          attributeId: key,
+          value: value,
+        })) || null;
+      const payload: CreateRequestPayload = {
+        senderId: user?.userId || '',
+        name: productName,
+        description: selectedTags.join(', '),
+        address: selectedAddress?.address || '',
+        images: urls,
+        collectionSchedule: timeSlots || [],
+        product: {
+          parentCategoryId: categoryId,
+          subCategoryId: selectedCategory?.id || '',
+          sizeTierId: selectedSizeTier?.id || null,
+          attributes: formattedAttributes || null,
+        },
       };
-      const response = await requestService.create(payload);
-      await draftService.clearCreateRequestDraft();
-      Alert.alert('Thành công', 'Tạo yêu cầu thành công');
-      navigation.navigate('DeliveryReward');
-    } catch (e) {
-      Alert.alert('Lỗi', 'Tạo yêu cầu thất bại. Vui lòng thử lại.');
+
+      const data = await create.create(payload);
+      Alert.alert('Thành công', 'Yêu cầu đã được tạo thành công.');
+
+      dispatch(clearTimeSlot());
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+    } catch (error) {
+      console.error('Error creating request:', error);
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <SubLayout
-      title="Tạo yêu cầu"
-      onBackPress={() =>
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'MainTabs' }],
-        })
-      }
-    >
+    <SubLayout title="Tạo yêu cầu" onBackPress={goToPreviousStep}>
       <ScrollView className="flex-1 bg-white" nestedScrollEnabled={true}>
         <View className="px-6 py-4">
-          {/* Category */}
-          <AppDropdown
-            title="Chọn danh mục sản phẩm"
-            options={categories}
-            placeholder="Chọn danh mục"
-            value={selectedCategory}
-            onSelect={option => setSelectedCategory(option)}
-          />
+          {currentStep === 1 && (
+            <>
+              <AppDropdown
+                title="Chọn danh mục sản phẩm"
+                options={categories}
+                placeholder="Chọn danh mục"
+                value={selectedCategory}
+                onSelect={setSelectedCategory}
+                required
+              />
 
-          {/* Product Name */}
-          <AppInput
-            label="Nhập tên sản phẩm"
-            placeholder="Ví dụ: Điện thoại Samsung Galaxy S21"
-            required
-            value={productName}
-            onChangeText={setProductName}
-          />
+              <AppInput
+                label="Nhập tên sản phẩm"
+                placeholder="Ví dụ: Điện thoại Samsung Galaxy S21"
+                required
+                value={productName}
+                onChangeText={setProductName}
+              />
 
-          {/* Product Status Tags */}
-          <View className="mb-4">
-            <Text className="text-sm font-semibold mb-3 text-gray-900">
-              Nhập mô tả sản phẩm<Text className="text-red-500"> *</Text>
-            </Text>
-            <View className="flex-row flex-wrap">
-              {tags.map(tag => (
-                <TouchableOpacity
-                  key={tag}
-                  className={`px-4 py-2.5 rounded-full mr-2 mb-2 border-2 ${
-                    selectedTags.includes(tag)
-                      ? 'bg-blue-500 border-blue-500'
-                      : 'bg-white border-gray-200'
-                  }`}
-                  onPress={() => toggleTag(tag)}
-                >
-                  <Text
-                    className={`text-sm font-semibold ${
-                      selectedTags.includes(tag)
-                        ? 'text-white'
-                        : 'text-gray-600'
+              <View className="">
+                <SizeOptions
+                  title="Nhập mô tả sản phẩm"
+                  options={tags}
+                  selectedOptions={selectedTags}
+                  onToggle={tag => {
+                    setSelectedTags(prev =>
+                      prev.includes(tag)
+                        ? prev.filter(t => t !== tag)
+                        : [...prev, tag],
+                    );
+                  }}
+                />
+              </View>
+
+              {/* Size Options - Only show if data exists */}
+              {isLoadingSizeOptions ? (
+                <View className="py-4">
+                  <ActivityIndicator size="small" color="#4169E1" />
+                </View>
+              ) : sizeOptions.length > 0 ? (
+                <View className="">
+                  <SizeOptions
+                    title="Chọn kích thước"
+                    options={sizeOptions.map(option => option.name)}
+                    selectedOptions={
+                      selectedSizeTier ? [selectedSizeTier.name] : []
+                    }
+                    emptyText="Không có kích thước có sẵn"
+                    onToggle={name => {
+                      const selected = sizeOptions.find(
+                        option => option.name === name,
+                      );
+                      handleSizeTierSelect(selected || null);
+                    }}
+                  />
+                </View>
+              ) : null}
+
+              {!isLoadingSizeOptions && sizeOptions.length === 0 ? null : (
+                <View className="mb-2">
+                  <TouchableOpacity
+                    className={`px-4 py-2.5 rounded-lg border-2 border-dashed flex-row items-center justify-center ${
+                      customInputEnabled
+                        ? 'bg-blue-100 border-blue-500'
+                        : 'bg-white border-gray-300'
                     }`}
+                    onPress={handleCustomInputToggle}
                   >
-                    {tag}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+                    <Text
+                      className={`text-sm font-semibold ${
+                        customInputEnabled ? 'text-blue-500' : 'text-gray-600'
+                      }`}
+                    >
+                      + Tự điền
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
 
-          {/* Address */}
-          <PickupAddressSelector
-            selectedAddress={selectedAddress}
-            setSelectedAddress={setSelectedAddress}
-            onPress={() =>
-              navigation.navigate('AddressSelectionScreen', {
-                selectedAddress,
-                setSelectedAddress,
-              })
-            }
-          />
+              {customInputEnabled &&
+                (isLoadingAttributes ? (
+                  <ActivityIndicator size="small" color="#4169E1" />
+                ) : attributes.length > 0 ? (
+                  <View className="mt-4">
+                    {attributes.map(attribute => (
+                      <AppInput
+                        key={attribute.id}
+                        label={attribute.name}
+                        placeholder={`Nhập ${attribute.name.toLowerCase()}`}
+                        required
+                        value={attributeValues[attribute.id] || ''}
+                        onChangeText={text =>
+                          setAttributeValues(prev => ({
+                            ...prev,
+                            [attribute.id]: text,
+                          }))
+                        }
+                      />
+                    ))}
+                  </View>
+                ) : (
+                  <View className="mt-4 flex-row items-center justify-center">
+                    <Text className="text-sm text-gray-600">
+                      Không có thuộc tính để tự điền
+                    </Text>
+                  </View>
+                ))}
 
-          {/* Time */}
-          <PickupTimeSelector
-            selectedDays={selectedDays}
-            setSelectedDays={setSelectedDays}
-            timeSlots={timeSlots}
-            setTimeSlots={setTimeSlots}
-          />
+              <View className="mb-4 mt-2">
+                <AppImageGallery
+                  images={selectedImages}
+                  onRemove={handleRemoveImage}
+                  onAddPress={() => setIsImagePickerVisible(true)}
+                />
+              </View>
+            </>
+          )}
 
-          {/* Images */}
-          <View className="mb-4">
-            <AppImageGallery
-              images={selectedImages}
-              onRemove={removeImage}
-              onAddPress={() => setShowImagePicker(true)}
-            />
-          </View>
-
-          {/* Submit Button */}
-          <AppButton
-            title="Tạo Yêu Cầu"
-            loading={submitting}
-            disabled={
-              submitting ||
-              !productName.trim() ||
-              !selectedAddress?.address ||
-              selectedImages.length === 0 ||
-              selectedDays.length === 0
-            }
-            onPress={handleCreateRequest}
-          />
+          {currentStep === 2 && (
+            <>
+              <AddressSelector
+                selectedAddress={selectedAddress}
+                onSelectAddress={setSelectedAddress}
+              />
+              <PickupTimeSelector />
+            </>
+          )}
         </View>
       </ScrollView>
 
+      <View className="px-6 py-4">
+        {currentStep < 2 && (
+          <AppButton
+            title="Tiếp theo"
+            onPress={goToNextStep}
+            disabled={!isStep1Valid}
+          />
+        )}
+        {currentStep === 2 && (
+          <AppButton
+            title="Hoàn tất"
+            onPress={() => handleCreateRequest()}
+            disabled={!isStep2Valid}
+            loading={loading}
+          />
+        )}
+      </View>
+
       <ImagePickerModal
-        visible={showImagePicker}
-        onClose={() => setShowImagePicker(false)}
-        onSelect={assets =>
-          setSelectedImages(prev => [...prev, ...assets].slice(0, 5))
-        }
+        visible={isImagePickerVisible}
+        onClose={() => setIsImagePickerVisible(false)}
+        onSelect={handleAddImage}
         currentCount={selectedImages.length}
         maxItems={5}
       />

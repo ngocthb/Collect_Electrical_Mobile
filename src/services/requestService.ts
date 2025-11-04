@@ -1,17 +1,5 @@
 import axiosClient from '../config/axios';
-
-interface CreateRequestPayload {
-  senderId?: string;
-  name: string;
-  category?: string;
-  description?: string;
-  address?: string;
-  images?: string[];
-  collectionSchedule?: Array<{
-    dayName: string;
-    slots: Array<{ startTime: string; endTime: string }>;
-  }>;
-}
+import { CreateRequestPayload } from '../types/Request';
 
 const create = async (payload: CreateRequestPayload) => {
   try {

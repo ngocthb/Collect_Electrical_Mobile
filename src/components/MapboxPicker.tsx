@@ -17,26 +17,10 @@ import {
   reverseGeocode as reverseGeocodeService,
 } from '../services/mapboxService';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import type { LocationData, MapboxFeature } from '../types/MapboxPicker';
 import type { Feature } from 'geojson';
-
-MapboxGL.setAccessToken(
-  'pk.eyJ1IjoibmdvY3RoYiIsImEiOiJjbWgxdmdzMWowcjliZjFzYjMwaDlqamJiIn0.qna079CtYSrSqD-YhlQArg',
-);
-
-export interface LocationData {
-  name: string;
-  latitude: number;
-  longitude: number;
-}
-
-interface MapboxFeature {
-  id: string;
-  place_name: string;
-  center: [number, number];
-  geometry: {
-    coordinates: [number, number];
-  };
-}
+import Config from '../config/env';
+MapboxGL.setAccessToken(Config.MAPBOX_ACCESS_TOKEN);
 
 interface MapboxPickerProps {
   onLocationSelect: (location: LocationData) => void;

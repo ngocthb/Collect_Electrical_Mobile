@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import MainLayout from '../../layout/MainLayout';
+import StatusFilter from '../../components/ui/StatusFilter';
 
 interface NotificationItemProps {
   image: string;
@@ -162,6 +163,7 @@ const NotificationListScreen: React.FC<NotificationListScreenProps> = ({
   navigation,
 }) => {
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
 
   const [notifications, setNotifications] = useState([
     {
@@ -228,31 +230,29 @@ const NotificationListScreen: React.FC<NotificationListScreenProps> = ({
     // TODO: persist change to server/store if required
   };
 
-  const filteredNotifications =
-    filter === 'unread'
-      ? notifications.filter(n => !n.isFinish)
-      : notifications;
+  const filteredNotifications = notifications.filter(notification =>
+    selectedStatus ? notification.status === selectedStatus : true,
+  );
 
   const unreadCount = notifications.filter(n => !n.isFinish).length;
 
+  const statusOptions = [
+    { value: '', label: 'Tất cả', color: 'gray' },
+
+    { value: 'in_progress', label: 'Đang tiến hành', color: 'yellow' },
+    { value: 'scheduled', label: 'Sắp tiến hành', color: 'blue' },
+    { value: 'completed', label: 'Hoàn thành', color: 'green' },
+  ];
+
   return (
-    <MainLayout>
+    <MainLayout headerTitle="Thông báo">
       <View className="flex-1 bg-gradient-to-b from-gray-50 to-white">
-        {/* Header with stats */}
-        <View className="px-4 pt-4 pb-3">
-          <View className="flex-row items-center justify-between mb-4">
-            <View>
-              <Text className="text-2xl font-bold text-gray-900">
-                Thông báo
-              </Text>
-              {unreadCount > 0 && (
-                <Text className="text-sm text-gray-500 mt-1">
-                  {unreadCount} thông báo mới
-                </Text>
-              )}
-            </View>
-          </View>
-        </View>
+        {/* Status Filter */}
+        <StatusFilter
+          options={statusOptions}
+          selectedStatus={selectedStatus}
+          onStatusChange={setSelectedStatus}
+        />
 
         {/* Notifications List */}
         <ScrollView

@@ -16,13 +16,15 @@ import { validateImageSize } from '../../utils/validations';
 import Icon from 'react-native-vector-icons/Feather';
 import SubLayout from '../../layout/SubLayout';
 import { useRoute } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { saveImageUrls } from '../../store/slices/deliveryConfirmImage';
 
 const DeliveryPhotoConfirmScreen = () => {
   const navigation = useNavigation<any>();
   const [selectedImages, setSelectedImages] = useState<Asset[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const route = useRoute<any>();
-
+  const dispatch = useDispatch();
   const routeProduct = route.params?.requestId;
 
   const handleTakePhoto = async () => {
@@ -64,14 +66,10 @@ const DeliveryPhotoConfirmScreen = () => {
 
       for (const img of selectedImages) {
         try {
-          const url = await uploadImageToCloudinary({
-            uri: img.uri as string,
-            mimeType: img.type as string | undefined,
-            fileName: img.fileName as string | undefined,
-          });
+          const url = await uploadImageToCloudinary(img);
           if (url) uploadedUrls.push(url);
         } catch (uploadErr) {
-          console.warn('Upload failed for image', img.uri, uploadErr);
+          console.warn('Upload failed for image', img?.uri, uploadErr);
         }
       }
 
@@ -81,12 +79,7 @@ const DeliveryPhotoConfirmScreen = () => {
         return;
       }
 
-      // Call confirm API with uploaded image URLs
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const routeService = require('../../services/routeService').default;
-      await routeService.confirmRoute(String(routeProduct), {
-        confirmImages: uploadedUrls,
-      });
+      await dispatch(saveImageUrls(uploadedUrls));
 
       navigation.navigate('DeliveryCompleteScreen', {
         requestId: routeProduct,

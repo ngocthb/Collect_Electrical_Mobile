@@ -1,53 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, Image, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import ScanQrComponent from '../../components/ScanQrComponent';
 import AppButton from '../../components/ui/AppButton';
+import AppAvatar from '../../components/ui/AppAvatar';
 import SubLayout from '../../layout/SubLayout';
 import { useNavigation } from '@react-navigation/core';
 import { useRoute } from '@react-navigation/native';
-import mockRequestService from '../../services/mockRequestService';
-
-const avatar = require('../../assets/images/avatar.jpg');
+import routeService from '../../services/routeService';
 
 const UserConfirmScreen = () => {
   const [shipperId, setShipperId] = useState<string | null>(null);
   const [shipperInfo, setShipperInfo] = useState<any | null>(null);
   const route = useRoute<any>();
-  const requestId: number | undefined = route.params?.requestId;
+  const [code, setCode] = useState<string | null>(null);
+  const initialRequest = route.params?.request ?? null;
   const navigation = useNavigation<any>();
-  const [request, setRequest] = useState<any | null>(null);
-
-  // Load request data from service
-  useEffect(() => {
-    let mounted = true;
-    if (!requestId) return;
-
-    (async () => {
-      try {
-        const r = await mockRequestService.get(requestId);
-        if (mounted && r) {
-          setRequest(r);
-        }
-      } catch (e) {
-        console.warn('UserConfirm: failed to load request', e);
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
-  }, [requestId]);
+  const [request, setRequest] = useState<any | null>(initialRequest);
 
   // Handle QR scan
   const handleQRScan = (data: string) => {
     try {
       const parsed = JSON.parse(String(data));
 
-      console.log(parsed);
       if (parsed && typeof parsed === 'object') {
         const sid = parsed.code || parsed.shipper?.id || parsed.shipperId;
 
+        if (parsed.code) {
+          setCode(parsed.code);
+        }
         if (parsed.shipper) {
           setShipperInfo(parsed.shipper);
         }
@@ -72,7 +53,11 @@ const UserConfirmScreen = () => {
     setShipperId(String(data));
   };
 
-  const handleGoHome = () => {
+  const handleGoHome = async () => {
+    if (code) {
+      await routeService.userConfirmRouter(code, true);
+    }
+    Alert.alert('Xác nhận', 'Bạn đã xác nhận người giao hàng thành công!');
     navigation.reset({
       index: 0,
       routes: [{ name: 'MainTabs' }],
@@ -114,22 +99,22 @@ const UserConfirmScreen = () => {
                 {/* Shipper Info Card */}
                 <View className="flex-row bg-gray-50 rounded-xl p-4 w-full mb-6">
                   <View className="items-center mr-4">
-                    <Image
-                      source={
-                        shipperInfo?.avatar &&
-                        typeof shipperInfo.avatar === 'string'
-                          ? { uri: shipperInfo.avatar }
-                          : avatar
-                      }
-                      className="w-20 h-20 rounded-full"
-                      style={{
-                        shadowColor: '#3B82F6',
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 8,
-                      }}
-                      resizeMode="cover"
-                    />
+                    {shipperInfo?.avatar &&
+                    typeof shipperInfo.avatar === 'string' ? (
+                      <Image
+                        source={{ uri: shipperInfo.avatar }}
+                        className="w-20 h-20 rounded-full"
+                        style={{
+                          shadowColor: '#3B82F6',
+                          shadowOffset: { width: 0, height: 4 },
+                          shadowOpacity: 0.3,
+                          shadowRadius: 8,
+                        }}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <AppAvatar name={shipperInfo?.name} size={70} />
+                    )}
                   </View>
 
                   <View className="flex-1 justify-center">

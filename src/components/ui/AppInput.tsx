@@ -12,6 +12,8 @@ interface AppInputProps extends TextInputProps {
   disabled?: boolean;
   // Nếu true sẽ dùng bàn phím số (phone-pad) và một số xử lý mặc định cho số điện thoại
   isPhone?: boolean;
+  isNumeric?: boolean; // New prop to enable numeric input
+  numberOfLines?: number; // New prop to specify the number of lines
 }
 
 const AppInput = forwardRef<TextInput, AppInputProps>(
@@ -26,6 +28,8 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
       required = false,
       disabled = false,
       isPhone = false,
+      isNumeric = false,
+      numberOfLines = 1, // Default value is 1
       ...props
     },
     ref,
@@ -51,7 +55,7 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
     };
 
     return (
-      <View className="my-2">
+      <View className="mb-4">
         {/* Label */}
         {label && (
           <Text
@@ -85,10 +89,14 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
             placeholder={placeholder}
             placeholderTextColor={disabled ? '#D1D5DB' : '#9CA3AF'}
             secureTextEntry={displaySecure}
-            keyboardType={isPhone ? 'phone-pad' : props.keyboardType}
+            keyboardType={
+              isNumeric ? 'numeric' : isPhone ? 'phone-pad' : props.keyboardType
+            } // Updated logic
             editable={!disabled}
             onFocus={handleFocus}
             onBlur={handleBlur}
+            multiline={numberOfLines > 1} // Enable multiline if numberOfLines > 1
+            numberOfLines={numberOfLines} // Pass the number of lines to TextInput
             {...props}
           />
 

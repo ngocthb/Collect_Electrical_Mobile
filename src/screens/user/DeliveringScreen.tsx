@@ -3,8 +3,10 @@ import { View, Text, Image, TouchableOpacity, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import SubLayout from '../../layout/SubLayout';
+import AppButton from '../../components/ui/AppButton';
 const delivering1 = require('../../assets/images/delivering1.png');
 const delivering2 = require('../../assets/images/delivering2.png');
+
 export default function DeliveringScreen() {
   const navigation = useNavigation<any>();
 
@@ -68,7 +70,6 @@ export default function DeliveringScreen() {
     };
   }, [progress]);
 
-  // interpolate to px for a route bar width
   const BAR_WIDTH = 300;
   const AVATAR_SIZE = 36;
   const fillWidth = progress.interpolate({
@@ -77,13 +78,8 @@ export default function DeliveringScreen() {
   });
   const avatarLeft = progress.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, BAR_WIDTH - AVATAR_SIZE],
+    outputRange: [0, BAR_WIDTH - (AVATAR_SIZE + 12)],
   });
-
-  const handleCall = () => {
-    // simple navigation to DeliveryInfo or call action could be wired here
-    navigation.goBack();
-  };
 
   return (
     <SubLayout title="Đang giao" onBackPress={() => navigation.goBack()}>
@@ -95,87 +91,85 @@ export default function DeliveringScreen() {
           </Text>
         </View>
 
-        <Image source={delivering2} className="w-full h-20" />
         <View className="w-full items-center mt-6">
+          <Image
+            source={delivering2}
+            className="w-full mt-6"
+            resizeMode="contain"
+          />
           <View style={{ width: BAR_WIDTH, height: AVATAR_SIZE * 1.6 }}>
             <View
               style={{
                 position: 'absolute',
                 left: 0,
                 right: 0,
-                top: AVATAR_SIZE * 0.8 - 4,
+                top: 1,
                 height: 8,
                 borderRadius: 8,
                 backgroundColor: '#e5e7eb',
               }}
             />
-
             <Animated.View
               style={{
                 position: 'absolute',
                 left: 0,
-                top: AVATAR_SIZE / 2 - 4,
+                top: 1,
                 height: 8,
                 borderRadius: 8,
                 backgroundColor: '#34d399',
                 width: fillWidth,
               }}
             />
-
             <Animated.Image
               source={delivering1}
               style={{
                 position: 'absolute',
-                top: AVATAR_SIZE * 0.6,
+                top: -90,
                 left: avatarLeft,
-                width: AVATAR_SIZE + 8,
-                height: AVATAR_SIZE + 8,
+                width: 100,
+                height: 100,
                 resizeMode: 'contain',
               }}
             />
           </View>
-
-          <View
-            style={{ width: BAR_WIDTH }}
-            className="flex-row justify-between mt-2 px-1"
-          >
-            <Text className="text-xs text-gray-400">Bắt đầu</Text>
-            <Text className="text-xs text-gray-400">Bạn</Text>
-          </View>
         </View>
 
-        {/* Shipper info card at bottom */}
-        <View className="mt-8 w-full px-2">
-          <View className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-            <View className="flex-row items-center">
+        <View className="w-full px-2">
+          <View className="bg-white rounded-xl border border-gray-100 p-3 shadow">
+            <View className="flex-row items-center mb-4">
               <Image
                 source={shipper.avatar}
                 className="w-16 h-16 rounded-full mr-3"
               />
+
               <View className="flex-1">
                 <Text className="font-bold text-lg">{shipper.name}</Text>
                 <Text className="text-sm text-gray-500">{shipper.vehicle}</Text>
-                <Text className="text-sm text-gray-400 mt-1">
-                  {remainingEtaText} • {remainingDistanceText}
-                </Text>
+                <View className="flex-row items-center mt-1">
+                  <Text className="text-sm text-gray-400">
+                    Biển số xe : 59C1-234.56
+                  </Text>
+                </View>
               </View>
               <TouchableOpacity
-                onPress={handleCall}
-                className="p-2 bg-green-50 rounded-lg"
+                className="items-center ml-2"
+                style={{ width: 44 }}
               >
-                <Icon name="phone" size={18} color="#059669" />
+                <View className="bg-blue-500 w-10 h-10 rounded-full items-center justify-center">
+                  <Icon name="message-circle" size={18} color="#fff" />
+                </View>
               </TouchableOpacity>
-            </View>
-            <View className="mt-3">
               <TouchableOpacity
-                onPress={() => navigation.navigate('DeliveryInfo')}
-                className="py-3 rounded-xl bg-green-600 items-center"
+                className="items-center ml-2"
+                style={{ width: 44 }}
               >
-                <Text className="text-white font-semibold">
-                  Xem chi tiết đơn hàng
-                </Text>
+                <View className="bg-blue-500 w-10 h-10 rounded-full items-center justify-center">
+                  <Icon name="phone" size={18} color="#fff" />
+                </View>
               </TouchableOpacity>
             </View>
+
+            <AppButton title="Xem chi tiết đơn hàng" />
           </View>
         </View>
       </View>

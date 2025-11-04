@@ -1,68 +1,73 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-
-interface Option {
-  id: string | number;
-  label: string;
-  value?: any;
-}
+import type { SubCategory } from '../../types/Category';
 
 interface AppDropdownProps {
-  options: Option[];
+  options: SubCategory[];
   placeholder?: string;
-  onSelect: (option: Option) => void;
+  onSelect: (option: SubCategory) => void;
   title?: string;
   required?: boolean;
-  value?: Option | null;
+  value?: SubCategory | null;
 }
 
 const AppDropdown: React.FC<AppDropdownProps> = ({
   options,
-  placeholder,
+  placeholder = 'Chọn một tùy chọn',
   onSelect,
   title,
-  required,
+  required = false,
   value,
 }) => {
   const [isDropdownVisible, setDropdownVisible] = useState(false);
-  // don't auto-select the first option — show placeholder until user explicitly picks
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [selectedOption, setSelectedOption] = useState<SubCategory | null>(
+    null,
+  );
 
   useEffect(() => {
-    if (value && value.label) setSelectedOption(value.label);
-  }, [value]);
+    if (value) {
+      setSelectedOption(value);
+    } else if (options.length > 0) {
+      setSelectedOption(options[0]);
+      onSelect(options[0]);
+    }
+  }, [value, options, onSelect]);
 
-  const handleSelect = (option: Option) => {
-    setSelectedOption(option.label);
+  const handleSelect = (option: SubCategory) => {
+    setSelectedOption(option);
     onSelect(option);
     setDropdownVisible(false);
   };
 
   return (
-    <View className="relative mb-4">
+    <View style={{ marginBottom: 16, position: 'relative' }}>
       {title && (
-        <Text className="text-sm font-medium mb-2 text-text-main">
-          {title} {required && <Text className="text-red-500">*</Text>}
+        <Text style={{ fontSize: 14, fontWeight: '500', marginBottom: 8 }}>
+          {title} {required && <Text style={{ color: 'red' }}>*</Text>}
         </Text>
       )}
 
       <TouchableOpacity
-        className="border border-gray-300 rounded-xl p-4 flex-row justify-between items-center bg-white"
+        style={{
+          borderWidth: 1,
+          borderColor: '#D1D5DB',
+          borderRadius: 12,
+          padding: 16,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: '#FFFFFF',
+        }}
         onPress={() => setDropdownVisible(!isDropdownVisible)}
       >
         <Text
-          className={`text-sm ${
-            selectedOption ? 'text-gray-900' : 'text-gray-400'
-          }`}
+          style={{
+            fontSize: 14,
+            color: selectedOption ? '#111827' : '#9CA3AF',
+          }}
         >
-          {selectedOption || placeholder || 'Chọn một tùy chọn'}
+          {selectedOption?.name}
         </Text>
         <Icon
           name={isDropdownVisible ? 'chevron-up' : 'chevron-down'}
@@ -73,8 +78,17 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
 
       {isDropdownVisible && (
         <View
-          className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl mt-2 z-50 shadow-lg"
           style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            backgroundColor: '#FFFFFF',
+            borderWidth: 1,
+            borderColor: '#E5E7EB',
+            borderRadius: 12,
+            marginTop: 8,
+            zIndex: 50,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.1,
@@ -83,32 +97,33 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
           }}
         >
           <ScrollView
-            className="max-h-60"
+            style={{ maxHeight: 240 }}
             nestedScrollEnabled={true}
             showsVerticalScrollIndicator={false}
           >
-            {options.map((item, index) => (
+            {options.map(item => (
               <TouchableOpacity
                 key={String(item.id)}
-                className={`p-4 ${
-                  index !== options.length - 1 ? 'border-b border-gray-100' : ''
-                } ${selectedOption === item.label ? 'bg-blue-50' : 'bg-white'}`}
+                style={{
+                  padding: 16,
+                  borderBottomWidth:
+                    item !== options[options.length - 1] ? 1 : 0,
+                  borderBottomColor: '#F3F4F6',
+                  backgroundColor:
+                    selectedOption?.id === item.id ? '#EFF6FF' : '#FFFFFF',
+                }}
                 onPress={() => handleSelect(item)}
               >
-                <View className="flex-row items-center justify-between">
-                  <Text
-                    className={`text-sm ${
-                      selectedOption === item.label
-                        ? 'text-primary-100 font-semibold'
-                        : 'text-gray-700'
-                    }`}
-                  >
-                    {item.label}
-                  </Text>
-                  {selectedOption === item.label && (
-                    <Icon name="check" size={18} color="#4169E1" />
-                  )}
-                </View>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color:
+                      selectedOption?.id === item.id ? '#2563EB' : '#374151',
+                    fontWeight: selectedOption?.id === item.id ? '600' : '400',
+                  }}
+                >
+                  {item.name}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>

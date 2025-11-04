@@ -39,23 +39,32 @@ const DeliveryInfoScreen = () => {
         const data = r as any;
         const normalized: any = { ...data };
 
-        if (Array.isArray(data.images)) {
-          normalized.images = data.images.map((u: string) => ({ uri: u }));
+        // Map imageUrls to images format
+        if (Array.isArray(data.imageUrls)) {
+          normalized.images = data.imageUrls.map((u: string) => ({ uri: u }));
           normalized.image = normalized.images[0] || null;
         }
 
+        // Map product description to description
+        if (data.product?.description) {
+          normalized.description = data.product.description;
+        }
+
+        // Map category fields
+        if (data.parentCategory) {
+          normalized.category = data.parentCategory;
+          if (data.subCategory) {
+            normalized.category += ` - ${data.subCategory}`;
+          }
+        }
+
+        // Map schedule to timeSlots format
         if (Array.isArray(data.schedule)) {
           const slotsObj: Record<string, string[]> = {};
           data.schedule.forEach((item: any) => {
-            if (
-              item &&
-              item.dayName &&
-              Array.isArray(item.slots) &&
-              item.slots.length > 0
-            ) {
-              const s = item.slots[0];
-              const start = s.startTime || '';
-              const end = s.endTime || '';
+            if (item && item.dayName && item.slots) {
+              const start = item.slots.startTime || '';
+              const end = item.slots.endTime || '';
               slotsObj[item.dayName] = [start, end];
             }
           });
@@ -136,6 +145,39 @@ const DeliveryInfoScreen = () => {
         ))}
       </View>
     );
+  };
+
+  const renderAttributesOrCondition = () => {
+    if (request?.product?.attributes && request.product.attributes.length > 0) {
+      return (
+        <View className="bg-white rounded-3xl shadow-md mb-5 p-6">
+          <Text className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
+            Thông số kỹ thuật
+          </Text>
+          {request.product.attributes.map((attr: any, index: number) => (
+            <View
+              key={index}
+              className="flex-row justify-between py-2 border-b border-gray-100 last:border-b-0"
+            >
+              <Text className="text-gray-600">{attr.attributeName}</Text>
+              <Text className="text-gray-900 font-medium">
+                {attr.value} {attr.unit || ''}
+              </Text>
+            </View>
+          ))}
+        </View>
+      );
+    } else if (request?.product?.sizeTierName) {
+      return (
+        <View className="bg-white rounded-3xl shadow-md mb-5 p-6">
+          <Text className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
+            Kích thước
+          </Text>
+          <Text className="text-gray-900">{request.product.sizeTierName}</Text>
+        </View>
+      );
+    }
+    return null;
   };
 
   return (
@@ -311,6 +353,9 @@ const DeliveryInfoScreen = () => {
 
             {/* time slots */}
             {renderTimeSlots(request?.timeSlots)}
+
+            {/* Attributes or Condition */}
+            {renderAttributesOrCondition()}
 
             {/* Help Section */}
             <TouchableOpacity

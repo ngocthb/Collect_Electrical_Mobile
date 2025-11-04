@@ -51,27 +51,13 @@ export default function DeliveryHomeScreen() {
 
   return (
     <MainLayout>
-      <ScrollView className="flex-1 px-6  mt-4">
+      <ScrollView className="flex-1 px-6  ">
         <View className="flex-row justify-between">
           <View className="mb-6">
             <Text className="text-gray-600 text-base mb-1">Xin chào!</Text>
             <Text className="text-2xl font-bold text-gray-800">
               {user?.name || 'Naruto'}
             </Text>
-          </View>
-
-          <View className="flex-row items-center mb-8">
-            <View className="relative">
-              {user?.avatar ? (
-                <Image
-                  source={{ uri: user.avatar }}
-                  className="w-20 h-20 rounded-lg"
-                  resizeMode="cover"
-                />
-              ) : (
-                <AppAvatar name={user?.name} size={64} />
-              )}
-            </View>
           </View>
         </View>
         {/* Menu Grid */}

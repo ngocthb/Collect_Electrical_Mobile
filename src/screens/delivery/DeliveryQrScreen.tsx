@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAppSelector } from '../../store/hooks';
 import AppButton from '../../components/ui/AppButton';
 import QRCode from 'react-native-qrcode-svg';
 import routeService from '../../services/routeService';
+import axiosClient from '../../config/axios';
 
 import SubLayout from '../../layout/SubLayout';
 
@@ -48,6 +49,27 @@ const DeliveryQrScreen = () => {
       mounted = false;
     };
   }, [routeProduct]);
+
+  const [isSkipping, setIsSkipping] = useState(false);
+
+  const handleSkip = async () => {
+    if (!product) return;
+    const id = product?.collectionRouteId;
+    setIsSkipping(true);
+    try {
+      const res = await routeService.userConfirmRouter(id, false);
+
+      console.log('Skip response:', res);
+
+      navigation.navigate('DeliveryPhotoConfirm', {
+        requestId: product.collectionRouteId,
+      });
+    } catch (error: any) {
+      console.error('Skip error:', error);
+    } finally {
+      setIsSkipping(false);
+    }
+  };
 
   const confirmPayload = {
     code: product?.collectionRouteId,
@@ -107,6 +129,15 @@ const DeliveryQrScreen = () => {
                 })
               }
             />
+            <View className="w-full mt-3">
+              <AppButton
+                title="Skip"
+                color="#ef4444"
+                loading={isSkipping}
+                disabled={!product || isSkipping}
+                onPress={handleSkip}
+              />
+            </View>
           </View>
         </View>
       </ScrollView>

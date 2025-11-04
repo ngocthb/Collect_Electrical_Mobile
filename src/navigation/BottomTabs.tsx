@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { TouchableOpacity, View } from 'react-native';
+import CenterPlusButton from '../components/ui/CenterPlusButton';
+import { useNavigation } from '@react-navigation/native';
 import IconOcticons from 'react-native-vector-icons/Octicons';
 import IconFeature from 'react-native-vector-icons/Feather';
 import HomeScreen from '../screens/user/HomeScreen';
@@ -10,6 +13,7 @@ import { useAppSelector } from '../store/hooks';
 import { createStackNavigator } from '@react-navigation/stack';
 import DeliveryHomeScreen from '../screens/delivery/DeliveryHomeScreen';
 import NotificationListScreen from '../screens/user/NotificationListScreen';
+import CategoryPickerModal from '../components/CategoryPickerModal';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -24,6 +28,8 @@ export default function AppNavigator() {
 
 function BottomTabs() {
   const { role } = useAppSelector(s => s.auth);
+  const navigation = useNavigation<any>();
+  const [catModalVisible, setCatModalVisible] = useState(false);
 
   const userTabs = (
     <Tab.Navigator
@@ -51,6 +57,19 @@ function BottomTabs() {
     >
       <Tab.Screen name="Trang chủ" component={HomeScreen} />
       <Tab.Screen name="Yêu cầu" component={RequestScreen} />
+      <Tab.Screen
+        name="TaoYeuCau"
+        component={HomeScreen}
+        options={{
+          tabBarLabel: '',
+          tabBarButton: (props: any) => (
+            <CenterPlusButton
+              {...props}
+              onPress={() => setCatModalVisible(true)}
+            />
+          ),
+        }}
+      />
       <Tab.Screen name="Thông báo" component={NotificationListScreen} />
       <Tab.Screen name="Tài khoản" component={ProfileScreen} />
     </Tab.Navigator>
@@ -84,5 +103,18 @@ function BottomTabs() {
     </Tab.Navigator>
   );
 
-  return role === 'user' ? userTabs : deliveryTabs;
+  return (
+    <>
+      {role === 'user' ? userTabs : deliveryTabs}
+      <CategoryPickerModal
+        visible={catModalVisible}
+        onClose={() => setCatModalVisible(false)}
+        onConfirm={cat => {
+          setCatModalVisible(false);
+
+          navigation.navigate('CreateRequest', { parentCategoryId: cat.id });
+        }}
+      />
+    </>
+  );
 }

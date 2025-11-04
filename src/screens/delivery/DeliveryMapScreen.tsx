@@ -1,17 +1,7 @@
 import React, { useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Animated,
-  PanResponder,
-  Dimensions,
-} from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Image } from 'react-native';
-import { validatePhoneNumber, maskPhone } from '../../utils/validations';
-import { LocationData } from '../../components/MapboxPicker';
+import { View, Text, Animated, PanResponder, Dimensions } from 'react-native';
+
+import type { LocationData } from '../../types/MapboxPicker';
 import {
   getCurrentLocation,
   checkAndRequestLocationPermission,
