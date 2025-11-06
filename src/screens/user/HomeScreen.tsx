@@ -3,13 +3,10 @@ import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import { useAppSelector } from '../../store/hooks';
-import AppAvatar from '../../components/ui/AppAvatar';
+
 import MainLayout from '../../layout/MainLayout';
 
-const avatar = require('../../assets/images/avatar.jpg');
-const homepage1 = require('../../assets/images/homepage1.png');
 const homepage2 = require('../../assets/images/homepage2.png');
-const homepage3 = require('../../assets/images/homepage3.png');
 const homepage4 = require('../../assets/images/homepage4.png');
 
 export default function HomeScreen() {
@@ -19,20 +16,13 @@ export default function HomeScreen() {
   const menuItems = [
     {
       id: 1,
-      title: 'Tạo yêu cầu',
-      image: homepage1,
-      color: '#E3F2FD',
-      textColor: '#1976D2',
-    },
-    {
-      id: 2,
       title: 'Ví của tôi',
       image: homepage2,
       color: '#E8F5E8',
       textColor: '#388E3C',
     },
     {
-      id: 4,
+      id: 2,
       title: 'Các điểm thu',
       image: homepage4,
       color: '#FCE4EC',
@@ -43,12 +33,9 @@ export default function HomeScreen() {
   const handleMenuPress = (id: number) => {
     switch (id) {
       case 1:
-        navigation.navigate('CreateRequest');
-        break;
-      case 2:
         navigation.navigate('Wallet');
         break;
-      case 4:
+      case 2:
         navigation.navigate('WarehouseLocation');
         break;
       default:

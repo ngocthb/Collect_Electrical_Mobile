@@ -2,39 +2,74 @@ import React from 'react';
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import MainLayout from '../../layout/MainLayout';
-
-const avatar = require('../../assets/images/avatar.jpg');
+import { useNavigation } from '@react-navigation/native';
+import AppAvatar from '../../components/ui/AppAvatar';
+import { useAppSelector } from '../../store/hooks';
 
 const menuItems = [
   { id: 1, title: 'Hồ sơ của tôi', icon: 'user' },
   { id: 2, title: 'Ví của tôi', icon: 'credit-card' },
   { id: 3, title: 'Lịch thu gom mặc định', icon: 'calendar' },
+  { id: 6, title: 'Địa chỉ mặc định', icon: 'map-pin' },
   { id: 4, title: 'Đổi mật khẩu', icon: 'lock' },
-  { id: 5, title: 'Cài đặt', icon: 'settings' },
 ];
 
 const ProfileScreen = () => {
+  const user = useAppSelector(s => s.auth.user);
+
+  const navigation = useNavigation<any>();
+
+  const handleMenuPress = (id: number) => {
+    switch (id) {
+      case 1:
+        navigation.navigate('EditProfile');
+        break;
+      case 2:
+        navigation.navigate('Wallet');
+        break;
+      case 3:
+        navigation.navigate('DefaultSchedule');
+        break;
+      case 4:
+        navigation.navigate('ChangePassword');
+        break;
+      case 6:
+        navigation.navigate('DefaultAddress');
+        break;
+      default:
+        // no-op (future handlers)
+        break;
+    }
+  };
+
   return (
     <MainLayout>
       <View className="flex-1 bg-white">
         <ScrollView className="flex-1 px-6">
           {/* Profile Section */}
           <View className="flex-row items-center  ">
-            <Image
-              source={avatar}
-              className="w-24 h-24 rounded-full mb-4"
-              resizeMode="cover"
-            />
+            <View>
+              <AppAvatar
+                name={user?.name ?? 'User'}
+                uri={user?.avatar ?? undefined}
+                size={80}
+                style={{ marginBottom: 8 }}
+              />
+            </View>
+
             <View className="flex ml-4 justify-center">
-              <Text className="text-lg font-bold text-gray-800">Naruto</Text>
-              <Text className="text-sm text-gray-500">mosalah@gmail.com</Text>
+              <Text className="text-lg font-bold text-gray-800">
+                {user?.name ?? 'Khách hàng'}
+              </Text>
+              <Text className="text-sm text-gray-500">
+                {user?.email ?? '—'}
+              </Text>
               <View className="flex-row items-center mt-2">
                 <Text className="text-base font-bold text-gray-800 mr-2">
                   220
@@ -52,6 +87,7 @@ const ProfileScreen = () => {
               <TouchableOpacity
                 key={item.id}
                 className="flex-row items-center py-6 "
+                onPress={() => handleMenuPress(item.id)}
               >
                 <Icon name={item.icon} size={24} color="#333" />
                 <Text className="ml-4 text-base text-text-sub">

@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-
+import { useNavigation } from '@react-navigation/native';
 interface MainLayoutProps {
   children: React.ReactNode;
   headerTitle?: string;
@@ -14,10 +14,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   headerTitle,
   headerSubtitle,
 }) => {
+  const navigation = useNavigation<any>();
   const [isSidebarVisible, setSidebarVisible] = React.useState(false);
 
   const toggleSidebar = () => {
     setSidebarVisible(!isSidebarVisible);
+  };
+
+  const handleNotification = () => {
+    // Navigate directly to the Notifications tab.
+    // Some navigator stacks register the bottom tabs under different parent names,
+    // navigating by the tab name is more robust.
+    navigation.navigate('Thông báo');
   };
 
   return (
@@ -25,7 +33,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       <Sidebar visible={isSidebarVisible} onClose={toggleSidebar} />
       <Header
         onMenuPress={toggleSidebar}
-        onNotificationPress={() => {}}
+        onNotificationPress={handleNotification}
         title={headerTitle}
         subtitle={headerSubtitle}
       />

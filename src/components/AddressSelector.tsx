@@ -95,7 +95,7 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
   const handleCreateNewAddress = async () => {
     onSelectAddress(null);
     setIsCreatingNew(true);
-    await new Promise<void>(resolve => setTimeout(resolve, 200));
+
     navigation.navigate('CreateAddress');
     setIsCreatingNew(false);
   };

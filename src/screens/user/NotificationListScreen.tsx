@@ -210,31 +210,9 @@ const NotificationListScreen: React.FC<NotificationListScreenProps> = ({
     },
   ]);
 
-  const updateNotificationStatus = (id: string, newStatus: string) => {
-    setNotifications(prev =>
-      prev.map(n =>
-        n.id === id
-          ? { ...n, status: newStatus, isFinish: newStatus === 'completed' }
-          : n,
-      ),
-    );
-    const label =
-      newStatus === 'completed'
-        ? 'Đã hoàn thành'
-        : newStatus === 'in_progress'
-        ? 'Đang tiến hành'
-        : newStatus === 'scheduled'
-        ? 'Sắp tiến hành'
-        : 'Đang trên đường';
-    Alert.alert('Cập nhật trạng thái', `Đã chuyển thông báo thành: ${label}`);
-    // TODO: persist change to server/store if required
-  };
-
   const filteredNotifications = notifications.filter(notification =>
     selectedStatus ? notification.status === selectedStatus : true,
   );
-
-  const unreadCount = notifications.filter(n => !n.isFinish).length;
 
   const statusOptions = [
     { value: '', label: 'Tất cả', color: 'gray' },
@@ -277,9 +255,7 @@ const NotificationListScreen: React.FC<NotificationListScreenProps> = ({
                     } else if (!notification.isFinish) {
                       navigation.navigate('ShipmentDetail', { notification });
                     } else if (notification.amount) {
-                      navigation.navigate('UserNotificationDetail', {
-                        notification,
-                      });
+                      navigation.navigate('UserNotificationDetail');
                     } else {
                       navigation.navigate('DeliveryInfo');
                     }

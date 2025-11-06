@@ -31,7 +31,7 @@ const addressSlice = createSlice({
     },
 
     addAddress(state, action: PayloadAction<Address>) {
-      state.list.push(action.payload);
+      state.list.unshift(action.payload);
       state.lastAddedId = action.payload.id;
       state.current = initialAddress;
     },

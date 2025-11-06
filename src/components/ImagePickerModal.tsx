@@ -16,10 +16,11 @@ import type { Asset } from 'react-native-image-picker';
 interface ImagePickerModalProps {
   visible: boolean;
   onClose: () => void;
-  /** returns selected assets (may be multiple) to parent */
   onSelect: (assets: Asset[]) => void;
   currentCount?: number;
   maxItems?: number;
+
+  hideVideoOption?: boolean;
 }
 
 const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
@@ -28,6 +29,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
   onSelect,
   currentCount = 0,
   maxItems = 5,
+  hideVideoOption = false,
 }) => {
   const handlePickFromGallery = async () => {
     const allowed = Math.max(1, maxItems - currentCount);
@@ -173,27 +175,29 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
               <Icon name="chevron-forward" size={20} color="#9CA3AF" />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => {
-                handlePickVideo();
-                onClose();
-              }}
-              className="flex-row items-center px-4 py-4 bg-gray-50 rounded-xl"
-              activeOpacity={0.7}
-            >
-              <View className="w-12 h-12 bg-red-100 rounded-full items-center justify-center mr-4">
-                <Icon name="videocam" size={24} color="#EF4444" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-base font-semibold text-gray-800">
-                  Chọn video
-                </Text>
-                <Text className="text-sm text-gray-500 mt-0.5">
-                  Chọn video từ thư viện
-                </Text>
-              </View>
-              <Icon name="chevron-forward" size={20} color="#9CA3AF" />
-            </TouchableOpacity>
+            {!hideVideoOption && (
+              <TouchableOpacity
+                onPress={() => {
+                  handlePickVideo();
+                  onClose();
+                }}
+                className="flex-row items-center px-4 py-4 bg-gray-50 rounded-xl"
+                activeOpacity={0.7}
+              >
+                <View className="w-12 h-12 bg-red-100 rounded-full items-center justify-center mr-4">
+                  <Icon name="videocam" size={24} color="#EF4444" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-semibold text-gray-800">
+                    Chọn video
+                  </Text>
+                  <Text className="text-sm text-gray-500 mt-0.5">
+                    Chọn video từ thư viện
+                  </Text>
+                </View>
+                <Icon name="chevron-forward" size={20} color="#9CA3AF" />
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Cancel button */}

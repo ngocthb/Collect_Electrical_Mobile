@@ -14,9 +14,13 @@ import DeliveryQrScreen from '../screens/delivery/DeliveryQrScreen';
 import DeliveryPhotoConfirmScreen from '../screens/delivery/DeliveryPhotoConfirmScreen';
 import UserConfirmScreen from '../screens/user/UserConfirmScreen';
 import NotificationDetailScreen from '../screens/user/NotificationDetailScreen';
+import ProfileEditScreen from '../screens/user/ProfileEditScreen';
 import DeliveryScanQrScreen from '../screens/delivery/DeliveryScanQrScreen';
 import DeliveryRouteScreen from '../screens/delivery/DeliveryRouteScreen';
 import CreateAddressScreen from '../screens/user/CreateAddressScreen';
+import DefaultAddressScreen from '../screens/user/DefaultAddressScreen';
+import DefaultScheduleScreen from '../screens/user/DefaultScheduleScreen';
+import ChangePasswordScreen from '../screens/user/ChangePasswordScreen';
 import DeliveryCancelScreen from '../screens/delivery/DeliveryCancelScreen';
 import WarehouseLocationScreen from '../screens/user/WarehouseLocationScreen';
 import WalletScreen from '../screens/user/WalletScreen';
@@ -59,6 +63,18 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
           <Stack.Screen name="MainTabs" component={BottomTabs} />
           <Stack.Screen name="CreateRequest" component={CreateRequestScreen} />
           <Stack.Screen name="CreateAddress" component={CreateAddressScreen} />
+          <Stack.Screen
+            name="DefaultAddress"
+            component={DefaultAddressScreen}
+          />
+          <Stack.Screen
+            name="DefaultSchedule"
+            component={DefaultScheduleScreen}
+          />
+          <Stack.Screen
+            name="ChangePassword"
+            component={ChangePasswordScreen}
+          />
 
           <Stack.Screen
             name="TimeSelectionScreen"
@@ -74,10 +90,9 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
           />
           <Stack.Screen name="DeliveryInfo" component={DeliveryInfoScreen} />
           <Stack.Screen name="UserConfirm" component={UserConfirmScreen} />
-          <Stack.Screen
-            name="UserNotificationDetails"
-            component={NotificationDetailScreen}
-          />
+
+          <Stack.Screen name="EditProfile" component={ProfileEditScreen} />
+
           <Stack.Screen
             name="UserNotificationDetail"
             component={NotificationDetailScreen}

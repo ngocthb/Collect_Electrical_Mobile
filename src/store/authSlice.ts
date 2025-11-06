@@ -229,6 +229,15 @@ const authSlice = createSlice({
       action: PayloadAction<{ email: string; name?: string } | null>,
     ) {
       state.user = action.payload;
+      // persist updated auth to AsyncStorage
+      try {
+        AsyncStorage.setItem(
+          'auth',
+          JSON.stringify({ user: state.user, role: state.role }),
+        );
+      } catch (e) {
+        // ignore storage errors
+      }
     },
     setRole(state, action: PayloadAction<'user' | 'delivery' | null>) {
       state.role = action.payload;
@@ -310,6 +319,8 @@ export const {
   verifyPendingRegistration,
   clearPendingRegistration,
   setError,
+  setUser,
+  setRole,
 } = authSlice.actions;
 
 export default authSlice.reducer;
