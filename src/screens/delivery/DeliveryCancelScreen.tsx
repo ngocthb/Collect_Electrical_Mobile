@@ -4,10 +4,10 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  Alert,
   ScrollView,
   TextInput,
 } from 'react-native';
+import toast from 'react-native-toast-message';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import SubLayout from '../../layout/SubLayout';
 import AppButton from '../../components/ui/AppButton';
@@ -78,20 +78,25 @@ const DeliveryCancelScreen = () => {
     if (result.success && result.images) {
       // validate size
       if (!validateImageSize(result.images[0].fileSize, 10)) {
-        Alert.alert(
-          'Ảnh quá lớn',
-          'Ảnh có kích thước >= 10MB. Vui lòng chụp lại.',
-        );
+        toast.show({
+          type: 'warning',
+          text1: 'Ảnh quá lớn',
+          text2: 'Ảnh có kích thước >= 10MB. Vui lòng chụp lại.',
+        });
         return;
       }
 
       if (selectedImages.length >= 5) {
-        Alert.alert('Giới hạn ảnh', 'Bạn chỉ có thể thêm tối đa 5 ảnh');
+        toast.show({
+          type: 'warning',
+          text1: 'Giới hạn ảnh',
+          text2: 'Bạn chỉ có thể thêm tối đa 5 ảnh',
+        });
         return;
       }
       setSelectedImages(prev => [...prev, ...result.images!]);
     } else if (result.error && result.error !== 'User cancelled') {
-      Alert.alert('Lỗi', 'Không thể chụp ảnh');
+      toast.show({ type: 'error', text1: 'Lỗi', text2: 'Không thể chụp ảnh' });
     }
   };
 
@@ -107,7 +112,7 @@ const DeliveryCancelScreen = () => {
         try {
           const url = await uploadImageToCloudinary({
             uri: img.uri,
-            mimeType: img.type,
+            type: img.type,
             fileName: img.fileName,
           });
           if (url) uploadedUrls.push(url);
@@ -128,14 +133,22 @@ const DeliveryCancelScreen = () => {
         rejectMessage,
       );
 
-      Alert.alert('Hoàn tất', 'Đã hủy đơn hàng');
+      toast.show({
+        type: 'success',
+        text1: 'Hoàn tất',
+        text2: 'Đã hủy đơn hàng',
+      });
       navigation.reset({
         index: 0,
         routes: [{ name: 'DeliveryOrder' }],
       });
     } catch (e) {
       console.warn('Failed to cancel route', e);
-      Alert.alert('Lỗi', 'Không thể hủy đơn hàng, thử lại sau');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể hủy đơn hàng, thử lại sau',
+      });
     } finally {
       setIsSubmitting(false);
     }

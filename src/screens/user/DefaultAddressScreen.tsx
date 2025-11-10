@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Alert } from 'react-native';
+import { View } from 'react-native';
+import toast from 'react-native-toast-message';
 import SubLayout from '../../layout/SubLayout';
 import AddressSelector from '../../components/AddressSelector';
 import AppButton from '../../components/ui/AppButton';
@@ -17,7 +18,11 @@ const DefaultAddressScreen: React.FC = () => {
 
   const handleSave = () => {
     if (!selectedAddress) {
-      Alert.alert('Lỗi', 'Vui lòng chọn một địa chỉ');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Vui lòng chọn một địa chỉ',
+      });
       return;
     }
 
@@ -27,7 +32,11 @@ const DefaultAddressScreen: React.FC = () => {
     } as any;
 
     dispatch(setUser(updated));
-    Alert.alert('Thành công', 'Đã lưu địa chỉ mặc định');
+    toast.show({
+      type: 'success',
+      text1: 'Thành công',
+      text2: 'Đã lưu địa chỉ mặc định',
+    });
     navigation.goBack();
   };
 

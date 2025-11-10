@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, TextInput, Alert } from 'react-native';
+import { View, TextInput } from 'react-native';
+import toast from 'react-native-toast-message';
 import SubLayout from '../../layout/SubLayout';
 import { useNavigation } from '@react-navigation/native';
 import AppButton from '../../components/ui/AppButton';
@@ -50,10 +51,11 @@ const CreateAddressScreen: React.FC = () => {
     }
 
     if (!addressInput || !addressInput.trim()) {
-      Alert.alert(
-        'Thiếu thông tin',
-        'Vui lòng nhập hoặc chọn vị trí trước khi lưu',
-      );
+      toast.show({
+        type: 'warning',
+        text1: 'Thiếu thông tin',
+        text2: 'Vui lòng nhập hoặc chọn vị trí trước khi lưu',
+      });
       return;
     }
 
@@ -71,15 +73,27 @@ const CreateAddressScreen: React.FC = () => {
           dispatch(updateAddress({ ...updated, id: address.id }));
         }
 
-        Alert.alert('Thành công', 'Cập nhật địa chỉ thành công');
+        toast.show({
+          type: 'success',
+          text1: 'Thành công',
+          text2: 'Cập nhật địa chỉ thành công',
+        });
       } else {
         const newAddress = await addrService.create(payload);
         dispatch(addAddress(newAddress));
-        Alert.alert('Thành công', 'Thêm địa chỉ mới thành công');
+        toast.show({
+          type: 'success',
+          text1: 'Thành công',
+          text2: 'Thêm địa chỉ mới thành công',
+        });
       }
       handleBack();
     } catch (error) {
-      Alert.alert('Lỗi', 'Không thể lưu địa chỉ. Vui lòng thử lại.');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể lưu địa chỉ. Vui lòng thử lại.',
+      });
     }
   };
 
@@ -89,14 +103,23 @@ const CreateAddressScreen: React.FC = () => {
   };
   const handleDiscardChanges = () => {
     if (isDirty) {
-      Alert.alert(
-        'Bỏ thay đổi?',
-        'Bạn có chắc chắn muốn bỏ các thay đổi chưa được lưu?',
-        [
-          { text: 'Hủy', style: 'cancel' },
-          { text: 'Đồng ý', onPress: () => handleBack() },
-        ],
-      );
+      toast.show({
+        type: 'confirm',
+        text1: 'Bỏ thay đổi?',
+        text2: 'Bạn có chắc chắn muốn bỏ các thay đổi chưa được lưu?',
+        autoHide: false,
+        props: {
+          button1: 'Hủy',
+          button2: 'Đồng ý',
+          onCancel: () => {
+            toast.hide();
+          },
+          onConfirm: () => {
+            toast.hide();
+            handleBack();
+          },
+        },
+      });
     } else {
       handleBack();
     }

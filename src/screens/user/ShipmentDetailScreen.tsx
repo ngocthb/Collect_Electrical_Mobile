@@ -5,9 +5,9 @@ import {
   Image,
   TouchableOpacity,
   Linking,
-  Alert,
   ScrollView,
 } from 'react-native';
+import toast from 'react-native-toast-message';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import SubLayout from '../../layout/SubLayout';
@@ -46,7 +46,11 @@ export default function ShipmentDetailScreen() {
   const updateStatus = (newStatus: 'scheduled') => {
     setStatus(newStatus);
     const label = statusConfig[newStatus]?.label || newStatus;
-    Alert.alert('Cập nhật trạng thái', `Đã chuyển sang: ${label}`);
+    toast.show({
+      type: 'success',
+      text1: 'Cập nhật trạng thái',
+      text2: `Đã chuyển sang: ${label}`,
+    });
     // TODO: persist to server/store if needed
   };
 
@@ -58,10 +62,18 @@ export default function ShipmentDetailScreen() {
       if (supported) {
         await Linking.openURL(tel);
       } else {
-        Alert.alert('Không thể gọi', 'Thiết bị không hỗ trợ cuộc gọi.');
+        toast.show({
+          type: 'error',
+          text1: 'Không thể gọi',
+          text2: 'Thiết bị không hỗ trợ cuộc gọi.',
+        });
       }
     } catch (err) {
-      Alert.alert('Lỗi', 'Không thể thực hiện cuộc gọi.');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể thực hiện cuộc gọi.',
+      });
     }
   };
 

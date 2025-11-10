@@ -4,17 +4,16 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  Alert,
   TextInput,
   Keyboard,
   TouchableWithoutFeedback,
 } from 'react-native';
-import Toast from 'react-native-toast-message';
 import AppInput from '../../components/ui/AppInput';
 import AppButton from '../../components/ui/AppButton';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { loginMock, setError } from '../../store/authSlice';
+import { loginMock, loginWithGoogle, setError } from '../../store/authSlice';
+import Toast from 'react-native-toast-message';
 
 const login = require('../../assets/images/login.png');
 const google = require('../../assets/images/google.jpg');
@@ -28,11 +27,44 @@ export default function LoginScreen() {
   const navigation = useNavigation<any>();
 
   const handleLogin = () => {
-    dispatch(loginMock({ identifier: email, password }));
+    try {
+      dispatch(loginMock({ identifier: email, password }));
+      Toast.show({
+        type: 'success',
+        text1: 'Đăng nhập thành công!',
+        text2: 'Chào mừng bạn đến với ứng dụng',
+      });
+      ``;
+    } catch (error) {
+      console.log('Login error: ', error);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await dispatch(loginWithGoogle()).unwrap();
+      Toast.show({
+        type: 'success',
+        text1: 'Đăng nhập thành công!',
+        text2: 'Chào mừng bạn đến với ứng dụng',
+      });
+    } catch (error: any) {
+      Toast.show({
+        type: 'error',
+        text1: 'Đăng nhập thất bại',
+        text2: error || 'Vui lòng thử lại',
+      });
+    }
   };
 
   useEffect(() => {
     if (auth.user && auth.role) {
+      Toast.show({
+        type: 'success',
+        text1: 'Đăng nhập thành công!',
+        text2: `Chào mừng ${auth.user.name || auth.user.email}`,
+      });
+
       if (auth.role === 'user') {
         // @ts-ignore
         globalThis.navigation?.replace('MainTabs');
@@ -128,7 +160,8 @@ export default function LoginScreen() {
         {/* Google Sign-In Button */}
         <View className="mt-4">
           <TouchableOpacity
-            onPress={() => {}}
+            onPress={handleGoogleLogin}
+            disabled={auth.loading}
             className="items-center py-4 px-8 justify-center bg-white rounded-lg shadow-lg "
           >
             <Image

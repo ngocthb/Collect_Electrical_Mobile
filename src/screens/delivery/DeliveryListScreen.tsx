@@ -97,11 +97,18 @@ export default function DeliveryListScreen() {
     };
   }, [selectedDate]);
 
-  // Filter orders by status (orders already constrained to selected week)
+  // Filter orders by selected date and status (show only orders of the selected day)
+  const selectedStart = new Date(selectedDate);
+  selectedStart.setHours(0, 0, 0, 0);
   let filteredOrders = orders.filter(order => {
+    const orderDate = getOrderDate(order);
+    if (!orderDate) return false;
+    const d = new Date(orderDate);
+    d.setHours(0, 0, 0, 0);
+    const matchesDate = d.getTime() === selectedStart.getTime();
     const matchesStatus =
       selectedStatus === 'all' || resolveStatus(order) === selectedStatus;
-    return matchesStatus;
+    return matchesDate && matchesStatus;
   });
 
   // If viewing "all", move completed and failed orders to the bottom while preserving relative order

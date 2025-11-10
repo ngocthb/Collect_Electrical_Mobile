@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '../../store/hooks';
 
 import MainLayout from '../../layout/MainLayout';
-
+const homepage1 = require('../../assets/images/homepage1.png');
 const homepage2 = require('../../assets/images/homepage2.png');
 const homepage4 = require('../../assets/images/homepage4.png');
 
@@ -24,6 +24,13 @@ export default function HomeScreen() {
     {
       id: 2,
       title: 'Các điểm thu',
+      image: homepage1,
+      textColor: '#4F46E5',
+      color: '#EEF2FF',
+    },
+    {
+      id: 3,
+      title: 'Xác thực nhân viên',
       image: homepage4,
       color: '#FCE4EC',
       textColor: '#C2185B',
@@ -38,10 +45,14 @@ export default function HomeScreen() {
       case 2:
         navigation.navigate('WarehouseLocation');
         break;
+      case 3:
+        navigation.navigate('UserConfirm');
+        break;
       default:
         break;
     }
   };
+
   return (
     <MainLayout>
       <ScrollView className="flex-1 px-6">
@@ -53,12 +64,13 @@ export default function HomeScreen() {
             </Text>
           </View>
         </View>
+
         {/* Menu Grid */}
         <View className="flex-row flex-wrap justify-between">
           {menuItems.map(item => (
             <TouchableOpacity
               key={item.id}
-              className="w-[48%] mb-4 p-4 rounded-xl"
+              className="w-[48%] mb-4 p-4 rounded-xl items-center justify-center"
               style={{ backgroundColor: item.color }}
               onPress={() => handleMenuPress(item.id)}
             >
@@ -68,8 +80,9 @@ export default function HomeScreen() {
                   className="w-20 h-20 mb-2"
                   resizeMode="contain"
                 />
+
                 <Text
-                  className="text-sm font-medium text-center"
+                  className="text-sm font-medium text-center mt-3"
                   style={{ color: item.textColor }}
                 >
                   {item.title}

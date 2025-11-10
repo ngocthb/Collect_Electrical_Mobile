@@ -56,10 +56,15 @@ const confirmRoute = async (
   }
 };
 
-const userConfirmRouter = async (routeId: string, isConfirm: boolean) => {
+const userConfirmRouter = async (
+  routeId: string,
+  isConfirm: boolean,
+  isSkip: boolean,
+) => {
   try {
     const res = await axiosClient.put(`/routes/user-confirm/${routeId}`, {
       isConfirm,
+      isSkip,
     });
     return res;
   } catch (e) {

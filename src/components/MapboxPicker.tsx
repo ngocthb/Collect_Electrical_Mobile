@@ -6,9 +6,9 @@ import {
   Text,
   FlatList,
   ActivityIndicator,
-  Alert,
   Keyboard,
 } from 'react-native';
+import toast from 'react-native-toast-message';
 import MapboxGL from '@rnmapbox/maps';
 import {
   checkAndRequestLocationPermission,
@@ -108,11 +108,19 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
       );
       setSearchResults(results.features || []);
       if (!results.features || results.features.length === 0) {
-        Alert.alert('Thông báo', 'Không tìm thấy địa điểm nào ở Việt Nam');
+        toast.show({
+          type: 'info',
+          text1: 'Thông báo',
+          text2: 'Không tìm thấy địa điểm nào ở Việt Nam',
+        });
       }
     } catch (error) {
       setSearchResults([]);
-      Alert.alert('Lỗi', 'Không thể tìm kiếm địa điểm. Vui lòng thử lại.');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể tìm kiếm địa điểm. Vui lòng thử lại.',
+      });
     } finally {
       setLoading(false);
     }

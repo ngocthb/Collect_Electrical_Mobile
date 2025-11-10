@@ -6,9 +6,9 @@ import {
   ActivityIndicator,
   Platform,
   PermissionsAndroid,
-  Alert,
   Linking,
 } from 'react-native';
+import toast from 'react-native-toast-message';
 import MapboxGL from '@rnmapbox/maps';
 import {
   getCurrentLocation,
@@ -177,7 +177,11 @@ const MapboxTurnbyturn: React.FC<MapboxPickerProps> = ({
   // Sử dụng getDirections từ service
   const handleGetDirections = async () => {
     if (!currentLocation || !markerCoordinate) {
-      Alert.alert('Lỗi', 'Vui lòng chọn điểm đến');
+      toast.show({
+        type: 'warning',
+        text1: 'Lỗi',
+        text2: 'Vui lòng chọn điểm đến',
+      });
       return;
     }
     setNavigationLoading(true);
@@ -231,11 +235,19 @@ const MapboxTurnbyturn: React.FC<MapboxPickerProps> = ({
           }
         }
       } else {
-        Alert.alert('Lỗi', 'Không tìm thấy đường đi');
+        toast.show({
+          type: 'error',
+          text1: 'Lỗi',
+          text2: 'Không tìm thấy đường đi',
+        });
       }
     } catch (error) {
       console.error('Error getting directions:', error);
-      Alert.alert('Lỗi', 'Không thể lấy chỉ đường. Vui lòng thử lại.');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể lấy chỉ đường. Vui lòng thử lại.',
+      });
     } finally {
       setNavigationLoading(false);
     }
@@ -467,7 +479,7 @@ const MapboxTurnbyturn: React.FC<MapboxPickerProps> = ({
       )}
 
       {/* Selected Location Info */}
-      {selectedLocation && !isNavigating && (
+      {/* {selectedLocation && !isNavigating && (
         <View className="absolute bottom-0 left-0 right-0 bg-white p-5 rounded-t-3xl shadow-lg">
           <View className="flex-row items-center mb-3">
             <Icon name="place" size={24} color="#ef4444" />
@@ -527,7 +539,7 @@ const MapboxTurnbyturn: React.FC<MapboxPickerProps> = ({
             </TouchableOpacity>
           </View>
         </View>
-      )}
+      )} */}
     </View>
   );
 };

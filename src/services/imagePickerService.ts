@@ -1,5 +1,6 @@
 // utils/imagePickerService.ts
-import { PermissionsAndroid, Platform, Alert, Linking } from 'react-native';
+import { PermissionsAndroid, Platform, Linking } from 'react-native';
+import toast from 'react-native-toast-message';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import type { ImagePickerResponse, Asset } from 'react-native-image-picker';
 
@@ -28,14 +29,20 @@ const requestCameraPermission = async (): Promise<boolean> => {
       console.log('Camera permission result:', granted);
       if (granted === PermissionsAndroid.RESULTS.GRANTED) return true;
       if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-        Alert.alert(
-          'Quyền bị chặn',
-          'Bạn đã chặn quyền Camera. Mở cài đặt để cấp quyền?',
-          [
-            { text: 'Hủy', style: 'cancel' },
-            { text: 'Mở cài đặt', onPress: () => Linking.openSettings() },
-          ],
-        );
+        toast.show({
+          type: 'confirm',
+          text1: 'Quyền bị chặn',
+          text2: 'Bạn đã chặn quyền Camera. Mở cài đặt để cấp quyền?',
+          autoHide: false,
+          props: {
+            button1: 'Hủy',
+            button2: 'Mở cài đặt',
+            onCancel: () => {
+              toast.hide();
+            },
+            onConfirm: () => Linking.openSettings(),
+          },
+        });
         return false;
       }
       return false;
@@ -70,14 +77,21 @@ const requestGalleryPermission = async (): Promise<boolean> => {
         console.log('Gallery (API33) permission result:', granted);
         if (granted === PermissionsAndroid.RESULTS.GRANTED) return true;
         if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-          Alert.alert(
-            'Quyền bị chặn',
-            'Bạn đã chặn quyền truy cập Thư viện. Mở cài đặt để cấp quyền?',
-            [
-              { text: 'Hủy', style: 'cancel' },
-              { text: 'Mở cài đặt', onPress: () => Linking.openSettings() },
-            ],
-          );
+          toast.show({
+            type: 'confirm',
+            text1: 'Quyền bị chặn',
+            text2:
+              'Bạn đã chặn quyền truy cập Thư viện. Mở cài đặt để cấp quyền?',
+            autoHide: false,
+            props: {
+              button1: 'Hủy',
+              button2: 'Mở cài đặt',
+              onCancel: () => {
+                toast.hide();
+              },
+              onConfirm: () => Linking.openSettings(),
+            },
+          });
           return false;
         }
         return false;
@@ -97,14 +111,21 @@ const requestGalleryPermission = async (): Promise<boolean> => {
       console.log('Gallery (legacy) permission result:', granted);
       if (granted === PermissionsAndroid.RESULTS.GRANTED) return true;
       if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-        Alert.alert(
-          'Quyền bị chặn',
-          'Bạn đã chặn quyền truy cập Thư viện. Mở cài đặt để cấp quyền?',
-          [
-            { text: 'Hủy', style: 'cancel' },
-            { text: 'Mở cài đặt', onPress: () => Linking.openSettings() },
-          ],
-        );
+        toast.show({
+          type: 'confirm',
+          text1: 'Quyền bị chặn',
+          text2:
+            'Bạn đã chặn quyền truy cập Thư viện. Mở cài đặt để cấp quyền?',
+          autoHide: false,
+          props: {
+            button1: 'Hủy',
+            button2: 'Mở cài đặt',
+            onCancel: () => {
+              toast.hide();
+            },
+            onConfirm: () => Linking.openSettings(),
+          },
+        });
         return false;
       }
       return false;
@@ -124,10 +145,21 @@ export const openCamera = async (): Promise<ImagePickerResult> => {
     const hasPermission = await requestCameraPermission();
 
     if (!hasPermission) {
-      Alert.alert(
-        'Quyền truy cập bị từ chối',
-        'Vui lòng cấp quyền camera trong cài đặt để sử dụng tính năng này',
-      );
+      toast.show({
+        type: 'confirm',
+        text1: 'Quyền truy cập bị từ chối',
+        text2:
+          'Vui lòng cấp quyền camera trong cài đặt để sử dụng tính năng này',
+        autoHide: false,
+        props: {
+          button1: 'Hủy',
+          button2: 'Mở cài đặt',
+          onCancel: () => {
+            toast.hide();
+          },
+          onConfirm: () => Linking.openSettings(),
+        },
+      });
       return { success: false, error: 'Camera permission denied' };
     }
 
@@ -171,10 +203,21 @@ export const openGallery = async (
     const hasPermission = await requestGalleryPermission();
 
     if (!hasPermission) {
-      Alert.alert(
-        'Quyền truy cập bị từ chối',
-        'Vui lòng cấp quyền thư viện ảnh trong cài đặt để sử dụng tính năng này',
-      );
+      toast.show({
+        type: 'confirm',
+        text1: 'Quyền truy cập bị từ chối',
+        text2:
+          'Vui lòng cấp quyền thư viện ảnh trong cài đặt để sử dụng tính năng này',
+        autoHide: false,
+        props: {
+          button1: 'Hủy',
+          button2: 'Mở cài đặt',
+          onCancel: () => {
+            toast.hide();
+          },
+          onConfirm: () => Linking.openSettings(),
+        },
+      });
       return { success: false, error: 'Gallery permission denied' };
     }
 

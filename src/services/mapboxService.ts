@@ -1,4 +1,5 @@
-import { Platform, PermissionsAndroid, Alert, Linking } from 'react-native';
+import { Platform, PermissionsAndroid, Linking } from 'react-native';
+import toast from 'react-native-toast-message';
 import Geolocation from 'react-native-geolocation-service';
 import type { LineString } from 'geojson';
 
@@ -122,14 +123,20 @@ export async function checkAndRequestLocationPermission() {
     if (status === 'granted') {
       return true;
     } else if (status === 'denied') {
-      Alert.alert(
-        'Cần quyền truy cập vị trí',
-        'Vui lòng bật quyền vị trí trong Cài đặt',
-        [
-          { text: 'Huỷ', style: 'cancel' },
-          { text: 'Mở Cài đặt', onPress: () => Linking.openSettings() },
-        ],
-      );
+      toast.show({
+        type: 'confirm',
+        text1: 'Cần quyền truy cập vị trí',
+        text2: 'Vui lòng bật quyền vị trí trong Cài đặt',
+        autoHide: false,
+        props: {
+          button1: 'Huỷ',
+          button2: 'Mở Cài đặt',
+          onCancel: () => {
+            toast.hide();
+          },
+          onConfirm: () => Linking.openSettings(),
+        },
+      });
       return false;
     }
   } else {
@@ -148,14 +155,20 @@ export async function checkAndRequestLocationPermission() {
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         return true;
       } else {
-        Alert.alert(
-          'Cần quyền truy cập vị trí',
-          'Vui lòng bật quyền vị trí trong Cài đặt',
-          [
-            { text: 'Huỷ', style: 'cancel' },
-            { text: 'Mở Cài đặt', onPress: () => Linking.openSettings() },
-          ],
-        );
+        toast.show({
+          type: 'confirm',
+          text1: 'Cần quyền truy cập vị trí',
+          text2: 'Vui lòng bật quyền vị trí trong Cài đặt',
+          autoHide: false,
+          props: {
+            button1: 'Huỷ',
+            button2: 'Mở Cài đặt',
+            onCancel: () => {
+              toast.hide();
+            },
+            onConfirm: () => Linking.openSettings(),
+          },
+        });
         return false;
       }
     } catch (err) {

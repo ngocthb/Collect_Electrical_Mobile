@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Image, Alert } from 'react-native';
+import { View, Text, ScrollView, Image } from 'react-native';
+import toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Feather';
 import routeService from '../../services/routeService';
 import { maskPhone } from '../../utils/validations';
@@ -99,16 +100,23 @@ const DeliveryScanQrScreen = ({
   };
 
   const handleScanClose = () => {
-    Alert.alert('Hủy quét mã?', 'Bạn có muốn quay lại trang trước không?', [
-      {
-        text: 'Tiếp tục quét',
-        style: 'cancel',
+    toast.show({
+      type: 'confirm',
+      text1: 'Hủy quét mã?',
+      text2: 'Bạn có muốn quay lại trang trước không?',
+      autoHide: false,
+      props: {
+        button1: 'Tiếp tục quét',
+        button2: 'Quay lại',
+        onCancel: () => {
+          toast.hide();
+        },
+        onConfirm: () => {
+          toast.hide();
+          navigation.goBack();
+        },
       },
-      {
-        text: 'Quay lại',
-        onPress: () => navigation.goBack(),
-      },
-    ]);
+    });
   };
 
   const handleDone = async () => {
@@ -116,7 +124,11 @@ const DeliveryScanQrScreen = ({
       qrCode: shipperId || '',
       confirmImages: imageUrl,
     });
-    Alert.alert('Hoàn thành', 'Xác thực sản phẩm thành công!');
+    toast.show({
+      type: 'success',
+      text1: 'Hoàn thành',
+      text2: 'Xác thực sản phẩm thành công!',
+    });
     navigation.reset({
       index: 0,
       routes: [{ name: 'DeliveryOrder' }],

@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '../../store/hooks';
 import MainLayout from '../../layout/MainLayout';
-import AppAvatar from '../../components/ui/AppAvatar';
+
 const homepage5 = require('../../assets/images/homepage5.png');
 const homepage6 = require('../../assets/images/homepage6.png');
 const homepage3 = require('../../assets/images/homepage3.png');

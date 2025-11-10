@@ -13,14 +13,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import MapboxTurnbyturn from '../../components/MapboxTurnbyturn';
 import routeService from '../../services/routeService';
 
-let DeliveryMapPanel: any = null;
-try {
-  const mod = require('../../components/DeliveryMapPanel');
-  DeliveryMapPanel = mod && (mod.default || mod);
-} catch (e) {
-  console.warn('Could not load DeliveryMapPanel component', e);
-}
-
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MIN_HEIGHT = SCREEN_HEIGHT * 0.25;
 const MAX_HEIGHT = SCREEN_HEIGHT * 0.65;
@@ -224,6 +216,10 @@ const DeliveryMapScreen = () => {
     }).start();
   };
 
+  React.useEffect(() => {
+    collapsePanel(); // Ensure the bottom modal is hidden when the screen is first loaded
+  }, []);
+
   return (
     <SubLayout
       title="Chi tiết đơn hàng"
@@ -248,56 +244,6 @@ const DeliveryMapScreen = () => {
             showMyLocationButton={false}
           />
         </View>
-
-        {/* Draggable Bottom Panel */}
-        <Animated.View
-          className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-lg"
-          style={{
-            height: panelHeight,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
-            elevation: 10,
-          }}
-        >
-          {/* Drag Handle */}
-          <View
-            className="items-center py-3 px-5"
-            {...panResponder.panHandlers}
-          >
-            <View className="w-10 h-1 bg-gray-300 rounded-sm" />
-          </View>
-
-          {DeliveryMapPanel ? (
-            <DeliveryMapPanel
-              normalizedRequest={normalizedRequest}
-              pickupLocationName={pickupLocation.name}
-              isExpanded={isExpanded}
-              isRouteLoading={isRouteLoading}
-              distanceText={formatDistance(routeDistanceMeters)}
-              durationText={formatDuration(routeDurationSec)}
-              onCall={() => {}}
-              onMessage={() => {}}
-              onConfirm={() =>
-                navigation.navigate('DeliveryConfirm', {
-                  requestId: normalizedRequest?.collectionRouteId,
-                })
-              }
-              onReject={() =>
-                navigation.navigate('DeliveryCancel', {
-                  requestId: normalizedRequest?.collectionRouteId,
-                })
-              }
-            />
-          ) : (
-            <View className="px-5 pb-5">
-              <Text className="text-sm text-gray-500">
-                Không thể tải giao diện
-              </Text>
-            </View>
-          )}
-        </Animated.View>
       </View>
     </SubLayout>
   );

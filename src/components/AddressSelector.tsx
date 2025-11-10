@@ -1,11 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { maskPhone } from '../utils/validations';
@@ -101,19 +96,32 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
   };
 
   const handleDeleteAddress = (addr: Address) => {
-    Alert.alert('Xóa địa chỉ', `Bạn có chắc muốn xóa "${addr.name}"?`, [
-      { text: 'Hủy', style: 'cancel' },
-      {
-        text: 'Xóa',
-        style: 'destructive',
-        onPress: async () => {
+    toast.show({
+      type: 'confirm',
+      text1: 'Xóa địa chỉ',
+      text2: `Bạn có chắc muốn xóa "${addr.address}"?`,
+      autoHide: false,
+      props: {
+        button1: 'Hủy',
+        button2: 'Xóa',
+        onCancel: () => {
+          toast.hide();
+        },
+        onConfirm: async () => {
           await mockAddressService.remove(addr.id);
           const updated = addresses.filter(a => a.id !== addr.id);
           dispatch(setAddressList(updated));
           if (selectedAddress?.id === addr.id) onSelectAddress(null);
+
+          setIsDeleteMode(false);
+          toast.show({
+            type: 'success',
+            text1: 'Xóa thành công',
+            text2: `"${addr.address}" đã được xóa.`,
+          });
         },
       },
-    ]);
+    });
   };
 
   return (
@@ -190,10 +198,11 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
             }`}
             onPress={() => {
               if (addresses.length >= 5) {
-                Alert.alert(
-                  'Giới hạn địa chỉ',
-                  'Bạn chỉ được tạo tối đa 5 địa chỉ.',
-                );
+                toast.show({
+                  type: 'warning',
+                  text1: 'Giới hạn địa chỉ',
+                  text2: 'Bạn chỉ được tạo tối đa 5 địa chỉ.',
+                });
                 return;
               }
               handleCreateNewAddress();

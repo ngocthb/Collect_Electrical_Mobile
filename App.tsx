@@ -10,13 +10,17 @@ import { ZegoCallInvitationDialog } from '@zegocloud/zego-uikit-prebuilt-call-rn
 import toastConfig from './src/config/toast';
 import Toast from 'react-native-toast-message';
 import { useZegoService } from './src/hooks/useZegoService';
+import configureGoogleSignIn from './src/config/googleSignIn';
+import 'react-native-url-polyfill/auto';
+
+// Configure Google Sign-In on app startup
+configureGoogleSignIn();
 
 function AppContent() {
   useZegoService();
 
   return (
     <>
-      <Toast config={toastConfig} />
       <ZegoCallInvitationDialog />
       <RootNavigator />
     </>
@@ -30,6 +34,7 @@ export default function App() {
         <NavigationContainer>
           <AppContent />
         </NavigationContainer>
+        <Toast config={toastConfig} />
       </Provider>
     </GestureHandlerRootView>
   );

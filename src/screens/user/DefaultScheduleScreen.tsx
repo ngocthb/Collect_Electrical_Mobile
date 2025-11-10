@@ -4,7 +4,7 @@ import SubLayout from '../../layout/SubLayout';
 import PickupTimeSelector from '../../components/PickupTimeSelector';
 import AppButton from '../../components/ui/AppButton';
 import { useNavigation } from '@react-navigation/native';
-import { Alert } from 'react-native';
+import toast from 'react-native-toast-message';
 import { useAppSelector } from '../../store/hooks';
 
 const DefaultScheduleScreen: React.FC = () => {
@@ -13,13 +13,21 @@ const DefaultScheduleScreen: React.FC = () => {
 
   const handleSave = () => {
     if (!timeSlots || timeSlots.length === 0) {
-      Alert.alert('Lỗi', 'Vui lòng chọn ít nhất một ngày và khung giờ');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Vui lòng chọn ít nhất một ngày và khung giờ',
+      });
       return;
     }
 
     // Here you could save the default schedule to user preferences
     // For now, just show success and go back
-    Alert.alert('Thành công', 'Đã lưu lịch thu gom mặc định');
+    toast.show({
+      type: 'success',
+      text1: 'Thành công',
+      text2: 'Đã lưu lịch thu gom mặc định',
+    });
     navigation.goBack();
   };
 

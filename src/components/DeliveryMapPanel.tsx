@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AppButton from './ui/AppButton';
+import AppAvatar from './ui/AppAvatar';
 import { resolveStatus } from '../utils/deliveryHelpers';
 import { getOrderId } from '../utils/deliveryHelpers';
 import { maskPhone } from '../utils/validations';
@@ -32,6 +33,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
   onConfirm,
   onReject,
 }) => {
+  console.log(normalizedRequest);
   return (
     <ScrollView
       className="flex-1"
@@ -39,10 +41,6 @@ const DeliveryMapPanel: React.FC<Props> = ({
       scrollEnabled={isExpanded}
     >
       <View className="px-5 pb-5">
-        <Text className="text-lg font-bold text-gray-900 mb-4">
-          Thông tin đơn hàng
-        </Text>
-
         {/* Pickup Address */}
         <View className="flex-row items-start">
           <View className="w-8 h-8 rounded-full bg-green-100 items-center justify-center mr-3">
@@ -66,17 +64,8 @@ const DeliveryMapPanel: React.FC<Props> = ({
                 Thông tin người gửi
               </Text>
               <View className="flex-row items-center bg-gray-50 rounded-2xl p-4">
-                <View className="w-14 h-14 rounded-full bg-blue-100 items-center justify-center mr-3 overflow-hidden">
-                  {normalizedRequest?.sender?.avatar ? (
-                    <Image
-                      source={{ uri: normalizedRequest.sender.avatar }}
-                      style={{ width: 56, height: 56, borderRadius: 999 }}
-                    />
-                  ) : (
-                    <Icon name="account" size={32} color="#3B82F6" />
-                  )}
-                </View>
-                <View className="flex-1">
+                <AppAvatar uri={normalizedRequest?.sender?.avatar} size={56} />
+                <View className="flex-1 ml-4">
                   <Text className="text-base font-bold text-gray-900">
                     {normalizedRequest?.sender?.name ?? 'Người gửi'}
                   </Text>
@@ -102,24 +91,10 @@ const DeliveryMapPanel: React.FC<Props> = ({
                   <AppButton
                     title="Gọi điện"
                     className="flex-1"
-                    size="small"
                     color="#4169E1"
                     textColor="#FFFFFF"
                     icon={<Icon name="phone" size={20} color="#FFFFFF" />}
                     onPress={onCall}
-                    disabled={actionsDisabled}
-                  />
-
-                  <AppButton
-                    title="Nhắn tin"
-                    className="flex-1"
-                    size="small"
-                    color="#F3F4F6"
-                    textColor="#3B82F6"
-                    icon={
-                      <Icon name="message-text" size={20} color="#3B82F6" />
-                    }
-                    onPress={onMessage}
                     disabled={actionsDisabled}
                   />
                 </View>
@@ -135,21 +110,37 @@ const DeliveryMapPanel: React.FC<Props> = ({
             </View>
 
             {/* Order Details */}
+            <View className="mb-4"></View>
             <View className="mb-4">
               <Text className="text-xs text-gray-500 mb-3">
-                Chi tiết đơn hàng
+                Hình ảnh sản phẩm
               </Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {normalizedRequest?.pickUpItemImages?.map(
+                  (image: string, index: number) => (
+                    <Image
+                      key={index}
+                      source={{ uri: image }}
+                      style={{
+                        width: 100,
+                        height: 100,
+                        borderRadius: 8,
+                        marginRight: 8,
+                      }}
+                      resizeMode="cover"
+                    />
+                  ),
+                )}
+              </ScrollView>
+            </View>
+
+            {/* Additional Data */}
+            <View className="mb-4">
               <View className="gap-2">
                 <View className="flex-row justify-between py-2">
-                  <Text className="text-sm text-gray-500">Mã đơn hàng</Text>
+                  <Text className="text-sm text-gray-500">Ngày thu gom</Text>
                   <Text className="text-sm font-semibold text-gray-900">
-                    #{getOrderId(normalizedRequest) ?? 'DH123456'}
-                  </Text>
-                </View>
-                <View className="flex-row justify-between py-2">
-                  <Text className="text-sm text-gray-500">Khoảng cách</Text>
-                  <Text className="text-sm font-semibold text-gray-900">
-                    {isRouteLoading ? 'Đang tính...' : distanceText}
+                    {normalizedRequest?.collectionDate || '—'}
                   </Text>
                 </View>
                 <View className="flex-row justify-between py-2">
@@ -157,18 +148,29 @@ const DeliveryMapPanel: React.FC<Props> = ({
                     Thời gian dự kiến
                   </Text>
                   <Text className="text-sm font-semibold text-gray-900">
-                    {isRouteLoading ? 'Đang tính...' : durationText}
+                    {normalizedRequest?.estimatedTime || '—'}
+                  </Text>
+                </View>
+
+                <View className="flex-row justify-between py-2">
+                  <Text className="text-sm text-gray-500">Biển số xe</Text>
+                  <Text className="text-sm font-semibold text-gray-900">
+                    {normalizedRequest?.licensePlate || '—'}
                   </Text>
                 </View>
               </View>
             </View>
 
-            <View className="flex-row justify-evenly ">
-              <View className="w-2/5">
-                <AppButton title="Từ chối" onPress={onReject} color="#E53935" />
+            <View className="flex-row justify-between ">
+              <View style={{ width: '48%' }}>
+                <AppButton
+                  title="Lấy hàng thất bại"
+                  onPress={onReject}
+                  color="#E53935"
+                />
               </View>
-              <View className="w-2/5">
-                <AppButton title="Xác nhận" onPress={onConfirm} />
+              <View style={{ width: '48%' }}>
+                <AppButton title="Lấy hàng thành công" onPress={onConfirm} />
               </View>
             </View>
             <View className="h-5" />

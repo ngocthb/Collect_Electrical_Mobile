@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  Image,
-  Alert,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
+import toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 import AppButton from '../../components/ui/AppButton';
 import { uploadImageToCloudinary } from '../../config/cloudinary';
@@ -32,21 +26,26 @@ const DeliveryPhotoConfirmScreen = () => {
 
     if (result.success && result.images) {
       if (!validateImageSize(result.images[0].fileSize, 10)) {
-        Alert.alert(
-          'Ảnh quá lớn',
-          'Ảnh có kích thước >= 10MB. Vui lòng chụp lại.',
-        );
+        toast.show({
+          type: 'warning',
+          text1: 'Ảnh quá lớn',
+          text2: 'Ảnh có kích thước >= 10MB. Vui lòng chụp lại.',
+        });
         return;
       }
 
       if (selectedImages.length >= 5) {
-        Alert.alert('Giới hạn ảnh', 'Bạn chỉ có thể thêm tối đa 5 ảnh');
+        toast.show({
+          type: 'warning',
+          text1: 'Giới hạn ảnh',
+          text2: 'Bạn chỉ có thể thêm tối đa 5 ảnh',
+        });
         return;
       }
 
       setSelectedImages(prev => [...prev, ...result.images!]);
     } else if (result.error && result.error !== 'User cancelled') {
-      Alert.alert('Lỗi', 'Không thể chụp ảnh');
+      toast.show({ type: 'error', text1: 'Lỗi', text2: 'Không thể chụp ảnh' });
     }
   };
 
@@ -56,7 +55,11 @@ const DeliveryPhotoConfirmScreen = () => {
 
   const handleConfirm = async () => {
     if (selectedImages.length === 0) {
-      Alert.alert('Thông báo', 'Vui lòng chụp ít nhất 1 ảnh sản phẩm');
+      toast.show({
+        type: 'info',
+        text1: 'Thông báo',
+        text2: 'Vui lòng chụp ít nhất 1 ảnh sản phẩm',
+      });
       return;
     }
 
@@ -74,7 +77,11 @@ const DeliveryPhotoConfirmScreen = () => {
       }
 
       if (uploadedUrls.length === 0) {
-        Alert.alert('Lỗi', 'Không thể tải lên ảnh. Vui lòng thử lại.');
+        toast.show({
+          type: 'error',
+          text1: 'Lỗi',
+          text2: 'Không thể tải lên ảnh. Vui lòng thử lại.',
+        });
         setIsSubmitting(false);
         return;
       }
@@ -86,7 +93,11 @@ const DeliveryPhotoConfirmScreen = () => {
       });
     } catch (e) {
       console.warn('Failed to confirm route', e);
-      Alert.alert('Lỗi', 'Không thể xác nhận giao hàng, thử lại sau');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể xác nhận giao hàng, thử lại sau',
+      });
     } finally {
       setIsSubmitting(false);
     }

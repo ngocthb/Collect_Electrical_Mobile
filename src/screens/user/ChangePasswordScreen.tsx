@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Alert, ScrollView, Text } from 'react-native';
+import { View, ScrollView, Text } from 'react-native';
+import toast from 'react-native-toast-message';
 import SubLayout from '../../layout/SubLayout';
 import AppInput from '../../components/ui/AppInput';
 import AppButton from '../../components/ui/AppButton';
@@ -65,27 +66,47 @@ const ChangePasswordScreen: React.FC = () => {
   const handleChangePassword = async () => {
     // Validation
     if (!currentPassword.trim()) {
-      Alert.alert('Lỗi', 'Vui lòng nhập mật khẩu hiện tại');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Vui lòng nhập mật khẩu hiện tại',
+      });
       return;
     }
 
     if (!newPassword.trim()) {
-      Alert.alert('Lỗi', 'Vui lòng nhập mật khẩu mới');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Vui lòng nhập mật khẩu mới',
+      });
       return;
     }
 
     if (newPassword.length < 6) {
-      Alert.alert('Lỗi', 'Mật khẩu mới phải có ít nhất 6 ký tự');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Mật khẩu mới phải có ít nhất 6 ký tự',
+      });
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert('Lỗi', 'Xác nhận mật khẩu không khớp');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Xác nhận mật khẩu không khớp',
+      });
       return;
     }
 
     if (currentPassword === newPassword) {
-      Alert.alert('Lỗi', 'Mật khẩu mới phải khác mật khẩu hiện tại');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Mật khẩu mới phải khác mật khẩu hiện tại',
+      });
       return;
     }
 
@@ -95,14 +116,29 @@ const ChangePasswordScreen: React.FC = () => {
       await new Promise<void>(resolve => setTimeout(() => resolve(), 1000));
 
       // Mock success
-      Alert.alert('Thành công', 'Đã thay đổi mật khẩu thành công', [
-        {
-          text: 'OK',
-          onPress: () => navigation.goBack(),
+      toast.show({
+        type: 'confirm',
+        text1: 'Thành công',
+        text2: 'Đã thay đổi mật khẩu thành công',
+        autoHide: false,
+        props: {
+          button1: 'OK',
+          button2: 'Đóng',
+          onCancel: () => {
+            toast.hide();
+          },
+          onConfirm: () => {
+            toast.hide();
+            navigation.goBack();
+          },
         },
-      ]);
+      });
     } catch (error) {
-      Alert.alert('Lỗi', 'Không thể thay đổi mật khẩu. Vui lòng thử lại');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể thay đổi mật khẩu. Vui lòng thử lại',
+      });
     } finally {
       setLoading(false);
     }

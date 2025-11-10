@@ -5,8 +5,9 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/Feather';
 import SubLayout from '../../layout/SubLayout';
 import { useNavigation } from '@react-navigation/core';
 import { useRoute } from '@react-navigation/native';
@@ -27,6 +28,9 @@ const DeliveryInfoScreen = () => {
   const [request, setRequest] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [isRejected, setIsRejected] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -180,6 +184,15 @@ const DeliveryInfoScreen = () => {
     return null;
   };
 
+  const toggleModal = () => {
+    setModalVisible(!isModalVisible);
+  };
+
+  const handleImagePress = (imageUri: string) => {
+    setSelectedImage(imageUri);
+    toggleModal();
+  };
+
   return (
     <SubLayout
       title="Thông tin giao hàng"
@@ -209,24 +222,39 @@ const DeliveryInfoScreen = () => {
                 )}
                 {/* request thumbnail */}
                 {request?.image && (
-                  <Image
-                    source={
-                      request.image && request.image.uri
-                        ? { uri: request.image.uri }
-                        : request.image
-                    }
-                    style={{
-                      width: 84,
-                      height: 84,
-                      borderRadius: 12,
-                      marginTop: 10,
-                    }}
-                    resizeMode="cover"
-                    onError={e =>
-                      console.warn('[DeliveryInfo] thumb load error', e)
-                    }
-                    onLoad={() => console.log('[DeliveryInfo] thumb loaded')}
-                  />
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    className="space-x-3"
+                  >
+                    {request.images.map((img: any, i: number) => (
+                      <TouchableOpacity
+                        key={i}
+                        onPress={() => handleImagePress(img.uri)}
+                      >
+                        <Image
+                          source={img && img.uri ? { uri: img.uri } : img}
+                          style={{
+                            width: 84,
+                            height: 84,
+                            borderRadius: 12,
+                            marginRight: 12,
+                          }}
+                          resizeMode="cover"
+                          onError={e =>
+                            console.warn(
+                              '[DeliveryInfo] image load error',
+                              i,
+                              e,
+                            )
+                          }
+                          onLoad={() =>
+                            console.log('[DeliveryInfo] image loaded', i)
+                          }
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
                 )}
                 <View className="flex-row justify-between items-center mt-2">
                   <View
@@ -245,7 +273,7 @@ const DeliveryInfoScreen = () => {
               </View>
 
               <View className="space-y-4">
-                <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
+                {/* <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
                   <View className="flex-row items-center">
                     <View className="w-10 h-10 rounded-full bg-purple-100 items-center justify-center mr-3">
                       <Icon name="barcode-scan" size={20} color="#8B5CF6" />
@@ -267,34 +295,29 @@ const DeliveryInfoScreen = () => {
                       {request ? `#${request.id}` : '—'}
                     </Text>
                   </View>
-                </View>
+                </View> */}
 
                 {/* Address row (from request) */}
                 <View className="flex-row items-center justify-between pt-3 ">
                   <View className="flex-row items-center">
-                    <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center mr-3">
-                      <Icon
-                        name="map-marker-distance"
-                        size={20}
-                        color="#3B82F6"
-                      />
+                    <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center">
+                      <Icon name="map-pin" size={20} color="#3B82F6" />
                     </View>
-                    <Text className="text-gray-600 text-base">Địa chỉ </Text>
-                  </View>
-                  <View
-                    style={{
-                      flex: 1,
-                      marginLeft: 12,
-                      alignItems: 'flex-end',
-                      minHeight: 96,
-                    }}
-                  >
-                    <Text
-                      style={{ textAlign: 'right' }}
-                      className="text-gray-900 font-semibold text-base"
+                    <View
+                      style={{
+                        flex: 1,
+                        marginLeft: 12,
+                        alignItems: 'flex-end',
+                        minHeight: 30,
+                      }}
                     >
-                      {request?.address ?? '—'}
-                    </Text>
+                      <Text
+                        style={{ textAlign: 'left' }}
+                        className="text-gray-900l text-sm"
+                      >
+                        {request?.address ?? '—'}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -314,40 +337,6 @@ const DeliveryInfoScreen = () => {
                   Lí do từ chối
                 </Text>
                 <Text className="text-gray-900">{request.rejectMessage}</Text>
-              </View>
-            )}
-
-            {/* images */}
-            {request?.images && request.images.length > 0 && (
-              <View className="bg-white rounded-3xl shadow-md mb-5 p-6">
-                <Text className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
-                  Hình ảnh
-                </Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  className="space-x-3"
-                >
-                  {request.images.map((img: any, i: number) => (
-                    <Image
-                      key={i}
-                      source={img && img.uri ? { uri: img.uri } : img}
-                      style={{
-                        width: 144,
-                        height: 144,
-                        borderRadius: 12,
-                        marginRight: 12,
-                      }}
-                      resizeMode="cover"
-                      onError={e =>
-                        console.warn('[DeliveryInfo] image load error', i, e)
-                      }
-                      onLoad={() =>
-                        console.log('[DeliveryInfo] image loaded', i)
-                      }
-                    />
-                  ))}
-                </ScrollView>
               </View>
             )}
 
@@ -375,20 +364,48 @@ const DeliveryInfoScreen = () => {
               </View>
               <Icon name="chevron-right" size={24} color="#F59E0B" />
             </TouchableOpacity>
-
-            {!isRejected && (
-              <AppButton
-                title="Xác nhận"
-                loading={loading}
-                disabled={loading}
-                onPress={() =>
-                  navigation.navigate('UserConfirm', { requestId: request?.id })
-                }
-              />
-            )}
           </View>
         </ScrollView>
       )}
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={toggleModal}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          }}
+        >
+          <TouchableOpacity
+            onPress={toggleModal}
+            style={{
+              position: 'absolute',
+              top: 40,
+              right: 20,
+              zIndex: 1,
+              backgroundColor: 'white',
+              borderRadius: 15,
+              padding: 5,
+            }}
+          >
+            <Text>
+              <Icon name="x" size={24} color="black" />
+            </Text>
+          </TouchableOpacity>
+          {selectedImage && (
+            <Image
+              source={{ uri: selectedImage }}
+              style={{ width: '90%', height: '100%' }}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
     </SubLayout>
   );
 };

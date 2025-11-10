@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Image, Alert } from 'react-native';
+import { View, Text, ScrollView, Image } from 'react-native';
+import toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Feather';
 import ScanQrComponent from '../../components/ScanQrComponent';
 import AppButton from '../../components/ui/AppButton';
@@ -12,11 +13,11 @@ import routeService from '../../services/routeService';
 const UserConfirmScreen = () => {
   const [shipperId, setShipperId] = useState<string | null>(null);
   const [shipperInfo, setShipperInfo] = useState<any | null>(null);
-  const route = useRoute<any>();
+
   const [code, setCode] = useState<string | null>(null);
-  const initialRequest = route.params?.request ?? null;
+
   const navigation = useNavigation<any>();
-  const [request, setRequest] = useState<any | null>(initialRequest);
+  const [request, setRequest] = useState<any | null>(null);
 
   // Handle QR scan
   const handleQRScan = (data: string) => {
@@ -53,16 +54,37 @@ const UserConfirmScreen = () => {
     setShipperId(String(data));
   };
 
-  const handleGoHome = async () => {
+  const handleConfirm = async () => {
     if (code) {
-      await routeService.userConfirmRouter(code, true);
+      await routeService.userConfirmRouter(code, true, false);
     }
-    Alert.alert('Xác nhận', 'Bạn đã xác nhận người giao hàng thành công!');
+    toast.show({
+      type: 'success',
+      text1: 'Xác nhận',
+      text2: 'Bạn đã xác nhận người giao hàng thành công!',
+    });
     navigation.reset({
       index: 0,
       routes: [{ name: 'MainTabs' }],
     });
   };
+
+  const handleReject = async () => {
+    if (code) {
+      await routeService.userConfirmRouter(code, false, false);
+    }
+    toast.show({
+      type: 'success',
+      text1: 'Từ chối',
+      text2: 'Bạn đã từ chối người giao hàng thành công!',
+    });
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'MainTabs' }],
+    });
+  };
+
+  console.log(request);
 
   return (
     <SubLayout
@@ -90,7 +112,7 @@ const UserConfirmScreen = () => {
                 </View>
 
                 <Text className="text-xl font-bold text-green-600 mb-2">
-                  Xác nhận thành công!
+                  Quét thành công!
                 </Text>
                 <Text className="text-sm text-gray-500 mb-6">
                   Người giao hàng đã được xác thực
@@ -219,13 +241,18 @@ const UserConfirmScreen = () => {
           )}
 
           {/* Bottom Button */}
-          <AppButton
-            title={
-              shipperId ? 'Hoàn thành & Về trang chủ' : 'Hủy & Về trang chủ'
-            }
-            onPress={handleGoHome}
-            className="mb-4"
-          />
+          <View className="flex-row flex-1 justify-between">
+            <View style={{ width: '48%' }}>
+              <AppButton title="Xác nhận " onPress={handleConfirm} />
+            </View>
+            <View style={{ width: '48%' }}>
+              <AppButton
+                title="Từ chối "
+                onPress={handleReject}
+                color="#ef4444"
+              />
+            </View>
+          </View>
 
           {/* Warning Message - Only show when not scanned */}
           {!shipperId && (

@@ -8,8 +8,8 @@ import {
   Dimensions,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import toast from 'react-native-toast-message';
 import MapboxGL from '@rnmapbox/maps';
 import Icon from 'react-native-vector-icons/Feather';
 import {
@@ -103,7 +103,11 @@ const WarehouseLocationScreen = () => {
         animationDuration: 800,
       });
     } catch (err) {
-      Alert.alert('Lỗi', 'Không thể lấy vị trí hiện tại');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể lấy vị trí hiện tại',
+      });
     }
   };
 
@@ -191,7 +195,11 @@ const WarehouseLocationScreen = () => {
 
   const handleGetDirections = async (whIdx: number) => {
     if (!currentLocation) {
-      Alert.alert('Chưa có vị trí của bạn', 'Vui lòng bật vị trí để chỉ đường');
+      toast.show({
+        type: 'warning',
+        text1: 'Chưa có vị trí của bạn',
+        text2: 'Vui lòng bật vị trí để chỉ đường',
+      });
       return;
     }
     const wh = warehouses[whIdx];
@@ -235,11 +243,19 @@ const WarehouseLocationScreen = () => {
           );
         }
       } else {
-        Alert.alert('Lỗi', 'Không tìm thấy đường đi');
+        toast.show({
+          type: 'error',
+          text1: 'Lỗi',
+          text2: 'Không tìm thấy đường đi',
+        });
       }
     } catch (err) {
       console.error(err);
-      Alert.alert('Lỗi', 'Không thể lấy chỉ đường');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể lấy chỉ đường',
+      });
     } finally {
       setNavigationLoading(false);
     }

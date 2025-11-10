@@ -5,8 +5,8 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import toast from 'react-native-toast-message';
 
 import type { Asset } from 'react-native-image-picker';
 
@@ -17,10 +17,12 @@ import {
   getSubcategories,
   getSizeOptions,
   getAttributes,
+  searchSubCategories,
 } from '../../services/categoryService';
 
 import SubLayout from '../../layout/SubLayout';
 import AppDropdown from '../../components/ui/AppDropdown';
+import AppSearchableDropdown from '../../components/ui/AppSearchableDropdown';
 import AppInput from '../../components/ui/AppInput';
 import PickupTimeSelector from '../../components/PickupTimeSelector';
 
@@ -49,11 +51,15 @@ const CreateRequestScreen = () => {
   const timeSlots: TimeSlot[] = useAppSelector(state => state.timeSlots.list);
   const address = useAppSelector(state => state.address.current);
   const [currentStep, setCurrentStep] = useState(1);
-  const [productName, setProductName] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const dispatch = useDispatch();
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [categories, setCategories] = useState<SubCategory[]>([]);
+  const [filteredCategories, setFilteredCategories] = useState<SubCategory[]>(
+    [],
+  );
+  const [isSearchingCategories, setIsSearchingCategories] = useState(false);
   const [sizeOptions, setSizeOptions] = useState<SizeTier[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<SubCategory | null>(
@@ -71,6 +77,26 @@ const CreateRequestScreen = () => {
   const [selectedImages, setSelectedImages] = useState<Asset[]>([]);
   const [isImagePickerVisible, setIsImagePickerVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const productName = selectedBrands.join(', ');
+
+  // Get selected category ID
+  const getSelectedCategoryId = () => {
+    return selectedCategory?.id || null;
+  };
+
+  // Log selected category info whenever it changes
+  useEffect(() => {
+    if (selectedCategory) {
+      console.log('Current selected category:', {
+        id: selectedCategory.id,
+        name: selectedCategory.name,
+        fullObject: selectedCategory,
+      });
+    } else {
+      console.log('No category selected');
+    }
+  }, [selectedCategory]);
 
   const goToNextStep = () => {
     if (currentStep < 2) {
@@ -99,7 +125,7 @@ const CreateRequestScreen = () => {
   const isStep1Valid =
     productName.trim() !== '' &&
     selectedCategory !== null &&
-    selectedTags.length > 0 &&
+    selectedBrands.length > 0 &&
     selectedImages.length > 0 &&
     (!hasSizeOptions ||
       hasSizeTier ||
@@ -111,8 +137,29 @@ const CreateRequestScreen = () => {
     try {
       const data = await getSubcategories(categoryId);
       setCategories(data);
+      setFilteredCategories(data);
     } catch (error) {
       console.error('Failed to fetch sub-categories', error);
+    }
+  };
+
+  const handleCategorySearch = async (query: string) => {
+    if (!categoryId) return;
+
+    if (query.trim() === '') {
+      setFilteredCategories(categories);
+      return;
+    }
+
+    setIsSearchingCategories(true);
+    try {
+      const results = await searchSubCategories(categoryId, query);
+      setFilteredCategories(results);
+    } catch (error) {
+      console.error('Failed to search categories:', error);
+      setFilteredCategories([]);
+    } finally {
+      setIsSearchingCategories(false);
     }
   };
 
@@ -125,9 +172,11 @@ const CreateRequestScreen = () => {
   useEffect(() => {
     const fetchSizeOptions = async () => {
       if (selectedCategory) {
+        console.log('Fetching size options for category:', selectedCategory);
         setIsLoadingSizeOptions(true);
         try {
           const sizes = await getSizeOptions(selectedCategory.id);
+          console.log('Size options received:', sizes);
           setSizeOptions(sizes);
         } catch (error) {
           console.error('Failed to fetch size tiers:', error);
@@ -221,8 +270,13 @@ const CreateRequestScreen = () => {
         },
       };
 
+      console.log(payload);
       const data = await create.create(payload);
-      Alert.alert('Thành công', 'Yêu cầu đã được tạo thành công.');
+      toast.show({
+        type: 'success',
+        text1: 'Thành công',
+        text2: 'Yêu cầu đã được tạo thành công.',
+      });
 
       dispatch(clearTimeSlot());
       navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
@@ -239,22 +293,37 @@ const CreateRequestScreen = () => {
         <View className="px-6 py-4">
           {currentStep === 1 && (
             <>
-              <AppDropdown
+              <AppSearchableDropdown
                 title="Chọn danh mục sản phẩm"
-                options={categories}
-                placeholder="Chọn danh mục"
+                placeholder="Nhập để tìm kiếm danh mục..."
                 value={selectedCategory}
-                onSelect={setSelectedCategory}
+                options={filteredCategories}
+                onSelect={category => {
+                  setSelectedCategory(category);
+                  if (category) {
+                    console.log('Selected category ID:', category.id);
+                    console.log('Selected category name:', category.name);
+                    console.log('Full category object:', category);
+                  }
+                }}
+                onSearch={handleCategorySearch}
+                displayKey="name"
                 required
+                loading={isSearchingCategories}
               />
 
-              <AppInput
-                label="Nhập tên sản phẩm"
-                placeholder="Ví dụ: Điện thoại Samsung Galaxy S21"
-                required
-                value={productName}
-                onChangeText={setProductName}
-              />
+              <View className="">
+                <SizeOptions
+                  title="Chọn thương hiệu"
+                  options={['Samsung', 'LG', 'Aqua']}
+                  selectedOptions={selectedBrands}
+                  onToggle={brand => {
+                    setSelectedBrands(prev =>
+                      prev[0] === brand ? [] : [brand],
+                    );
+                  }}
+                />
+              </View>
 
               <View className="">
                 <SizeOptions
@@ -271,9 +340,9 @@ const CreateRequestScreen = () => {
                 />
               </View>
 
-              {/* Size Options - Only show if data exists */}
               {isLoadingSizeOptions ? (
                 <View className="py-4">
+                  <Text className="text-gray-500">Đang tải kích thước...</Text>
                   <ActivityIndicator size="small" color="#4169E1" />
                 </View>
               ) : sizeOptions.length > 0 ? (
@@ -292,6 +361,12 @@ const CreateRequestScreen = () => {
                       handleSizeTierSelect(selected || null);
                     }}
                   />
+                </View>
+              ) : selectedCategory ? (
+                <View className="py-4">
+                  <Text className="text-gray-500">
+                    Không có kích thước cho danh mục này
+                  </Text>
                 </View>
               ) : null}
 

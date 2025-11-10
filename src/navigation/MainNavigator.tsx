@@ -27,6 +27,7 @@ import WalletScreen from '../screens/user/WalletScreen';
 import VoucherScreen from '../screens/user/VoucherScreen';
 import ShipmentDetailScreen from '../screens/user/ShipmentDetailScreen';
 import DeliveringScreen from '../screens/user/DeliveringScreen';
+import DeliveryDetailsScreen from '../screens/delivery/DeliveryDetailsScreen';
 // @ts-ignore - no TypeScript declarations for this module
 const {
   ZegoUIKitPrebuiltCallInCallScreen,
@@ -57,6 +58,10 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
             component={DeliveryScanQrScreen}
           />
           <Stack.Screen name="DeliveryRoute" component={DeliveryRouteScreen} />
+          <Stack.Screen
+            name="DeliveryDetails"
+            component={DeliveryDetailsScreen}
+          />
         </>
       ) : (
         <>

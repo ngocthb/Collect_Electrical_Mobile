@@ -9,7 +9,9 @@ import {
   resolveStatus,
   getStatusColor,
 } from '../utils/deliveryHelpers';
+
 import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
+import { useNavigation } from '@react-navigation/native';
 
 const cleanUserIdForZego = (userId: string) => {
   return userId.replace(/[^a-zA-Z0-9_]/g, '');
@@ -32,6 +34,7 @@ const DeliveryOrderCard = ({
   onReject,
   onConfirm,
 }: Props) => {
+  const navigation = useNavigation<any>();
   const status = resolveStatus(order);
   const actionsDisabled = status === 'failed' || status === 'completed';
 
@@ -56,6 +59,16 @@ const DeliveryOrderCard = ({
       },
     ];
   }, [cleanReceiverId, receiver?.name]);
+
+  const handleEyePress = () => {
+    navigation.navigate('DeliveryDetails', {
+      normalizedRequest: order,
+      pickupLocationName: getOrderAddress(order),
+      isRouteLoading: false,
+      distanceText: '---',
+      durationText: '---',
+    });
+  };
 
   return (
     <View className="flex-row mb-8 relative z-10">
@@ -97,6 +110,18 @@ const DeliveryOrderCard = ({
           </View>
 
           <View className="flex-row gap-3 items-start">
+            <TouchableOpacity
+              onPress={() =>
+                isSelectedDateToday && !actionsDisabled && handleEyePress()
+              }
+              className="bg-primary-50 rounded-full p-2"
+              disabled={!isSelectedDateToday || actionsDisabled}
+              style={{
+                opacity: !isSelectedDateToday || actionsDisabled ? 0.4 : 1,
+              }}
+            >
+              <Icon name="eye" size={26} color="#4169E1" />
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={() =>
                 isSelectedDateToday && !actionsDisabled && onOpenMap(order)
@@ -141,7 +166,7 @@ const DeliveryOrderCard = ({
             </Text>
           </View>
 
-          {status === 'pending' && isSelectedDateToday && (
+          {/* {status === 'pending' && isSelectedDateToday && (
             <View className="flex-row justify-evenly">
               <View className="w-2/5">
                 <AppButton
@@ -161,7 +186,7 @@ const DeliveryOrderCard = ({
                 />
               </View>
             </View>
-          )}
+          )} */}
         </View>
       </View>
     </View>

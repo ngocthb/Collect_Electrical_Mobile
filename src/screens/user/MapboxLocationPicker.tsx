@@ -10,7 +10,7 @@ import { saveAddress } from '../../store/slices/addressSlice';
 const MapboxLocationPicker: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useAppDispatch();
-  const address = useAppSelector(s => s.address);
+  const address = useAppSelector(s => s.address.current);
   const handleLocationSelect = (location: LocationData) => {
     dispatch(
       saveAddress({

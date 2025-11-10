@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import toast from 'react-native-toast-message';
 import SubLayout from '../../layout/SubLayout';
 import AppButton from '../../components/ui/AppButton';
 import AppInput from '../../components/ui/AppInput';
@@ -26,7 +27,7 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
 
   const handleSave = async () => {
     if (!name || name.trim().length === 0) {
-      Alert.alert('Lỗi', 'Vui lòng nhập tên');
+      toast.show({ type: 'error', text1: 'Lỗi', text2: 'Vui lòng nhập tên' });
       return;
     }
 
@@ -40,11 +41,15 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
         avatar: avatarUrl || undefined,
       };
 
-      Alert.alert('Thành công', 'Cập nhật hồ sơ thành công');
+      toast.show({
+        type: 'success',
+        text1: 'Thành công',
+        text2: 'Cập nhật hồ sơ thành công',
+      });
       navigation.goBack();
     } catch (e) {
       console.warn('Failed to save profile', e);
-      Alert.alert('Lỗi', 'Không thể lưu hồ sơ');
+      toast.show({ type: 'error', text1: 'Lỗi', text2: 'Không thể lưu hồ sơ' });
     } finally {
       setSaving(false);
     }

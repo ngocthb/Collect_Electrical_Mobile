@@ -4,7 +4,6 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  Alert,
   TextInput,
   NativeSyntheticEvent,
   TextInputChangeEventData,
@@ -12,6 +11,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
+import toast from 'react-native-toast-message';
 import AppButton from '../../components/ui/AppButton';
 import { useNavigation } from '@react-navigation/native';
 import { useAppDispatch } from '../../store/hooks';
@@ -62,7 +62,11 @@ export default function VerifyScreen() {
 
   const handleVerify = () => {
     if (code.length < 4) {
-      Alert.alert('Thiếu mã', 'Vui lòng nhập đủ 4 chữ số OTP');
+      toast.show({
+        type: 'warning',
+        text1: 'Thiếu mã',
+        text2: 'Vui lòng nhập đủ 4 chữ số OTP',
+      });
       return;
     }
     setLoadingVerify(true);
@@ -72,13 +76,18 @@ export default function VerifyScreen() {
       if (code === '1234') {
         // success -> mark pending registration as verified and go to Login
         dispatch(verifyPendingRegistration());
-        Alert.alert(
-          'Xác thực thành công',
-          'Bạn có thể đăng nhập bằng thông tin đã đăng ký',
-        );
+        toast.show({
+          type: 'success',
+          text1: 'Xác thực thành công',
+          text2: 'Bạn có thể đăng nhập bằng thông tin đã đăng ký',
+        });
         navigation.navigate('Login');
       } else {
-        Alert.alert('Mã không đúng', 'OTP bạn nhập không hợp lệ');
+        toast.show({
+          type: 'error',
+          text1: 'Mã không đúng',
+          text2: 'OTP bạn nhập không hợp lệ',
+        });
         // clear inputs
         setDigits(['', '', '', '']);
         inputsRef.current[0]?.focus();
@@ -89,7 +98,11 @@ export default function VerifyScreen() {
   const handleResend = () => {
     if (countdown > 0) return;
     // Simulate sending OTP
-    Alert.alert('Đã gửi lại', 'OTP mới đã được gửi tới số email của bạn');
+    toast.show({
+      type: 'success',
+      text1: 'Đã gửi lại',
+      text2: 'OTP mới đã được gửi tới số email của bạn',
+    });
     setDigits(['', '', '', '']);
     inputsRef.current[0]?.focus();
     setCountdown(30);

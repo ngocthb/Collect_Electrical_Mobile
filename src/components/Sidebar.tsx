@@ -84,10 +84,10 @@ const Sidebar = ({ visible, onClose }: SidebarProps) => {
                     style={{ borderWidth: 4, borderColor: '#fff' }}
                   />
                 </View>
-                <View className="ml-4">
+                <View className="ml-4 w-3/5">
                   <Text
-                    className="text-lg font-bold text-text-main flex-1"
-                    numberOfLines={2}
+                    className="text-base font-bold text-text-main flex-1"
+                    numberOfLines={3}
                   >
                     {user?.name || 'Naruto'}
                   </Text>

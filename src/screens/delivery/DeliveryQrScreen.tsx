@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import toast from 'react-native-toast-message';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useAppSelector } from '../../store/hooks';
 import AppButton from '../../components/ui/AppButton';
 import QRCode from 'react-native-qrcode-svg';
 import routeService from '../../services/routeService';
-import axiosClient from '../../config/axios';
+import * as signalR from '@microsoft/signalr';
+import Icon from 'react-native-vector-icons/Feather';
+import Config from '../../config/env';
 
 import SubLayout from '../../layout/SubLayout';
+import { useAppSelector } from '../../store/hooks';
 
 const DeliveryQrScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-
+  const user = useAppSelector(s => s.auth.user);
   const routeProduct =
     route.params?.request ??
     route.params?.product ??
@@ -21,6 +24,11 @@ const DeliveryQrScreen = () => {
   const [product, setProduct] = useState<any>(
     typeof routeProduct === 'object' && routeProduct ? routeProduct : null,
   );
+  const [connection, setConnection] = useState<signalR.HubConnection | null>(
+    null,
+  );
+  const [isWaitingForConfirmation, setIsWaitingForConfirmation] =
+    useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -30,11 +38,12 @@ const DeliveryQrScreen = () => {
           typeof routeProduct === 'object' ? routeProduct?.id : routeProduct;
 
         if (productId != null) {
-          console.log(productId);
           try {
             const res = await routeService.getDetail(String(productId));
 
-            if (mounted) setProduct(res ?? null);
+            if (mounted) {
+              setProduct(res ?? null);
+            }
           } catch (e) {
             console.warn('routeService.getDetail failed, falling back', e);
           }
@@ -50,6 +59,98 @@ const DeliveryQrScreen = () => {
     };
   }, [routeProduct]);
 
+  useEffect(() => {
+    if (!product?.collectionRouteId) return;
+
+    const hubUrl = Config.SIGNAL;
+
+    const newConnection = new signalR.HubConnectionBuilder()
+      .withUrl(hubUrl)
+      .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.Information)
+      .build();
+
+    newConnection.on('ReceiveConfirmation', (routeId, status) => {
+      if (routeId === product.collectionRouteId) {
+        if (status === 'User_Confirm') {
+          setIsWaitingForConfirmation(false);
+          navigation.navigate('DeliveryPhotoConfirm', {
+            requestId: product.collectionRouteId,
+          });
+        } else if (status === 'User_Reject') {
+          setIsWaitingForConfirmation(false);
+          toast.show({
+            type: 'confirm',
+            text1: 'Xác nhận thất bại',
+            text2:
+              'Người gửi không xác nhận bạn là người lấy hàng. Vui lòng kiểm tra lại thông tin.',
+            autoHide: false,
+            props: {
+              button1: 'Đóng',
+              button2: 'Về trang đơn hàng',
+              onCancel: () => {
+                toast.hide();
+              },
+              onConfirm: () => {
+                toast.hide();
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'DeliveryOrder' }],
+                });
+              },
+            },
+          });
+        }
+      } else {
+        console.log('[DeliveryQr] ⚠️ RouteId mismatch - ignoring notification');
+      }
+    });
+
+    // Add more event listeners for debugging
+    newConnection.onreconnecting(error => {
+      console.log('[DeliveryQr] 🔄 SignalR reconnecting...', error);
+    });
+
+    newConnection.onreconnected(connectionId => {
+      // Rejoin group after reconnection
+      newConnection
+        .invoke('JoinShipperGroup', product.collectionRouteId)
+
+        .catch(err =>
+          console.error('[DeliveryQr] Error rejoining group:', err),
+        );
+    });
+
+    newConnection.onclose(error => {
+      console.log('[DeliveryQr] ❌ SignalR connection closed', error);
+    });
+
+    // Now start the connection
+    newConnection
+      .start()
+      .then(() => {
+        return newConnection.invoke('JoinShipperGroup', user?.userId);
+      })
+      .then(() => {
+        setConnection(newConnection);
+        setIsWaitingForConfirmation(true);
+      })
+      .catch(err => {
+        console.error('[DeliveryQr] ❌ SignalR connection/join error:', err);
+      });
+
+    return () => {
+      if (newConnection) {
+        newConnection
+          .stop()
+
+          .catch(err =>
+            console.error('[DeliveryQr] Error stopping connection:', err),
+          );
+      }
+    };
+  }, [product?.collectionRouteId, navigation]);
+
   const [isSkipping, setIsSkipping] = useState(false);
 
   const handleSkip = async () => {
@@ -57,15 +158,13 @@ const DeliveryQrScreen = () => {
     const id = product?.collectionRouteId;
     setIsSkipping(true);
     try {
-      const res = await routeService.userConfirmRouter(id, false);
-
-      console.log('Skip response:', res);
+      const res = await routeService.userConfirmRouter(id, false, true);
 
       navigation.navigate('DeliveryPhotoConfirm', {
         requestId: product.collectionRouteId,
       });
     } catch (error: any) {
-      console.error('Skip error:', error);
+      console.error('[DeliveryQr] Skip error:', error);
     } finally {
       setIsSkipping(false);
     }
@@ -118,17 +217,23 @@ const DeliveryQrScreen = () => {
             )}
           </View>
 
+          {/* Waiting status indicator */}
+          {isWaitingForConfirmation && product && (
+            <View className="w-full bg-blue-50 rounded-xl p-4 border border-blue-200 mb-4">
+              <View className="flex-row items-center justify-center">
+                <Icon name="clock" size={20} color="#3B82F6" />
+                <Text className="text-sm text-blue-800 text-center ml-2 font-medium">
+                  Đang chờ khách hàng xác nhận...
+                </Text>
+              </View>
+              <Text className="text-xs text-blue-600 text-center mt-2">
+                Vui lòng yêu cầu khách hàng quét mã QR và xác nhận trên thiết bị
+                của họ
+              </Text>
+            </View>
+          )}
+
           <View className="w-full items-center">
-            <AppButton
-              title="Chụp ảnh xác nhận"
-              disabled={!product}
-              onPress={() =>
-                product &&
-                navigation.navigate('DeliveryPhotoConfirm', {
-                  requestId: product.collectionRouteId,
-                })
-              }
-            />
             <View className="w-full mt-3">
               <AppButton
                 title="Skip"

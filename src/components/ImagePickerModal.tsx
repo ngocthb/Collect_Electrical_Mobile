@@ -1,12 +1,6 @@
 import React from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  Pressable,
-  Alert,
-} from 'react-native';
+import { Modal, View, Text, TouchableOpacity, Pressable } from 'react-native';
+import toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { openCamera, openGallery } from '../services/imagePickerService';
@@ -41,20 +35,30 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
         );
 
         if (invalidImages.length > 0) {
-          Alert.alert(
-            'Ảnh quá lớn',
-            'Một số ảnh có kích thước >= 10MB. Vui lòng chọn ảnh nhỏ hơn 10MB.',
-          );
+          toast.show({
+            type: 'warning',
+            text1: 'Ảnh quá lớn',
+            text2:
+              'Một số ảnh có kích thước >= 10MB. Vui lòng chọn ảnh nhỏ hơn 10MB.',
+          });
           return;
         }
 
         onSelect(result.images.slice(0, allowed));
       } else if (result.error && result.error !== 'User cancelled') {
-        Alert.alert('Lỗi', 'Không thể chọn ảnh từ thư viện');
+        toast.show({
+          type: 'error',
+          text1: 'Lỗi',
+          text2: 'Không thể chọn ảnh từ thư viện',
+        });
       }
     } catch (e) {
       console.warn('openGallery failed', e);
-      Alert.alert('Lỗi', 'Không thể chọn ảnh từ thư viện');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể chọn ảnh từ thư viện',
+      });
     }
   };
 
@@ -63,21 +67,30 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
       const result = await openCamera();
       if (result.success && result.images) {
         if (!validateImageSize(result.images[0].fileSize, 10)) {
-          Alert.alert(
-            'Ảnh quá lớn',
-            'Ảnh có kích thước >= 10MB. Vui lòng chụp lại.',
-          );
+          toast.show({
+            type: 'warning',
+            text1: 'Ảnh quá lớn',
+            text2: 'Ảnh có kích thước >= 10MB. Vui lòng chụp lại.',
+          });
           return;
         }
 
         const allowed = Math.max(1, maxItems - currentCount);
         onSelect(result.images.slice(0, allowed));
       } else if (result.error && result.error !== 'User cancelled') {
-        Alert.alert('Lỗi', 'Không thể chụp ảnh');
+        toast.show({
+          type: 'error',
+          text1: 'Lỗi',
+          text2: 'Không thể chụp ảnh',
+        });
       }
     } catch (e) {
       console.warn('openCamera failed', e);
-      Alert.alert('Lỗi', 'Không thể chụp ảnh');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể chụp ảnh',
+      });
     }
   };
 
@@ -91,7 +104,11 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
 
       if (result.didCancel) return;
       if (result.errorCode) {
-        Alert.alert('Lỗi', 'Không thể chọn video từ thư viện');
+        toast.show({
+          type: 'error',
+          text1: 'Lỗi',
+          text2: 'Không thể chọn video từ thư viện',
+        });
         return;
       }
 
@@ -101,7 +118,11 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
       }
     } catch (e) {
       console.warn('pick video failed', e);
-      Alert.alert('Lỗi', 'Không thể chọn video từ thư viện');
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể chọn video từ thư viện',
+      });
     }
   };
 
