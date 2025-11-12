@@ -28,7 +28,7 @@ import VoucherScreen from '../screens/user/VoucherScreen';
 import ShipmentDetailScreen from '../screens/user/ShipmentDetailScreen';
 import DeliveringScreen from '../screens/user/DeliveringScreen';
 import DeliveryDetailsScreen from '../screens/delivery/DeliveryDetailsScreen';
-import DeliveryStatsScreen from '../screens/delivery/DeliveryStatsScreen';
+import DeliveryStatsScreen from '../screens/delivery/DeliveryStatsClean';
 // @ts-ignore - no TypeScript declarations for this module
 const {
   ZegoUIKitPrebuiltCallInCallScreen,

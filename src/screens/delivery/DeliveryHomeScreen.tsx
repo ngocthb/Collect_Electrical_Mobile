@@ -27,13 +27,6 @@ export default function DeliveryHomeScreen() {
       color: '#E8F5E8',
       textColor: '#388E3C',
     },
-    {
-      id: 3,
-      title: 'Lịch sử',
-      image: homepage3,
-      color: '#FFF3E0',
-      textColor: '#F57C00',
-    },
   ];
 
   const handleMenuPress = (id: number) => {

@@ -3,29 +3,39 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { BaseToast, ErrorToast } from 'react-native-toast-message';
 
 const baseToastStyle = {
-  borderLeftWidth: 6, // hiển thị border mặc định bên trái (react-native-toast-message không có borderRight)
-  minHeight: 80,
+  borderLeftWidth: 5,
+  backgroundColor: '#fff',
+  borderRadius: 12,
+  minHeight: 60,
+  padding: 8,
+  marginHorizontal: 10,
+  elevation: 4,
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
 };
 
 const text1Style = {
-  fontSize: 16,
-  fontWeight: '700',
+  fontSize: 12,
+  fontWeight: '600',
   color: '#111827',
-  marginBottom: 2,
 };
 
 const text2Style = {
-  fontSize: 14,
+  fontSize: 10,
   color: '#6B7280',
-  lineHeight: 20,
-  fontWeight: '400',
+  marginTop: 2,
 };
 
 const CustomSuccessToast = (props: any) => (
   <BaseToast
     {...props}
     style={[baseToastStyle, { borderLeftColor: '#10B981' }]}
-    contentContainerStyle={{ paddingHorizontal: 12 }}
+    contentContainerStyle={{ paddingHorizontal: 5 }}
     text1Style={text1Style}
     text2Style={text2Style}
   />

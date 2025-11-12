@@ -24,9 +24,17 @@ const menuItems = [
 const ProfileScreen = () => {
   const { user, role } = useAppSelector(s => s.auth);
 
-  const filteredMenu = menuItems.filter(
-    item => !(role === 'delivery' && [2, 3, 6].includes(item.id)),
-  );
+  const filteredMenu = menuItems.filter(item => {
+    // Hide wallet, schedule, default address for delivery users
+    if (role === 'delivery' && [2, 3, 6].includes(item.id)) {
+      return false;
+    }
+    // Hide stats for non-delivery users
+    if (role !== 'delivery' && item.id === 5) {
+      return false;
+    }
+    return true;
+  });
 
   const navigation = useNavigation<any>();
 

@@ -1,8 +1,8 @@
 import axiosClient from '../config/axios';
 
-const listByDate = async (dateStr: string) => {
+const listByDate = async (userId: string, dateStr: string) => {
   try {
-    const res = await axiosClient.get(`/routes/${dateStr}`);
+    const res = await axiosClient.get(`/routes/${dateStr}/collector/${userId}`);
     return res;
   } catch (e) {
     throw e;

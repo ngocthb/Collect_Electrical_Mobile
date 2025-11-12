@@ -19,6 +19,7 @@ import {
 } from '../../utils/deliveryHelpers';
 import SubLayout from '../../layout/SubLayout';
 import StatusFilter from '../../components/ui/StatusFilter';
+import { useSelector } from 'react-redux';
 
 const statusOptions = [
   { value: 'all', label: 'Tất cả', color: '#666' },
@@ -37,7 +38,7 @@ export default function DeliveryListScreen() {
   const [showWeekCalendar, setShowWeekCalendar] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
+  const userId = useSelector((state: any) => state.auth.user?.userId);
   const isSelectedDateToday = (() => {
     const selected = new Date(selectedDate);
     selected.setHours(0, 0, 0, 0);
@@ -72,7 +73,7 @@ export default function DeliveryListScreen() {
         d.setDate(start.getDate() + i);
         const dateStr = formatAPIDate(d);
         try {
-          const res: any = await routeService.listByDate(dateStr);
+          const res: any = await routeService.listByDate(userId, dateStr);
           if (res && Array.isArray(res)) acc.push(...res);
         } catch (e) {
           // continue if one day fails
