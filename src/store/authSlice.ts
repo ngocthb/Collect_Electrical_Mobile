@@ -43,69 +43,85 @@ const initialState: UserState = {
 const mockUsers = [
   {
     userId: '7f5c8b33-1b52-4d11-91b0-932c3d243c71',
-    name: 'Trần Văn An',
-    email: 'tran.van.an@example.com',
+    name: 'Trần Huỳnh Bảo Ngọc',
+    email: 'ngocthbse183850@fpt.edu.vn',
     phone: '0901234567',
-    address: '123 Đường Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
+    address:
+      'Vinhomes Grand Park – Nguyễn Xiển, Phường Long Thạnh Mỹ, TP. Thủ Đức',
     avatar: 'https://picsum.photos/id/1011/200/200',
-    iat: 1050000,
-    ing: 10660000,
-    role: 'user',
+    iat: 10.842003,
+    ing: 106.82958,
+    role: 'User',
+    smallCollectionPointId: 0,
   },
   {
     userId: 'b73a62a7-8b90-43cf-9ad7-2abf96f34a52',
     name: 'Lê Thị Mai',
     email: 'le.thi.mai@example.com',
     phone: '0987654321',
-    address: '45 Hàng Ngang, Quận Hoàn Kiếm, Hà Nội',
+    address:
+      'Vincom Mega Mall Grand Park – Đường Nguyễn Xiển, Phường Long Thạnh Mỹ, TP. Thủ Đức',
     avatar: 'https://picsum.photos/id/1025/200/200',
-    iat: 2100000,
-    ing: 10580000,
-    role: 'user',
+    iat: 10.84345,
+    ing: 106.8299,
+    role: 'User',
+    smallCollectionPointId: 0,
   },
   {
     userId: 'e9b4b9de-b3b0-49ad-b90c-74c24a26b57a',
     name: 'Nguyễn Minh Khôi',
     email: 'nguyen.minh.khoi@example.com',
     phone: '0908123456',
-    address: '22 Nguyễn Trãi, Quận 5, TP. Hồ Chí Minh',
+    address: 'Trường THCS Long Thạnh Mỹ – Đường Long Thạnh Mỹ, TP. Thủ Đức',
     avatar: 'https://picsum.photos/id/1033/200/200',
-    iat: 1055000,
-    ing: 10640000,
-    role: 'user',
+    iat: 10.8459,
+    ing: 106.8334,
+    role: 'User',
+    smallCollectionPointId: 0,
   },
   {
     userId: '72b4ad6a-0b5b-45a3-bb6b-6e1790c84b45',
     name: 'Phạm Thị Hằng',
     email: 'pham.thi.hang@example.com',
     phone: '0911222333',
-    address: '89 Lê Lợi, Quận Hải Châu, Đà Nẵng',
+    address: 'UBND Phường Long Thạnh Mỹ – 86 Nguyễn Xiển, TP. Thủ Đức',
     avatar: 'https://picsum.photos/id/1045/200/200',
-    iat: 1600000,
-    ing: 10850000,
-    role: 'user',
+    iat: 10.841,
+    ing: 106.83,
+    role: 'User',
+    smallCollectionPointId: 0,
   },
   {
     userId: 'c40deff9-163b-49e8-b967-238f22882b63',
     name: 'Đỗ Quốc Bảo',
     email: 'do.quoc.bao@example.com',
     phone: '0977222333',
-    address: '77 Lý Thường Kiệt, TP. Huế',
+    address: 'Công viên Ánh Sáng Vinhomes – Khu đô thị Vinhomes Grand Park',
     avatar: 'https://picsum.photos/id/1059/200/200',
-    iat: 1700000,
-    ing: 10770000,
-    role: 'user',
+    iat: 10.839,
+    ing: 106.8338,
+    role: 'User',
+    smallCollectionPointId: 0,
   },
   // Add the requested collector account (delivery)
   {
+    collectorId: '6df4af85-6a59-4a0a-8513-1d7859fbd789',
     userId: '6df4af85-6a59-4a0a-8513-1d7859fbd789',
     name: 'Ngô Văn Dũng',
     email: 'ngo.van.dung@ewc.vn',
     phone: '0905999888',
     avatar: 'https://picsum.photos/id/1062/200/200',
-    address: undefined,
-    iat: Date.now(),
-    ing: Date.now() + 1000000,
+    smallColltionId: 1,
+    role: 'delivery',
+  },
+  {
+    collectorId: 'c011ec70-b861-468f-b648-812e90f01a7e',
+    userId: 'c011ec70-b861-468f-b648-812e90f01a7e',
+    name: 'Lê Minh Tuấn',
+    email: 'le.minh.tuan@ewc.vn',
+    phone: '0905111222',
+    avatar: 'https://picsum.photos/id/1063/200/200',
+    smallColltionId: 1,
     role: 'delivery',
   },
 ];
@@ -166,8 +182,10 @@ export const loginMock = createAsyncThunk(
     if (matched) {
       // For the mock users accept a simple password: '123456'
       if (password === '123456') {
-        // prefer the role declared on the mock user (fallback to 'user')
-        const role = (matched as any).role || 'user';
+        // prefer the role declared on the mock user (fallback to 'user') and normalize to lowercase
+        const rawRole = (matched as any).role || 'user';
+        const role =
+          String(rawRole).toLowerCase() === 'delivery' ? 'delivery' : 'user';
         return {
           user: {
             email: matched.email,
@@ -183,12 +201,6 @@ export const loginMock = createAsyncThunk(
       return rejectWithValue('Tên đăng nhập hoặc mật khẩu không đúng');
     }
 
-    // keep previous simple delivery fallback for addresses/emails containing 'delivery'
-    if (identifier && identifier.includes('delivery')) {
-      return { user: { email: identifier }, role: 'delivery' as const };
-    }
-
-    // final fallback
     return rejectWithValue('Tài khoản chưa được xác thực hoặc không tồn tại');
   },
 );
@@ -336,7 +348,11 @@ const authSlice = createSlice({
     builder.addCase(hydrateAuth.fulfilled, (state, action) => {
       if (action.payload) {
         state.user = action.payload.user || null;
-        state.role = action.payload.role || null;
+        state.role = action.payload.role
+          ? String(action.payload.role).toLowerCase() === 'delivery'
+            ? 'delivery'
+            : 'user'
+          : null;
       }
     });
 

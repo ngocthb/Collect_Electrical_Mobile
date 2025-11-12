@@ -26,17 +26,26 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const navigation = useNavigation<any>();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     try {
-      dispatch(loginMock({ identifier: email, password }));
+      const result = await dispatch(
+        loginMock({ identifier: email, password }),
+      ).unwrap();
+      // success
       Toast.show({
         type: 'success',
         text1: 'Đăng nhập thành công!',
-        text2: 'Chào mừng bạn đến với ứng dụng',
+        text2: `Chào mừng ${result.user?.name || result.user?.email}`,
       });
-      ``;
-    } catch (error) {
-      console.log('Login error: ', error);
+    } catch (error: any) {
+      const message =
+        (error && (error.message || String(error))) || 'Đăng nhập thất bại';
+      Toast.show({
+        type: 'error',
+        text1: 'Đăng nhập thất bại',
+        text2: message,
+      });
+      dispatch(setError(message));
     }
   };
 

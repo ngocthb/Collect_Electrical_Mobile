@@ -16,12 +16,17 @@ const menuItems = [
   { id: 1, title: 'Hồ sơ của tôi', icon: 'user' },
   { id: 2, title: 'Ví của tôi', icon: 'credit-card' },
   { id: 3, title: 'Lịch thu gom mặc định', icon: 'calendar' },
+  { id: 5, title: 'Thống kê', icon: 'bar-chart-2' },
   { id: 6, title: 'Địa chỉ mặc định', icon: 'map-pin' },
   { id: 4, title: 'Đổi mật khẩu', icon: 'lock' },
 ];
 
 const ProfileScreen = () => {
-  const user = useAppSelector(s => s.auth.user);
+  const { user, role } = useAppSelector(s => s.auth);
+
+  const filteredMenu = menuItems.filter(
+    item => !(role === 'delivery' && [2, 3, 6].includes(item.id)),
+  );
 
   const navigation = useNavigation<any>();
 
@@ -38,6 +43,9 @@ const ProfileScreen = () => {
         break;
       case 4:
         navigation.navigate('ChangePassword');
+        break;
+      case 5:
+        navigation.navigate('Statistics');
         break;
       case 6:
         navigation.navigate('DefaultAddress');
@@ -70,20 +78,22 @@ const ProfileScreen = () => {
               <Text className="text-sm text-gray-500">
                 {user?.email ?? '—'}
               </Text>
-              <View className="flex-row items-center mt-2">
-                <Text className="text-base font-bold text-gray-800 mr-2">
-                  220
-                </Text>
-                <View className="w-6 h-6 bg-yellow-400 rounded-full items-center justify-center">
-                  <Text className="text-xs">🪙</Text>
+              {role !== 'delivery' && (
+                <View className="flex-row items-center mt-2">
+                  <Text className="text-base font-bold text-gray-800 mr-2">
+                    220
+                  </Text>
+                  <View className="w-6 h-6 bg-yellow-400 rounded-full items-center justify-center">
+                    <Text className="text-xs">🪙</Text>
+                  </View>
                 </View>
-              </View>
+              )}
             </View>
           </View>
 
           {/* Menu Items */}
           <View className="py-4">
-            {menuItems.map(item => (
+            {filteredMenu.map(item => (
               <TouchableOpacity
                 key={item.id}
                 className="flex-row items-center py-6 "

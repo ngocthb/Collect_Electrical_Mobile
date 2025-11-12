@@ -17,15 +17,13 @@ import {
   getSubcategories,
   getSizeOptions,
   getAttributes,
+  getBrandsBySubcategory,
   searchSubCategories,
 } from '../../services/categoryService';
-
 import SubLayout from '../../layout/SubLayout';
-import AppDropdown from '../../components/ui/AppDropdown';
 import AppSearchableDropdown from '../../components/ui/AppSearchableDropdown';
 import AppInput from '../../components/ui/AppInput';
 import PickupTimeSelector from '../../components/PickupTimeSelector';
-
 import ImagePickerModal from '../../components/ImagePickerModal';
 import AppImageGallery from '../../components/ui/AppImageGallery';
 import AppButton from '../../components/ui/AppButton';
@@ -53,6 +51,7 @@ const CreateRequestScreen = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
   const dispatch = useDispatch();
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [categories, setCategories] = useState<SubCategory[]>([]);
@@ -62,6 +61,8 @@ const CreateRequestScreen = () => {
   const [isSearchingCategories, setIsSearchingCategories] = useState(false);
   const [sizeOptions, setSizeOptions] = useState<SizeTier[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
+  const [brands, setBrands] = useState<any[]>([]);
+  const [isLoadingBrands, setIsLoadingBrands] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<SubCategory | null>(
     null,
   );
@@ -123,9 +124,8 @@ const CreateRequestScreen = () => {
   const hasSizeOptions = sizeOptions.length > 0;
 
   const isStep1Valid =
-    productName.trim() !== '' &&
+    selectedBrandId !== null &&
     selectedCategory !== null &&
-    selectedBrands.length > 0 &&
     selectedImages.length > 0 &&
     (!hasSizeOptions ||
       hasSizeTier ||
@@ -191,6 +191,24 @@ const CreateRequestScreen = () => {
     setCustomInputEnabled(false);
     setAttributes([]);
     setAttributeValues({});
+    // fetch brands for the selected subcategory
+    const fetchBrands = async () => {
+      if (!selectedCategory) {
+        setBrands([]);
+        return;
+      }
+      setIsLoadingBrands(true);
+      try {
+        const data = await getBrandsBySubcategory(selectedCategory.id);
+        setBrands(data || []);
+      } catch (error) {
+        console.error('Failed to fetch brands:', error);
+        setBrands([]);
+      } finally {
+        setIsLoadingBrands(false);
+      }
+    };
+    fetchBrands();
     fetchSizeOptions();
   }, [selectedCategory]);
 
@@ -257,7 +275,6 @@ const CreateRequestScreen = () => {
         })) || null;
       const payload: CreateRequestPayload = {
         senderId: user?.userId || '',
-        name: productName,
         description: selectedTags.join(', '),
         address: selectedAddress?.address || '',
         images: urls,
@@ -266,6 +283,7 @@ const CreateRequestScreen = () => {
           parentCategoryId: categoryId,
           subCategoryId: selectedCategory?.id || '',
           sizeTierId: selectedSizeTier?.id || null,
+          brandId: selectedBrandId || '',
           attributes: formattedAttributes || null,
         },
       };
@@ -313,16 +331,32 @@ const CreateRequestScreen = () => {
               />
 
               <View className="">
-                <SizeOptions
-                  title="Chọn thương hiệu"
-                  options={['Samsung', 'LG', 'Aqua']}
-                  selectedOptions={selectedBrands}
-                  onToggle={brand => {
-                    setSelectedBrands(prev =>
-                      prev[0] === brand ? [] : [brand],
-                    );
-                  }}
-                />
+                {isLoadingBrands ? (
+                  <View className="py-2 flex-row items-center">
+                    <ActivityIndicator size="small" color="#4169E1" />
+                    <Text className="ml-2 text-gray-600">
+                      Đang tải thương hiệu...
+                    </Text>
+                  </View>
+                ) : (
+                  <SizeOptions
+                    title="Chọn thương hiệu"
+                    options={brands.map(b => b.name)}
+                    selectedOptions={selectedBrands}
+                    emptyText={selectedCategory ? 'Không có thương hiệu' : ''}
+                    onToggle={brand => {
+                      // single-select: toggle selected brand (store name for UI and id for payload)
+                      const next = selectedBrands[0] === brand ? [] : [brand];
+                      setSelectedBrands(next);
+                      if (next.length === 0) {
+                        setSelectedBrandId(null);
+                      } else {
+                        const found = brands.find(b => b.name === brand);
+                        setSelectedBrandId(found?.brandId ?? null);
+                      }
+                    }}
+                  />
+                )}
               </View>
 
               <View className="">
@@ -420,7 +454,7 @@ const CreateRequestScreen = () => {
                   </View>
                 ))}
 
-              <View className="mb-4 mt-2">
+              <View className="mb-4 mt-4">
                 <AppImageGallery
                   images={selectedImages}
                   onRemove={handleRemoveImage}

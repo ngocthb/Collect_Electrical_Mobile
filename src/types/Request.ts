@@ -2,7 +2,7 @@ import { TimeSlot } from '../types/TimeSlot';
 
 export type CreateRequestPayload = {
   senderId?: string;
-  name: string;
+  name?: string;
   description?: string;
   address?: string;
   images?: string[];
@@ -11,6 +11,7 @@ export type CreateRequestPayload = {
     parentCategoryId?: string;
     subCategoryId?: string;
     sizeTierId?: string | null;
+    brandId?: string;
     attributes?: Array<{
       attributeId: string;
       value: string;

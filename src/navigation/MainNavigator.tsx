@@ -14,13 +14,13 @@ import DeliveryQrScreen from '../screens/delivery/DeliveryQrScreen';
 import DeliveryPhotoConfirmScreen from '../screens/delivery/DeliveryPhotoConfirmScreen';
 import UserConfirmScreen from '../screens/user/UserConfirmScreen';
 import NotificationDetailScreen from '../screens/user/NotificationDetailScreen';
-import ProfileEditScreen from '../screens/user/ProfileEditScreen';
+import ProfileEditScreen from '../screens/common/ProfileEditScreen';
 import DeliveryScanQrScreen from '../screens/delivery/DeliveryScanQrScreen';
 import DeliveryRouteScreen from '../screens/delivery/DeliveryRouteScreen';
 import CreateAddressScreen from '../screens/user/CreateAddressScreen';
 import DefaultAddressScreen from '../screens/user/DefaultAddressScreen';
 import DefaultScheduleScreen from '../screens/user/DefaultScheduleScreen';
-import ChangePasswordScreen from '../screens/user/ChangePasswordScreen';
+import ChangePasswordScreen from '../screens/common/ChangePasswordScreen';
 import DeliveryCancelScreen from '../screens/delivery/DeliveryCancelScreen';
 import WarehouseLocationScreen from '../screens/user/WarehouseLocationScreen';
 import WalletScreen from '../screens/user/WalletScreen';
@@ -28,6 +28,7 @@ import VoucherScreen from '../screens/user/VoucherScreen';
 import ShipmentDetailScreen from '../screens/user/ShipmentDetailScreen';
 import DeliveringScreen from '../screens/user/DeliveringScreen';
 import DeliveryDetailsScreen from '../screens/delivery/DeliveryDetailsScreen';
+import DeliveryStatsScreen from '../screens/delivery/DeliveryStatsScreen';
 // @ts-ignore - no TypeScript declarations for this module
 const {
   ZegoUIKitPrebuiltCallInCallScreen,
@@ -62,6 +63,7 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
             name="DeliveryDetails"
             component={DeliveryDetailsScreen}
           />
+          <Stack.Screen name="Statistics" component={DeliveryStatsScreen} />
         </>
       ) : (
         <>
@@ -75,10 +77,6 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
           <Stack.Screen
             name="DefaultSchedule"
             component={DefaultScheduleScreen}
-          />
-          <Stack.Screen
-            name="ChangePassword"
-            component={ChangePasswordScreen}
           />
 
           <Stack.Screen
@@ -95,8 +93,6 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
           />
           <Stack.Screen name="DeliveryInfo" component={DeliveryInfoScreen} />
           <Stack.Screen name="UserConfirm" component={UserConfirmScreen} />
-
-          <Stack.Screen name="EditProfile" component={ProfileEditScreen} />
 
           <Stack.Screen
             name="UserNotificationDetail"
@@ -115,9 +111,10 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
           <Stack.Screen name="Delivering" component={DeliveringScreen} />
         </>
       )}
+      <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+      <Stack.Screen name="EditProfile" component={ProfileEditScreen} />
       <Stack.Screen
         options={{ headerShown: false }}
-        // DO NOT change the name
         name="ZegoUIKitPrebuiltCallWaitingScreen"
         component={ZegoUIKitPrebuiltCallWaitingScreen}
       />

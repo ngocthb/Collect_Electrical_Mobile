@@ -8,17 +8,14 @@ import {
   Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
+import ImageModal from '../../components/ui/ImageModal';
+import { getStatusBadgeClass } from '../../utils/status';
 import SubLayout from '../../layout/SubLayout';
 import { useNavigation } from '@react-navigation/core';
 import { useRoute } from '@react-navigation/native';
 import axiosClient from '../../config/axios';
 import { Image } from 'react-native';
-import AppButton from '../../components/ui/AppButton';
 import { formatTimestamp } from '../../utils/dateUtils';
-
-const avatar = require('../../assets/images/avatar.jpg');
-const estimatedTime = '15 phút';
-const estimatedDistance = '5.2 km';
 
 const DeliveryInfoScreen = () => {
   const navigation = useNavigation<any>();
@@ -88,62 +85,81 @@ const DeliveryInfoScreen = () => {
     };
   }, [requestId]);
 
-  const statusColorClass = (status: string) => {
-    switch ((status || '').toLowerCase()) {
-      case 'đã từ chối':
-        return 'bg-red-500';
-      case 'chờ duyệt':
-        return 'bg-yellow-400';
-      case 'đã duyệt':
-        return 'bg-blue-500';
-      case 'đã hoàn thành':
-        return 'bg-green-500';
-      default:
-        return 'bg-gray-400';
-    }
-  };
-
-  const dayLabel = (code: string) => {
-    switch (code) {
-      case 'T2':
-        return 'Thứ 2';
-      case 'T3':
-        return 'Thứ 3';
-      case 'T4':
-        return 'Thứ 4';
-      case 'T5':
-        return 'Thứ 5';
-      case 'T6':
-        return 'Thứ 6';
-      case 'T7':
-        return 'Thứ 7';
-      case 'CN':
-        return 'Chủ Nhật';
-      default:
-        return code;
-    }
-  };
-
   const renderTimeSlots = (slots: Record<string, string[]>) => {
     if (!slots) return null;
     const entries = Object.entries(slots).filter(
       ([, v]) => Array.isArray(v) && v.length > 0,
     );
     if (entries.length === 0) return null;
+    // Group days that share identical time ranges to display them on one row
+    const groups = new Map<string, { times: string[]; days: string[] }>();
+
+    entries.forEach(([day, times]) => {
+      const key = Array.isArray(times) ? times.join('|') : String(times);
+      if (groups.has(key)) {
+        groups.get(key)!.days.push(day);
+      } else {
+        groups.set(key, {
+          times: Array.isArray(times) ? times : [times],
+          days: [day],
+        });
+      }
+    });
+
+    const grouped = Array.from(groups.values());
+    const totalDays = entries.length;
+    const allDaysSameGroup = totalDays === 7 && grouped.length === 1;
+
+    const shortDayLabel = (code: string) => {
+      if (!code) return '';
+      if (/^T[2-7]$/.test(code) || code === 'CN') return code;
+      if (code === 'Thứ 2') return 'T2';
+      if (code === 'Thứ 3') return 'T3';
+      if (code === 'Thứ 4') return 'T4';
+      if (code === 'Thứ 5') return 'T5';
+      if (code === 'Thứ 6') return 'T6';
+      if (code === 'Thứ 7') return 'T7';
+      if (code === 'Chủ Nhật' || code === 'Chủ nhật') return 'CN';
+
+      return String(code).slice(0, 3);
+    };
+
+    // if schedule contains entries for all 7 days and they're all the same group,
+    // show a compact "Cả tuần" row
+    if (allDaysSameGroup) {
+      const g = grouped[0];
+      return (
+        <View className="bg-white rounded-3xl shadow-md mb-5 p-6">
+          <Text className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
+            Khung thời gian
+          </Text>
+          <View className="flex-row items-center justify-between py-2">
+            <Text className="text-gray-700">Cả tuần</Text>
+            <Text className="text-gray-900 font-medium">
+              {g.times.filter(Boolean).join(' - ')}
+            </Text>
+          </View>
+        </View>
+      );
+    }
 
     return (
       <View className="bg-white rounded-3xl shadow-md mb-5 p-6">
         <Text className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
           Khung thời gian
         </Text>
-        {entries.map(([day, times]) => (
+        {grouped.map((g, idx) => (
           <View
-            key={day}
+            key={idx}
             className="flex-row items-center justify-between py-2"
           >
-            <Text className="text-gray-700">{dayLabel(day)}</Text>
+            <Text className="text-gray-700">
+              {g.days.length === 7
+                ? 'Cả tuần'
+                : g.days.map(d => shortDayLabel(d)).join(', ')}
+            </Text>
             <Text className="text-gray-900 font-medium">
-              {times.join('  -  ')}
+              {g.times.filter(Boolean).join(' - ')}
             </Text>
           </View>
         ))}
@@ -153,16 +169,56 @@ const DeliveryInfoScreen = () => {
 
   const renderAttributesOrCondition = () => {
     if (request?.product?.attributes && request.product.attributes.length > 0) {
+      const attrs: any[] = request.product.attributes;
+      const normalize = (s: string) => (s || '').toLowerCase();
+      const findByName = (keywords: string[]) =>
+        attrs.find(a =>
+          keywords.some(k => normalize(a.attributeName).includes(k)),
+        );
+
+      const lengthAttr = findByName(['chiều dài', 'chiều dai', 'length']);
+      const widthAttr = findByName(['chiều rộng', 'chiều rong', 'width']);
+      const heightAttr = findByName(['chiều cao', 'height']);
+
+      const parseUnitFromName = (name?: string) => {
+        if (!name) return '';
+        const m = name.match(/\(([^)]+)\)/);
+        return m && m[1] ? m[1].trim() : '';
+      };
+
+      const otherAttrs = attrs.filter(
+        a => ![lengthAttr, widthAttr, heightAttr].includes(a),
+      );
+
+      const canRenderBox = lengthAttr && widthAttr && heightAttr;
+      const unit =
+        (lengthAttr && lengthAttr.unit) ||
+        (widthAttr && widthAttr.unit) ||
+        (heightAttr && heightAttr.unit) ||
+        parseUnitFromName(lengthAttr?.attributeName) ||
+        parseUnitFromName(widthAttr?.attributeName) ||
+        parseUnitFromName(heightAttr?.attributeName) ||
+        '';
+
       return (
         <View className="bg-white rounded-3xl shadow-md mb-5 p-6">
           <Text className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
             Thông số kỹ thuật
           </Text>
-          {request.product.attributes.map((attr: any, index: number) => (
-            <View
-              key={index}
-              className="flex-row justify-between py-2 border-b border-gray-100 last:border-b-0"
-            >
+          {canRenderBox ? (
+            <View className="flex-row justify-between py-2  ">
+              <Text className="text-gray-600">
+                Kích thước ({unit ? ` ${unit}` : ''})
+              </Text>
+              <Text className="text-gray-900 font-medium">
+                {`${lengthAttr.value} x ${widthAttr.value} x ${heightAttr.value}`}
+                {` (d x r x c)`}
+              </Text>
+            </View>
+          ) : null}
+
+          {otherAttrs.map((attr: any, index: number) => (
+            <View key={index} className="flex-row justify-between py-2">
               <Text className="text-gray-600">{attr.attributeName}</Text>
               <Text className="text-gray-900 font-medium">
                 {attr.value} {attr.unit || ''}
@@ -203,101 +259,62 @@ const DeliveryInfoScreen = () => {
           <ActivityIndicator size="large" color="#4169E1" />
         </View>
       ) : (
-        <ScrollView className="flex-1">
+        <ScrollView className="flex-1 ">
           <View className="p-5">
             <View className="bg-white rounded-3xl shadow-md mb-5 p-6">
-              <Text className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
-                Chi tiết đơn hàng
-              </Text>
-
-              {/* Request summary */}
-              <View className="mb-4">
-                <Text className="text-lg font-semibold text-gray-900">
-                  {request ? request.name : 'Yêu cầu của bạn'}
+              {request?.category && (
+                <Text className="text-sm text-gray-500 mb-1">
+                  {request.category}
                 </Text>
-                {request?.category && (
-                  <Text className="text-sm text-gray-500 mt-1">
-                    {request.category}
-                  </Text>
-                )}
-                {/* request thumbnail */}
-                {request?.image && (
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    className="space-x-3"
-                  >
-                    {request.images.map((img: any, i: number) => (
-                      <TouchableOpacity
-                        key={i}
-                        onPress={() => handleImagePress(img.uri)}
-                      >
-                        <Image
-                          source={img && img.uri ? { uri: img.uri } : img}
-                          style={{
-                            width: 84,
-                            height: 84,
-                            borderRadius: 12,
-                            marginRight: 12,
-                          }}
-                          resizeMode="cover"
-                          onError={e =>
-                            console.warn(
-                              '[DeliveryInfo] image load error',
-                              i,
-                              e,
-                            )
-                          }
-                          onLoad={() =>
-                            console.log('[DeliveryInfo] image loaded', i)
-                          }
-                        />
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                )}
-                <View className="flex-row justify-between items-center mt-2">
-                  <View
-                    className={`${statusColorClass(
-                      request?.status,
-                    )} px-3 py-1 rounded-lg mr-3`}
-                  >
-                    <Text className="text-xs font-medium text-white">
-                      {request?.status ?? 'Đang xử lý'}
-                    </Text>
-                  </View>
-                  <Text className="text-sm text-gray-500">
-                    {formatTimestamp(request?.date)}
+              )}
+              {/* request thumbnail */}
+              {request?.image && (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  className="space-x-3"
+                >
+                  {request.images.map((img: any, i: number) => (
+                    <TouchableOpacity
+                      key={i}
+                      onPress={() => handleImagePress(img.uri)}
+                    >
+                      <Image
+                        source={img && img.uri ? { uri: img.uri } : img}
+                        style={{
+                          width: 84,
+                          height: 84,
+                          borderRadius: 12,
+                          marginRight: 12,
+                        }}
+                        resizeMode="cover"
+                        onError={e =>
+                          console.warn('[DeliveryInfo] image load error', i, e)
+                        }
+                        onLoad={() =>
+                          console.log('[DeliveryInfo] image loaded', i)
+                        }
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
+              <View className="flex-row justify-between items-center mt-2">
+                <View
+                  className={`${getStatusBadgeClass(
+                    request?.status,
+                  )} px-3 py-1 rounded-lg mr-3`}
+                >
+                  <Text className="text-xs font-medium text-white">
+                    {request?.status ?? 'Đang xử lý'}
                   </Text>
                 </View>
+                <Text className="text-sm text-gray-500">
+                  {formatTimestamp(request?.date)}
+                </Text>
               </View>
 
               <View className="space-y-4">
-                {/* <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
-                  <View className="flex-row items-center">
-                    <View className="w-10 h-10 rounded-full bg-purple-100 items-center justify-center mr-3">
-                      <Icon name="barcode-scan" size={20} color="#8B5CF6" />
-                    </View>
-                    <Text className="text-gray-600 text-base">Mã đơn hàng</Text>
-                  </View>
-                  <View
-                    style={{
-                      flex: 1,
-                      marginLeft: 12,
-                      alignItems: 'flex-end',
-                      minHeight: 20,
-                    }}
-                  >
-                    <Text
-                      style={{ textAlign: 'right' }}
-                      className="text-gray-900 font-semibold text-base"
-                    >
-                      {request ? `#${request.id}` : '—'}
-                    </Text>
-                  </View>
-                </View> */}
-
-                {/* Address row (from request) */}
                 <View className="flex-row items-center justify-between pt-3 ">
                   <View className="flex-row items-center">
                     <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center">
@@ -367,45 +384,11 @@ const DeliveryInfoScreen = () => {
           </View>
         </ScrollView>
       )}
-      <Modal
+      <ImageModal
         visible={isModalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={toggleModal}
-      >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          }}
-        >
-          <TouchableOpacity
-            onPress={toggleModal}
-            style={{
-              position: 'absolute',
-              top: 40,
-              right: 20,
-              zIndex: 1,
-              backgroundColor: 'white',
-              borderRadius: 15,
-              padding: 5,
-            }}
-          >
-            <Text>
-              <Icon name="x" size={24} color="black" />
-            </Text>
-          </TouchableOpacity>
-          {selectedImage && (
-            <Image
-              source={{ uri: selectedImage }}
-              style={{ width: '90%', height: '100%' }}
-              resizeMode="contain"
-            />
-          )}
-        </View>
-      </Modal>
+        imageUri={selectedImage}
+        onClose={toggleModal}
+      />
     </SubLayout>
   );
 };

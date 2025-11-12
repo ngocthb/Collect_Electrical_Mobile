@@ -41,3 +41,12 @@ export const searchSubCategories = async (
   );
   return res.data || [];
 };
+
+export const getBrandsBySubcategory = async (
+  subcategoryId: string,
+): Promise<any[]> => {
+  const res = (await axiosClient.get(
+    `/brands/sub-category/${subcategoryId}`,
+  )) as any;
+  return res || [];
+};

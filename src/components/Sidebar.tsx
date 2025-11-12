@@ -11,6 +11,7 @@ import {
 import Icon from 'react-native-vector-icons/Feather';
 import IconMaterial from 'react-native-vector-icons/MaterialIcons';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { getUserPoints } from '../services/pointsService';
 import { logout } from '../store/authSlice';
 import AppAvatar from './ui/AppAvatar';
 import Animated, {
@@ -26,7 +27,26 @@ interface SidebarProps {
 
 const Sidebar = ({ visible, onClose }: SidebarProps) => {
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector(s => s.auth);
+  const { user, role } = useAppSelector(s => s.auth);
+  const [points, setPoints] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const userId = user?.userId;
+        if (!userId) return;
+        const res = await getUserPoints(userId);
+        if (mounted && res && typeof res.points === 'number')
+          setPoints(res.points);
+      } catch (e) {
+        // ignore
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [user]);
   const slideAnim = useSharedValue(-300);
 
   useEffect(() => {
@@ -84,21 +104,24 @@ const Sidebar = ({ visible, onClose }: SidebarProps) => {
                     style={{ borderWidth: 4, borderColor: '#fff' }}
                   />
                 </View>
-                <View className="ml-4 w-3/5">
+                <View className="ml-3 w-3/5 h-[64px] justify-center">
                   <Text
-                    className="text-base font-bold text-text-main flex-1"
-                    numberOfLines={3}
+                    className="text-base font-bold text-text-main text-left"
+                    numberOfLines={2}
                   >
-                    {user?.name || 'Naruto'}
+                    {user?.name}
                   </Text>
-                  <View className="flex-row items-center mt-2">
-                    <Text className="text-base font-bold text-text-main mr-2">
-                      220
-                    </Text>
-                    <View className="w-6 h-6 bg-yellow-400 rounded-full items-center justify-center">
-                      <Text className="text-xs">🪙</Text>
+
+                  {role !== 'delivery' && (
+                    <View className="flex-row items-center justify-center mt-1">
+                      <Text className="text-base font-bold text-text-main mr-2">
+                        {points != null ? points : 0}
+                      </Text>
+                      <View className="w-6 h-6 bg-yellow-400 rounded-full items-center justify-center">
+                        <Text className="text-xs">🪙</Text>
+                      </View>
                     </View>
-                  </View>
+                  )}
                 </View>
               </View>
             </View>

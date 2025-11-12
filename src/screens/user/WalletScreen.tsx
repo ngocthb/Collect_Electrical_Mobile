@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Image, FlatList } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, FlatList, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import AppButton from '../../components/ui/AppButton';
@@ -14,7 +14,30 @@ const thumb2 = require('../../assets/images/homepage2.png');
 export default function WalletScreen() {
   const navigation = useNavigation<any>();
 
-  const balance = 25000; // sample balance
+  const [balance, setBalance] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      try {
+        // TODO: replace this with real userId from auth state
+        const userId = '7f5c8b33-1b52-4d11-91b0-932c3d243c71';
+        const pointsModule = await import('../../services/pointsService');
+        const res = await pointsModule.getUserPoints(userId);
+        if (mounted && res && typeof res.points === 'number')
+          setBalance(res.points);
+      } catch (e) {
+        console.warn('[Wallet] Failed to load points', e);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const history = [
     {
@@ -72,7 +95,11 @@ export default function WalletScreen() {
             <View className="flex-1 justify-between">
               <Text className="text-white text-sm">Tổng xu</Text>
               <Text className="text-white text-2xl font-bold mt-2">
-                {balance.toLocaleString()} 🪙
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  `${(balance ?? 0).toLocaleString()} 🪙`
+                )}
               </Text>
               <View className="mt-4 w-2/3">
                 <AppButton

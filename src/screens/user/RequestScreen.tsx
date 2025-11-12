@@ -10,6 +10,8 @@ import {
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import requestService from '../../services/requestService';
+import { formatTimestamp } from '../../utils/dateUtils';
+import { getStatusBadgeClass } from '../../utils/status';
 import { useIsFocused } from '@react-navigation/native';
 import { useAppSelector } from '../../store/hooks';
 import MainLayout from '../../layout/MainLayout';
@@ -81,21 +83,6 @@ const RequestScreen = () => {
     ? requests.filter(request => request.status === selectedStatus)
     : requests;
 
-  const statusColorClass = (status: string) => {
-    switch ((status || '').toLowerCase()) {
-      case 'đã từ chối':
-        return 'bg-red-500';
-      case 'chờ duyệt':
-        return 'bg-yellow-400';
-      case 'đã duyệt':
-        return 'bg-blue-500';
-      case 'đã hoàn thành':
-        return 'bg-green-500';
-      default:
-        return 'bg-gray-400';
-    }
-  };
-
   const openRequest = (request: any) => {
     const status = (request.status || '').toLowerCase();
     if (status === 'đã hoàn thành') {
@@ -113,6 +100,15 @@ const RequestScreen = () => {
     { value: 'đã hoàn thành', label: 'Hoàn thành', color: 'green' },
   ];
 
+  const renderRequestTime = (request: any) => {
+    // preserve previous inline logic: format request.date using formatTimestamp
+    if (!request) return '';
+    if (request.date) {
+      const formatted = formatTimestamp(request.date);
+      return formatted || request.date;
+    }
+    return '';
+  };
   return (
     <MainLayout headerTitle="Yêu cầu của bạn">
       <View className="flex-1 bg-white">
@@ -160,38 +156,19 @@ const RequestScreen = () => {
                 {/* Content */}
                 <View className="flex-1 ml-3">
                   <Text className="text-base font-semibold text-gray-900 mb-1">
-                    {request.name}
+                    {request.subCategory}
                   </Text>
                   <View className="flex-row items-center">
                     <Icon name="clock" size={14} color="#9ca3af" />
                     <Text className="text-sm text-gray-500 ml-1">
-                      {(() => {
-                        // derive a short time label from schedule or date
-                        if (request.schedule && request.schedule.length > 0) {
-                          const first = request.schedule[0];
-                          const slot = first.slots && first.slots[0];
-                          if (slot && slot.startTime) {
-                            return `${first.dayName} ${slot.startTime}`;
-                          }
-                          return first.dayName;
-                        }
-                        if (request.date) {
-                          try {
-                            const d = new Date(request.date);
-                            return d.toLocaleDateString();
-                          } catch (e) {
-                            return request.date;
-                          }
-                        }
-                        return '';
-                      })()}
+                      {renderRequestTime(request)}
                     </Text>
                   </View>
                 </View>
 
                 {/* Status Badge */}
                 <View
-                  className={`${statusColorClass(
+                  className={`${getStatusBadgeClass(
                     request.status,
                   )} px-3 py-1 rounded-lg`}
                 >
