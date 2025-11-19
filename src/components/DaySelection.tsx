@@ -110,11 +110,15 @@ const DaySelection: React.FC<DaySelectionProps> = ({
 
   return (
     <>
-      <Text className="text-sm font-medium mb-3 text-text-main">
-        Thời gian có thể lấy hàng <Text className="text-red-500">*</Text>
-      </Text>
-      <View className="mb-3">
-        <View className="flex-row items-center justify-between mb-2">
+      <View className="flex-row justify-between">
+        <View className="flex-row items-center">
+          <Text className="text-sm font-medium  text-text-main items-center ">
+            Thời gian có thể lấy hàng
+          </Text>
+          <Text className="text-red-500"> *</Text>
+        </View>
+
+        <View className="flex-row items-center">
           <TouchableOpacity
             className={`px-3 py-1 rounded-full mr-2 ${
               isAllSelected ? 'bg-primary-100' : 'bg-primary-50'
@@ -129,11 +133,9 @@ const DaySelection: React.FC<DaySelectionProps> = ({
               Tất cả
             </Text>
           </TouchableOpacity>
-          <Text className="text-sm text-text-muted">
-            {selectedDays.length} đã chọn
-          </Text>
         </View>
-
+      </View>
+      <View className="mb-3">
         <View className="py-1">
           <View className="flex-row items-center justify-between">
             {reorderedDays.map(day => (

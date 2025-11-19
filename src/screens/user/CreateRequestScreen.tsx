@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,17 +9,10 @@ import {
 import toast from 'react-native-toast-message';
 
 import type { Asset } from 'react-native-image-picker';
-
 import { useRoute } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 
-import {
-  getSubcategories,
-  getSizeOptions,
-  getAttributes,
-  getBrandsBySubcategory,
-  searchSubCategories,
-} from '../../services/categoryService';
+import { getSizeOptions, getAttributes } from '../../services/categoryService';
 import SubLayout from '../../layout/SubLayout';
 import AppSearchableDropdown from '../../components/ui/AppSearchableDropdown';
 import AppInput from '../../components/ui/AppInput';
@@ -41,6 +34,7 @@ import { clearTimeSlot } from '../../store/slices/timeSlotSlice';
 import { CreateRequestPayload } from '../../types/Request';
 import { TimeSlot } from '../../types/TimeSlot';
 import { useDispatch } from 'react-redux';
+
 const CreateRequestScreen = () => {
   const router = useRoute<any>();
   const navigation = useNavigation<any>();
@@ -50,19 +44,13 @@ const CreateRequestScreen = () => {
   const address = useAppSelector(state => state.address.current);
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
   const dispatch = useDispatch();
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
-  const [categories, setCategories] = useState<SubCategory[]>([]);
-  const [filteredCategories, setFilteredCategories] = useState<SubCategory[]>(
-    [],
-  );
-  const [isSearchingCategories, setIsSearchingCategories] = useState(false);
+
   const [sizeOptions, setSizeOptions] = useState<SizeTier[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
-  const [brands, setBrands] = useState<any[]>([]);
-  const [isLoadingBrands, setIsLoadingBrands] = useState(false);
+
   const [selectedCategory, setSelectedCategory] = useState<SubCategory | null>(
     null,
   );
@@ -78,26 +66,6 @@ const CreateRequestScreen = () => {
   const [selectedImages, setSelectedImages] = useState<Asset[]>([]);
   const [isImagePickerVisible, setIsImagePickerVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const productName = selectedBrands.join(', ');
-
-  // Get selected category ID
-  const getSelectedCategoryId = () => {
-    return selectedCategory?.id || null;
-  };
-
-  // Log selected category info whenever it changes
-  useEffect(() => {
-    if (selectedCategory) {
-      console.log('Current selected category:', {
-        id: selectedCategory.id,
-        name: selectedCategory.name,
-        fullObject: selectedCategory,
-      });
-    } else {
-      console.log('No category selected');
-    }
-  }, [selectedCategory]);
 
   const goToNextStep = () => {
     if (currentStep < 2) {
@@ -133,40 +101,35 @@ const CreateRequestScreen = () => {
 
   const isStep2Valid = address !== null && timeSlots.length > 0;
 
-  const getSubCategories = async (categoryId: string) => {
+  const isMounted = useRef(true);
+
+  const loadData = async () => {
+    if (!categoryId) return;
     try {
-      const data = await getSubcategories(categoryId);
-      setCategories(data);
-      setFilteredCategories(data);
+      if (!isMounted.current) return;
+
+      if (selectedCategory) {
+        setIsLoadingSizeOptions(true);
+        try {
+          const sizes = await getSizeOptions(selectedCategory.id);
+          if (isMounted.current) setSizeOptions(sizes);
+        } catch (e) {
+          console.error('Failed to fetch size tiers on refresh', e);
+        } finally {
+          if (isMounted.current) setIsLoadingSizeOptions(false);
+        }
+      }
     } catch (error) {
       console.error('Failed to fetch sub-categories', error);
     }
   };
 
-  const handleCategorySearch = async (query: string) => {
-    if (!categoryId) return;
-
-    if (query.trim() === '') {
-      setFilteredCategories(categories);
-      return;
-    }
-
-    setIsSearchingCategories(true);
-    try {
-      const results = await searchSubCategories(categoryId, query);
-      setFilteredCategories(results);
-    } catch (error) {
-      console.error('Failed to search categories:', error);
-      setFilteredCategories([]);
-    } finally {
-      setIsSearchingCategories(false);
-    }
-  };
-
   useEffect(() => {
-    if (categoryId) {
-      getSubCategories(categoryId);
-    }
+    isMounted.current = true;
+    loadData();
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -187,28 +150,11 @@ const CreateRequestScreen = () => {
         setSizeOptions([]);
       }
     };
+
     setSelectedSizeTier(null);
     setCustomInputEnabled(false);
     setAttributes([]);
     setAttributeValues({});
-    // fetch brands for the selected subcategory
-    const fetchBrands = async () => {
-      if (!selectedCategory) {
-        setBrands([]);
-        return;
-      }
-      setIsLoadingBrands(true);
-      try {
-        const data = await getBrandsBySubcategory(selectedCategory.id);
-        setBrands(data || []);
-      } catch (error) {
-        console.error('Failed to fetch brands:', error);
-        setBrands([]);
-      } finally {
-        setIsLoadingBrands(false);
-      }
-    };
-    fetchBrands();
     fetchSizeOptions();
   }, [selectedCategory]);
 
@@ -267,6 +213,7 @@ const CreateRequestScreen = () => {
   const handleCreateRequest = async () => {
     try {
       setLoading(true);
+
       const urls = await handleUploadImages(selectedImages);
       const formattedAttributes =
         Object.entries(attributeValues).map(([key, value]) => ({
@@ -287,9 +234,8 @@ const CreateRequestScreen = () => {
           attributes: formattedAttributes || null,
         },
       };
-
-      console.log(payload);
       const data = await create.create(payload);
+
       toast.show({
         type: 'success',
         text1: 'Thành công',
@@ -297,71 +243,53 @@ const CreateRequestScreen = () => {
       });
 
       dispatch(clearTimeSlot());
+
+      // Navigate ngay lập tức
       navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (error) {
       console.error('Error creating request:', error);
-    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SubLayout title="Tạo yêu cầu" onBackPress={goToPreviousStep}>
-      <ScrollView className="flex-1 bg-white" nestedScrollEnabled={true}>
-        <View className="px-6 py-4">
-          {currentStep === 1 && (
+    <SubLayout
+      title="Tạo yêu cầu"
+      onBackPress={goToPreviousStep}
+      onRefresh={loadData}
+    >
+      <ScrollView className="flex-1 bg-white">
+        <View className="px-6 py-4" style={{ flex: 1 }}>
+          <View style={{ display: currentStep === 1 ? 'flex' : 'none' }}>
             <>
               <AppSearchableDropdown
-                title="Chọn danh mục sản phẩm"
-                placeholder="Nhập để tìm kiếm danh mục..."
-                value={selectedCategory}
-                options={filteredCategories}
-                onSelect={category => {
-                  setSelectedCategory(category);
-                  if (category) {
-                    console.log('Selected category ID:', category.id);
-                    console.log('Selected category name:', category.name);
-                    console.log('Full category object:', category);
-                  }
+                type="subcategory"
+                parentCategoryId={categoryId}
+                onChange={(selectedItem: any | null) => {
+                  const cat = (selectedItem as any) || null;
+
+                  setSelectedCategory(cat);
                 }}
-                onSearch={handleCategorySearch}
-                displayKey="name"
-                required
-                loading={isSearchingCategories}
               />
 
-              <View className="">
-                {isLoadingBrands ? (
-                  <View className="py-2 flex-row items-center">
-                    <ActivityIndicator size="small" color="#4169E1" />
-                    <Text className="ml-2 text-gray-600">
-                      Đang tải thương hiệu...
-                    </Text>
-                  </View>
-                ) : (
-                  <SizeOptions
-                    title="Chọn thương hiệu"
-                    options={brands.map(b => b.name)}
-                    selectedOptions={selectedBrands}
-                    emptyText={selectedCategory ? 'Không có thương hiệu' : ''}
-                    onToggle={brand => {
-                      // single-select: toggle selected brand (store name for UI and id for payload)
-                      const next = selectedBrands[0] === brand ? [] : [brand];
-                      setSelectedBrands(next);
-                      if (next.length === 0) {
-                        setSelectedBrandId(null);
-                      } else {
-                        const found = brands.find(b => b.name === brand);
-                        setSelectedBrandId(found?.brandId ?? null);
-                      }
-                    }}
-                  />
-                )}
-              </View>
+              {selectedCategory && (
+                <AppSearchableDropdown
+                  type="brand"
+                  subCategoryId={selectedCategory.id}
+                  onChange={(selectedItem: any | null) => {
+                    const brand = (selectedItem as any) || null;
+                    if (brand) {
+                      setSelectedBrandId(brand.brandId);
+                    } else {
+                      setSelectedBrandId(null);
+                    }
+                  }}
+                />
+              )}
 
               <View className="">
                 <SizeOptions
-                  title="Nhập mô tả sản phẩm"
+                  title="Tình trạng sản phẩm"
                   options={tags}
                   selectedOptions={selectedTags}
                   onToggle={tag => {
@@ -462,21 +390,19 @@ const CreateRequestScreen = () => {
                 />
               </View>
             </>
-          )}
+          </View>
 
-          {currentStep === 2 && (
-            <>
-              <AddressSelector
-                selectedAddress={selectedAddress}
-                onSelectAddress={setSelectedAddress}
-              />
-              <PickupTimeSelector />
-            </>
-          )}
+          <View style={{ display: currentStep === 2 ? 'flex' : 'none' }}>
+            <AddressSelector
+              selectedAddress={selectedAddress}
+              onSelectAddress={setSelectedAddress}
+            />
+            <PickupTimeSelector />
+          </View>
         </View>
       </ScrollView>
 
-      <View className="px-6 py-4">
+      <View className="px-6 py-4 bg-white p-4">
         {currentStep < 2 && (
           <AppButton
             title="Tiếp theo"
@@ -487,7 +413,7 @@ const CreateRequestScreen = () => {
         {currentStep === 2 && (
           <AppButton
             title="Hoàn tất"
-            onPress={() => handleCreateRequest()}
+            onPress={handleCreateRequest}
             disabled={!isStep2Valid}
             loading={loading}
           />
@@ -501,6 +427,25 @@ const CreateRequestScreen = () => {
         currentCount={selectedImages.length}
         maxItems={5}
       />
+
+      {loading && currentStep === 2 && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.85)',
+            zIndex: 9999,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <ActivityIndicator size="large" color="#4169E1" />
+          <Text className="mt-4 text-gray-600 font-medium">Đang xử lý...</Text>
+        </View>
+      )}
     </SubLayout>
   );
 };

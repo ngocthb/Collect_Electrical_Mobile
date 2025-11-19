@@ -9,7 +9,7 @@ import {
   resolveStatus,
   getStatusColor,
 } from '../utils/deliveryHelpers';
-
+// @ts-ignore
 import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import { useNavigation } from '@react-navigation/native';
 
@@ -43,13 +43,6 @@ const DeliveryOrderCard = ({
     ? cleanUserIdForZego(receiver.userId)
     : null;
 
-  if (!cleanReceiverId && receiver) {
-    console.warn('[DeliveryOrderCard] Cannot get userId from receiver:', {
-      orderId: order?.id,
-      receiver,
-    });
-  }
-
   const invitees = useMemo(() => {
     if (!cleanReceiverId) return [];
     return [
@@ -69,7 +62,7 @@ const DeliveryOrderCard = ({
       durationText: '---',
     });
   };
-
+  console.log(order);
   return (
     <View className="flex-row mb-8 relative z-10">
       <View className="items-center mr-3">

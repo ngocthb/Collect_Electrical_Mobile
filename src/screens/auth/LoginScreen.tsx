@@ -12,8 +12,9 @@ import AppInput from '../../components/ui/AppInput';
 import AppButton from '../../components/ui/AppButton';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { loginMock, loginWithGoogle, setError } from '../../store/authSlice';
+import { loginMock, setError, setLoading } from '../../store/authSlice';
 import Toast from 'react-native-toast-message';
+import { signInWithGoogle } from '../../services/authService';
 
 const login = require('../../assets/images/login.png');
 const google = require('../../assets/images/google.jpg');
@@ -51,7 +52,14 @@ export default function LoginScreen() {
 
   const handleGoogleLogin = async () => {
     try {
-      await dispatch(loginWithGoogle()).unwrap();
+      dispatch(setLoading(true));
+      await signInWithGoogle();
+      const result = await dispatch(
+        loginMock({
+          identifier: 'ngocthbse183850@fpt.edu.vn',
+          password: '123456',
+        }),
+      ).unwrap();
       Toast.show({
         type: 'success',
         text1: 'Đăng nhập thành công!',
@@ -63,6 +71,8 @@ export default function LoginScreen() {
         text1: 'Đăng nhập thất bại',
         text2: error || 'Vui lòng thử lại',
       });
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
@@ -160,14 +170,14 @@ export default function LoginScreen() {
           disabled={auth.loading || !email || !password}
         />
 
-        <View className="flex-row items-center mt-4 w-full">
+        {/* <View className="flex-row items-center mt-4 w-full">
           <View className="flex-1 h-px bg-gray-300" />
           <Text className="px-2 text-sm text-text-muted">hoặc</Text>
           <View className="flex-1 h-px bg-gray-300" />
-        </View>
+        </View> */}
 
         {/* Google Sign-In Button */}
-        <View className="mt-4">
+        {/* <View className="mt-4">
           <TouchableOpacity
             onPress={handleGoogleLogin}
             disabled={auth.loading}
@@ -179,20 +189,20 @@ export default function LoginScreen() {
               resizeMode="contain"
             />
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         {/* Register link */}
         <View className="flex-row justify-center mt-6">
           <Text className="text-base font-normal text-text-muted">
-            Chưa có tài khoản?
+            Bạn là khách hàng ?
           </Text>
           <TouchableOpacity
             onPress={() => {
-              navigation.navigate('Register');
+              navigation.navigate('SimpleLogin');
             }}
           >
             <Text className="text-secondary-100 text-base font-bold ml-2 ">
-              Đăng ký
+              Đăng nhập
             </Text>
           </TouchableOpacity>
         </View>

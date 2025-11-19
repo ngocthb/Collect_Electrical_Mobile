@@ -28,8 +28,7 @@ export const resolveStatus = (order: any) => {
 };
 
 export const getOrderId = (order: any) => order?.collectionRouteId ?? order?.id;
-export const getOrderName = (order: any) =>
-  order?.itemName ?? order?.collector?.name ?? order?.name ?? 'Không có tên';
+export const getOrderName = (order: any) => order?.sender?.name ?? 'NaN';
 export const getOrderTime = (order: any) =>
   order?.actual_Time ?? order?.estimatedTime ?? order?.time ?? '';
 export const getOrderAddress = (order: any) =>

@@ -1,19 +1,22 @@
-import React from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import MainLayout from '../../layout/MainLayout';
 import { useNavigation } from '@react-navigation/native';
 import AppAvatar from '../../components/ui/AppAvatar';
 import { useAppSelector } from '../../store/hooks';
+import React, { useEffect, useState } from 'react';
+import { getUserPoints } from '../../services/pointsService';
 
 const menuItems = [
   { id: 1, title: 'Hồ sơ của tôi', icon: 'user' },
+  { id: 7, title: 'QR của tôi', icon: 'maximize' },
   { id: 2, title: 'Ví của tôi', icon: 'credit-card' },
   { id: 3, title: 'Lịch thu gom mặc định', icon: 'calendar' },
   { id: 5, title: 'Thống kê', icon: 'bar-chart-2' },
@@ -23,6 +26,31 @@ const menuItems = [
 
 const ProfileScreen = () => {
   const { user, role } = useAppSelector(s => s.auth);
+  const [balance, setBalance] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const isUser = String(role ?? '').toLowerCase() === 'user';
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (!isUser) return;
+      const userId = user?.userId;
+      if (!userId) return;
+      try {
+        setLoading(true);
+        const res = await getUserPoints(userId);
+        if (!mounted) return;
+        if (res && typeof res.points === 'number') setBalance(res.points);
+      } catch (e) {
+        console.warn('[Profile] Failed to load points', e);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [isUser, user]);
 
   const filteredMenu = menuItems.filter(item => {
     // Hide wallet, schedule, default address for delivery users
@@ -31,6 +59,10 @@ const ProfileScreen = () => {
     }
     // Hide stats for non-delivery users
     if (role !== 'delivery' && item.id === 5) {
+      return false;
+    }
+    // Only allow MyQr (id:7) for normal users
+    if (item.id === 7 && role !== 'user') {
       return false;
     }
     return true;
@@ -51,6 +83,9 @@ const ProfileScreen = () => {
         break;
       case 4:
         navigation.navigate('ChangePassword');
+        break;
+      case 7:
+        navigation.navigate('MyQr');
         break;
       case 5:
         navigation.navigate('Statistics');
@@ -89,7 +124,15 @@ const ProfileScreen = () => {
               {role !== 'delivery' && (
                 <View className="flex-row items-center mt-2">
                   <Text className="text-base font-bold text-gray-800 mr-2">
-                    220
+                    {isUser ? (
+                      loading ? (
+                        <ActivityIndicator color="#000" />
+                      ) : (
+                        `${(balance ?? 0).toLocaleString()}`
+                      )
+                    ) : (
+                      '220'
+                    )}
                   </Text>
                   <View className="w-6 h-6 bg-yellow-400 rounded-full items-center justify-center">
                     <Text className="text-xs">🪙</Text>

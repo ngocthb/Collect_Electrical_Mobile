@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Image, TouchableOpacity, Text } from 'react-native';
+import { View, Image, TouchableOpacity, Text, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import type { Asset } from 'react-native-image-picker';
 
@@ -25,7 +25,11 @@ const AppImageGallery = ({
       <Text className="text-gray-500 text-xs mb-3">
         Tối đa 5 ảnh/video, mỗi file không quá 10MB
       </Text>
-      <View className="flex-row flex-wrap">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingVertical: 2 }}
+      >
         {images.map((item, index) => (
           <View key={index} className="mr-3 mb-3 relative">
             <Image
@@ -71,7 +75,7 @@ const AppImageGallery = ({
             <Text className="text-gray-400 text-xs mt-1">Thêm</Text>
           </TouchableOpacity>
         )}
-      </View>
+      </ScrollView>
     </View>
   );
 };

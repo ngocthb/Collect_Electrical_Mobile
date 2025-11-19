@@ -223,3 +223,114 @@ export async function mapboxDirections(start: string, end: string) {
   const response = await fetch(url);
   return response.json();
 }
+
+// Calculate distance between two coordinates using Haversine formula
+export function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // Distance in meters
+}
+
+// Request location permission
+export async function requestLocationPermission(): Promise<boolean> {
+  if (Platform.OS === 'android') {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        {
+          title: 'Quyền truy cập vị trí',
+          message: 'Ứng dụng cần truy cập vị trí để tính khoảng cách giao hàng',
+          buttonNeutral: 'Hỏi lại sau',
+          buttonNegative: 'Hủy',
+          buttonPositive: 'Đồng ý',
+        },
+      );
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } catch (err) {
+      console.warn(err);
+      return false;
+    }
+  }
+  return true;
+}
+
+// Watch current location and calculate distance to target
+export function watchCurrentLocationWithDistance(
+  targetLat: number,
+  targetLng: number,
+  onUpdate: (location: { lat: number; lng: number }, distance: number) => void,
+  onError?: (error: any) => void,
+): number {
+  const watchId = Geolocation.watchPosition(
+    position => {
+      const { latitude, longitude } = position.coords;
+      const distance = calculateDistance(
+        latitude,
+        longitude,
+        targetLat,
+        targetLng,
+      );
+      onUpdate({ lat: latitude, lng: longitude }, distance);
+    },
+    error => {
+      console.error('Location error:', error);
+      if (onError) onError(error);
+    },
+    {
+      enableHighAccuracy: true,
+      distanceFilter: 10, // Update every 10 meters
+      interval: 5000, // Update every 5 seconds
+      fastestInterval: 2000,
+    },
+  );
+  return watchId;
+}
+
+// Get current location once and calculate distance to target
+export async function getCurrentLocationDistance(
+  targetLat: number,
+  targetLng: number,
+): Promise<{ location: { lat: number; lng: number }; distance: number }> {
+  const hasPermission = await requestLocationPermission();
+  if (!hasPermission) {
+    throw new Error('Location permission denied');
+  }
+
+  return new Promise((resolve, reject) => {
+    Geolocation.getCurrentPosition(
+      position => {
+        const { latitude, longitude } = position.coords;
+        const distance = calculateDistance(
+          latitude,
+          longitude,
+          targetLat,
+          targetLng,
+        );
+        resolve({ location: { lat: latitude, lng: longitude }, distance });
+      },
+      error => {
+        reject(error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 5000,
+        showLocationDialog: true,
+      },
+    );
+  });
+}

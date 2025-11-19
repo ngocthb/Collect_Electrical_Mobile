@@ -4,16 +4,16 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface HeaderProps {
   onMenuPress?: () => void;
-  onNotificationPress?: () => void;
   title?: string;
   subtitle?: string;
+  rightComponent?: React.ReactNode;
 }
 
 const Header: React.FC<HeaderProps> = ({
   onMenuPress,
-  onNotificationPress,
   title,
   subtitle,
+  rightComponent,
 }) => {
   return (
     <View className="flex-row bg-white items-center justify-between px-6 py-8">
@@ -27,9 +27,7 @@ const Header: React.FC<HeaderProps> = ({
         )}
         {subtitle && <Text className="text-sm text-gray-600">{subtitle}</Text>}
       </View>
-      <TouchableOpacity onPress={onNotificationPress}>
-        <Icon name="notifications-none" size={28} color="#333" />
-      </TouchableOpacity>
+      {rightComponent && <View>{rightComponent}</View>}
     </View>
   );
 };

@@ -1,26 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+  Modal,
+  TouchableOpacity,
+} from 'react-native';
 import toast from 'react-native-toast-message';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import AppButton from '../../components/ui/AppButton';
+import { useNavigation } from '@react-navigation/native';
+import AppButton from './ui/AppButton';
 import QRCode from 'react-native-qrcode-svg';
-import routeService from '../../services/routeService';
+import routeService from '../services/routeService';
 import * as signalR from '@microsoft/signalr';
 import Icon from 'react-native-vector-icons/Feather';
-import Config from '../../config/env';
+import Config from '../config/env';
+import { useAppSelector } from '../store/hooks';
 
-import SubLayout from '../../layout/SubLayout';
-import { useAppSelector } from '../../store/hooks';
+interface DeliveryQrModalProps {
+  visible: boolean;
+  onClose: () => void;
+  request?: any;
+  product?: any;
+  requestId?: string;
+}
 
-const DeliveryQrScreen = () => {
+const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
+  visible,
+  onClose,
+  request,
+  product: productProp,
+  requestId,
+}) => {
   const navigation = useNavigation<any>();
-  const route = useRoute<any>();
   const user = useAppSelector(s => s.auth.user);
-  const routeProduct =
-    route.params?.request ??
-    route.params?.product ??
-    route.params?.requestId ??
-    null;
+  const routeProduct = request ?? productProp ?? requestId ?? null;
   const [product, setProduct] = useState<any>(
     typeof routeProduct === 'object' && routeProduct ? routeProduct : null,
   );
@@ -189,65 +203,81 @@ const DeliveryQrScreen = () => {
   };
 
   return (
-    <SubLayout
-      title="Xác nhận giao hàng"
-      onBackPress={() => navigation.goBack()}
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
     >
-      <ScrollView className="flex-1 bg-gray-50">
-        <View className="px-6 py-8 items-center">
-          <Text className="text-base mb-6 text-center text-gray-700">
-            Khi đến nơi, hãy đưa mã xác nhận này cho khách hàng để họ quét và
-            xác nhận lấy hàng.
-          </Text>
-          <View className="bg-white p-6 rounded-xl shadow mb-8 items-center">
-            {product ? (
-              <>
-                <QRCode value={JSON.stringify(confirmPayload)} size={240} />
-                <Text className="mt-8 text-sm font-semibold tracking-widest text-primary-600">
-                  {product?.collectionRouteId}
-                </Text>
-              </>
-            ) : (
-              <View className="items-center p-6">
-                <ActivityIndicator size="large" color="#3B82F6" />
-                <Text className="mt-4 text-sm text-gray-500">
-                  Đang tải thông tin đơn hàng...
-                </Text>
-              </View>
-            )}
+      <View className="flex-1 bg-black/50 justify-center items-center px-4">
+        <View className="bg-white rounded-2xl max-h-[90%] w-full max-w-[520px] overflow-hidden">
+          {/* Header */}
+          <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-200">
+            <Text className="text-lg font-bold text-gray-900">
+              Xác nhận giao hàng
+            </Text>
+            <TouchableOpacity
+              onPress={onClose}
+              className="w-8 h-8 items-center justify-center"
+            >
+              <Icon name="x" size={24} color="#6B7280" />
+            </TouchableOpacity>
           </View>
 
-          {/* Waiting status indicator */}
-          {isWaitingForConfirmation && product && (
-            <View className="w-full bg-blue-50 rounded-xl p-4 border border-blue-200 mb-4">
-              <View className="flex-row items-center justify-center">
-                <Icon name="clock" size={20} color="#3B82F6" />
-                <Text className="text-sm text-blue-800 text-center ml-2 font-medium">
-                  Đang chờ khách hàng xác nhận...
-                </Text>
-              </View>
-              <Text className="text-xs text-blue-600 text-center mt-2">
-                Vui lòng yêu cầu khách hàng quét mã QR và xác nhận trên thiết bị
-                của họ
+          <ScrollView className="w-full bg-white">
+            <View className="px-6 py-6 items-center w-full">
+              <Text className="text-sm mb-6 text-center text-gray-600">
+                Khi đến nơi, hãy đưa mã xác nhận này cho khách hàng để họ quét
+                và xác nhận lấy hàng.
               </Text>
-            </View>
-          )}
+              <View className="bg-gray-50 p-6 rounded-2xl mb-6 items-center">
+                {product ? (
+                  <>
+                    <QRCode value={JSON.stringify(confirmPayload)} size={220} />
+                    <Text className="mt-6 text-sm font-bold tracking-widest text-blue-600">
+                      {product?.collectionRouteId}
+                    </Text>
+                  </>
+                ) : (
+                  <View className="items-center p-6">
+                    <ActivityIndicator size="large" color="#3B82F6" />
+                    <Text className="mt-4 text-sm text-gray-500">
+                      Đang tải thông tin đơn hàng...
+                    </Text>
+                  </View>
+                )}
+              </View>
 
-          <View className="w-full items-center">
-            <View className="w-full mt-3">
-              <AppButton
-                title="Skip"
-                color="#ef4444"
-                loading={isSkipping}
-                disabled={!product || isSkipping}
-                onPress={handleSkip}
-              />
+              {/* Waiting status indicator */}
+              {isWaitingForConfirmation && product && (
+                <View className="w-full bg-blue-50 rounded-xl p-4 border border-blue-200 mb-4">
+                  <View className="flex-row items-center justify-center">
+                    <Icon name="clock" size={18} color="#3B82F6" />
+                    <Text className="text-sm text-blue-800 text-center ml-2 font-medium">
+                      Đang chờ khách hàng xác nhận...
+                    </Text>
+                  </View>
+                  <Text className="text-xs text-blue-600 text-center mt-2">
+                    Vui lòng yêu cầu khách hàng quét mã QR và xác nhận
+                  </Text>
+                </View>
+              )}
+
+              {/* <View className="w-full">
+                <AppButton
+                  title="Bỏ qua"
+                  color="#ef4444"
+                  loading={isSkipping}
+                  disabled={!product || isSkipping}
+                  onPress={handleSkip}
+                />
+              </View> */}
             </View>
-          </View>
+          </ScrollView>
         </View>
-      </ScrollView>
-    </SubLayout>
+      </View>
+    </Modal>
   );
 };
 
-export default DeliveryQrScreen;
+export default DeliveryQrModal;

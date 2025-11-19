@@ -1,105 +1,158 @@
-import React from 'react';
-import { View, Text, ScrollView, Image } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, ScrollView, Image, RefreshControl } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AppButton from './ui/AppButton';
 import AppAvatar from './ui/AppAvatar';
-import { resolveStatus } from '../utils/deliveryHelpers';
-import { getOrderId } from '../utils/deliveryHelpers';
 import { maskPhone } from '../utils/validations';
+import DeliveryQrModal from '../components/DeliveryQrModal';
+// @ts-ignore
+import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 
 type Props = {
   normalizedRequest: any;
   pickupLocationName?: string;
-  currentLocationName?: string | null;
   isExpanded: boolean;
-  isRouteLoading: boolean;
-  distanceText: string;
-  durationText: string;
-  onCall: () => void;
-  onMessage: () => void;
+  distanceInMeters?: number;
   onConfirm: () => void;
   onReject: () => void;
+  onRefresh?: () => Promise<void>;
+  resetQrTrigger?: number;
 };
 
 const DeliveryMapPanel: React.FC<Props> = ({
   normalizedRequest,
-  pickupLocationName,
   isExpanded,
-  isRouteLoading,
-  distanceText,
-  durationText,
-  onCall,
-  onMessage,
+  distanceInMeters,
   onConfirm,
   onReject,
+  onRefresh,
+  resetQrTrigger,
 }) => {
-  console.log(normalizedRequest);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const hasShownQrModalRef = React.useRef(false);
+
+  // Reset QR modal flag when resetQrTrigger changes (manual refresh only)
+  useEffect(() => {
+    if (resetQrTrigger && resetQrTrigger > 0) {
+      console.log(
+        '🔄 Resetting QR modal flag via manual refresh:',
+        resetQrTrigger,
+      );
+      // Reset flag trước khi check
+      hasShownQrModalRef.current = false;
+
+      // Always check and show modal after manual refresh if distance is small
+      if (
+        typeof distanceInMeters === 'number' &&
+        distanceInMeters > 0 &&
+        distanceInMeters < 5000
+      ) {
+        console.log(
+          '✅ Auto-showing QR modal after refresh, distance:',
+          distanceInMeters,
+        );
+        setShowQrModal(true);
+        hasShownQrModalRef.current = true;
+      }
+    }
+  }, [resetQrTrigger, distanceInMeters]);
+
+  // Only check on mount or when entering the threshold for the first time
+  useEffect(() => {
+    // Chỉ chạy khi không có resetQrTrigger (tức là lần đầu mount)
+    if (
+      !resetQrTrigger &&
+      typeof distanceInMeters === 'number' &&
+      distanceInMeters > 0 &&
+      distanceInMeters < 5000 &&
+      !hasShownQrModalRef.current
+    ) {
+      console.log(
+        '✅ Auto-showing QR modal on first threshold, distance:',
+        distanceInMeters,
+      );
+      setShowQrModal(true);
+      hasShownQrModalRef.current = true;
+    }
+  }, [distanceInMeters, resetQrTrigger]);
+
+  const receiver = normalizedRequest?.sender;
+  const cleanReceiverId = receiver?.userId
+    ? receiver.userId.replace(/[^a-zA-Z0-9_]/g, '')
+    : null;
+
+  const invitees = useMemo(() => {
+    if (!cleanReceiverId) return [];
+    return [
+      {
+        userID: String(cleanReceiverId),
+        userName: String(receiver?.name || 'User'),
+      },
+    ];
+  }, [cleanReceiverId, receiver?.name]);
+
+  // pull-to-refresh state
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefreshInternal = async () => {
+    if (!onRefresh) return;
+    try {
+      setRefreshing(true);
+      await onRefresh();
+    } catch (e) {
+      console.warn('Refresh error:', e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <ScrollView
       className="flex-1"
       showsVerticalScrollIndicator={false}
       scrollEnabled={isExpanded}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefreshInternal}
+          />
+        ) : undefined
+      }
     >
       <View className="px-5 pb-5">
-        {/* Pickup Address */}
-        <View className="flex-row items-start">
-          <View className="w-8 h-8 rounded-full bg-green-100 items-center justify-center mr-3">
-            <Icon name="circle-slice-8" size={16} color="#34C759" />
-          </View>
-          <View className="flex-1">
-            <Text className="text-xs text-gray-500 mb-1">Điểm lấy hàng</Text>
-            <Text className="text-sm font-semibold text-gray-900 mb-0.5">
-              {pickupLocationName}
-            </Text>
-          </View>
-        </View>
-
         {isExpanded && (
           <>
-            <View className="h-px bg-gray-200 my-4" />
-
-            {/* User Info */}
             <View className="mb-4">
               <Text className="text-xs text-gray-500 mb-3">
                 Thông tin người gửi
               </Text>
-              <View className="flex-row items-center bg-gray-50 rounded-2xl p-4">
-                <AppAvatar uri={normalizedRequest?.sender?.avatar} size={56} />
-                <View className="flex-1 ml-4">
-                  <Text className="text-base font-bold text-gray-900">
-                    {normalizedRequest?.sender?.name ?? 'Người gửi'}
-                  </Text>
+              <View className=" bg-gray-50 rounded-2xl p-4">
+                <View className="flex-row items-center">
+                  <AppAvatar
+                    uri={normalizedRequest?.sender?.avatar}
+                    size={56}
+                  />
+                  <View className="flex-1 ml-4">
+                    <Text className="text-base font-bold text-gray-900">
+                      {normalizedRequest?.sender?.name ?? 'Người gửi'}
+                    </Text>
 
-                  <Text className="text-sm text-gray-500 mt-1">
-                    SĐT: {maskPhone(normalizedRequest?.sender?.phone) || '—'}
-                  </Text>
-
-                  <Text className="text-sm text-gray-500 mt-0.5">
-                    Sản phẩm : {normalizedRequest?.itemName}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Action Buttons */}
-            {(() => {
-              const status = resolveStatus(normalizedRequest);
-              const actionsDisabled =
-                status === 'failed' || status === 'completed';
-              return (
-                <View className="flex-row gap-3 mb-4">
-                  <AppButton
-                    title="Gọi điện"
-                    className="flex-1"
-                    color="#4169E1"
-                    textColor="#FFFFFF"
-                    icon={<Icon name="phone" size={20} color="#FFFFFF" />}
-                    onPress={onCall}
-                    disabled={actionsDisabled}
+                    <Text className="text-sm text-gray-500 mt-1">
+                      SĐT: {maskPhone(normalizedRequest?.sender?.phone) || '—'}
+                    </Text>
+                  </View>
+                  <ZegoSendCallInvitationButton
+                    invitees={invitees}
+                    isVideoCall={false}
+                    resourceID="thugom_data"
                   />
                 </View>
-              );
-            })()}
+                <Text className="text-sm text-gray-500 mt-2">
+                  {normalizedRequest?.sender?.address || '—'}
+                </Text>
+              </View>
+            </View>
 
             {/* Warning */}
             <View className="flex-row items-center bg-amber-50 rounded-xl p-4 mb-6">
@@ -151,13 +204,6 @@ const DeliveryMapPanel: React.FC<Props> = ({
                     {normalizedRequest?.estimatedTime || '—'}
                   </Text>
                 </View>
-
-                <View className="flex-row justify-between py-2">
-                  <Text className="text-sm text-gray-500">Biển số xe</Text>
-                  <Text className="text-sm font-semibold text-gray-900">
-                    {normalizedRequest?.licensePlate || '—'}
-                  </Text>
-                </View>
               </View>
             </View>
 
@@ -177,8 +223,32 @@ const DeliveryMapPanel: React.FC<Props> = ({
           </>
         )}
       </View>
+
+      <DeliveryQrModal
+        visible={showQrModal}
+        onClose={() => setShowQrModal(false)}
+        request={normalizedRequest}
+      />
     </ScrollView>
   );
 };
 
-export default DeliveryMapPanel;
+// Avoid re-rendering unless important props change. We compare by
+// collectionRouteId (stable identifier), isExpanded and a small change
+// in distanceInMeters (ignore tiny fluctuations under 0.5m).
+export default React.memo(DeliveryMapPanel, (prev, next) => {
+  const prevId = prev.normalizedRequest?.collectionRouteId;
+  const nextId = next.normalizedRequest?.collectionRouteId;
+  if (prevId !== nextId) return false;
+  if (prev.isExpanded !== next.isExpanded) return false;
+
+  // So sánh resetQrTrigger để re-render khi có refresh
+  if (prev.resetQrTrigger !== next.resetQrTrigger) return false;
+
+  const prevDist =
+    typeof prev.distanceInMeters === 'number' ? prev.distanceInMeters : -1;
+  const nextDist =
+    typeof next.distanceInMeters === 'number' ? next.distanceInMeters : -1;
+  if (Math.abs(prevDist - nextDist) > 0.5) return false;
+  return true;
+});

@@ -29,22 +29,16 @@ export const predefinedTimeSlots: PredefinedTimeSlot[] = [
     color: '#F59E0B',
   },
   {
-    label: 'Giờ hành chính (9h - 17h)',
+    label: 'Giờ hành chính ',
     times: ['09:00 AM', '05:00 PM'],
     icon: 'briefcase',
     color: '#3B82F6',
   },
   {
-    label: 'Chỉ buổi tối (17h - 21h)',
+    label: 'Chỉ buổi tối ',
     times: ['05:00 PM', '09:00 PM'],
     icon: 'moon',
     color: '#8B5CF6',
-  },
-  {
-    label: 'Khung giờ tự chọn',
-    times: [],
-    icon: 'time',
-    color: '#10B981',
   },
 ];
 

@@ -48,7 +48,7 @@ export default function DeliveryHomeScreen() {
         <View className="flex-row justify-between">
           <View className="mb-6">
             <Text className="text-gray-600 text-base mb-1">Xin chào!</Text>
-            <Text className="text-2xl font-bold text-gray-800">
+            <Text className="text-2xl font-bold text-primary-100">
               {user?.name || 'Naruto'}
             </Text>
           </View>

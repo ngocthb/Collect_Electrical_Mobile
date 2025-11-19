@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,118 +8,209 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
+import IconIon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
-import requestService from '../../services/requestService';
-import { formatTimestamp } from '../../utils/dateUtils';
-import { getStatusBadgeClass } from '../../utils/status';
+import { getProductsByUser } from '../../services/productService';
 import { useIsFocused } from '@react-navigation/native';
 import { useAppSelector } from '../../store/hooks';
 import MainLayout from '../../layout/MainLayout';
-import StatusFilter from '../../components/ui/StatusFilter';
 
 const RequestScreen = () => {
   const navigation = useNavigation<any>();
-  const [requests, setRequests] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [selectedStatusGroup, setSelectedStatusGroup] = useState<string>('');
+  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
   const auth = useAppSelector(s => s.auth);
   const isFocused = useIsFocused();
 
-  useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      setLoading(true);
-      try {
-        const userId = auth.user?.userId;
-        if (!userId) {
-          if (mounted) setRequests([]);
-          return;
-        }
-        const response = await requestService.getRequestBySenderId(userId);
+  const isMounted = useRef(true);
 
-        const list = response ?? [];
+  const statusGroupMap: Record<string, string[]> = {
+    grouping: ['Chờ gom nhóm'],
+    collecting: ['Chờ thu gom'],
+    cancelled: ['Hủy bỏ'],
+    recycle: ['Tái chế', 'Đã đóng gói', 'Đã thu gom', 'Nhập kho'],
+  };
 
-        const sorted = Array.isArray(list)
-          ? [...list].sort((a: any, b: any) => {
-              // createdAt
-              if (a.createdAt && b.createdAt) {
-                return (
-                  new Date(b.createdAt).getTime() -
-                  new Date(a.createdAt).getTime()
-                );
-              }
-              // date field
-              if (a.date && b.date) {
-                try {
-                  return (
-                    new Date(b.date).getTime() - new Date(a.date).getTime()
-                  );
-                } catch (e) {
-                  // ignore
-                }
-              }
-              // numeric id
-              const ai = parseInt(a.id, 10);
-              const bi = parseInt(b.id, 10);
-              if (!isNaN(ai) && !isNaN(bi)) return bi - ai;
-              // fallback: keep original order
-              return 0;
-            })
-          : [];
-        if (mounted) setRequests(sorted as any[]);
-      } catch (e) {
-        if (mounted) setRequests([]);
-      } finally {
-        if (mounted) setLoading(false);
+  const loadProducts = async () => {
+    setLoading(true);
+    try {
+      const userId = auth.user?.userId;
+      if (!userId) {
+        if (isMounted.current) setProducts([]);
+        return;
       }
-    };
-    if (isFocused) load();
+      const resp = await getProductsByUser(userId);
+      if (isMounted.current) setProducts(Array.isArray(resp) ? resp : []);
+    } catch (e) {
+      console.warn('[Products] Failed to load user products', e);
+      if (isMounted.current) setProducts([]);
+    } finally {
+      if (isMounted.current) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    isMounted.current = true;
+    if (isFocused) loadProducts();
     return () => {
-      mounted = false;
+      isMounted.current = false;
     };
   }, [isFocused]);
 
-  const filteredRequests = selectedStatus
-    ? requests.filter(request => request.status === selectedStatus)
-    : requests;
+  const filteredProducts = selectedStatusGroup
+    ? products.filter(p =>
+        statusGroupMap[selectedStatusGroup].includes(p.status),
+      )
+    : products;
 
-  const openRequest = (request: any) => {
-    const status = (request.status || '').toLowerCase();
-    if (status === 'đã hoàn thành') {
-      navigation.navigate('UserNotificationDetail', { requestId: request.id });
+  const openProduct = (prod: any) => {
+    const status = String(prod.status || '').trim();
+    let groupKey = '';
+    for (const k of Object.keys(statusGroupMap)) {
+      if (statusGroupMap[k].includes(status)) {
+        groupKey = k;
+        break;
+      }
+    }
+
+    if (groupKey === 'collecting') {
+      navigation.navigate('Delivering', { notification: prod });
+    } else if (groupKey === 'recycle') {
+      navigation.navigate('UserNotificationDetail', { product: prod });
+    } else if (groupKey === 'grouping') {
+      navigation.navigate('ShipmentDetail', { notification: prod });
+    } else if (groupKey === 'cancelled') {
+      navigation.navigate('CancelledProduct', { product: prod });
     } else {
-      navigation.navigate('DeliveryInfo', { requestId: request.id });
+      navigation.navigate('ProductDetail', { productId: prod.productId });
     }
   };
 
-  const statusOptions = [
+  const statusGroupOptions = [
     { value: '', label: 'Tất cả', color: 'gray' },
-    { value: 'đã từ chối', label: 'Từ chối', color: 'red' },
-    { value: 'chờ duyệt', label: 'Chờ duyệt', color: 'yellow' },
-    { value: 'đã duyệt', label: 'Đã duyệt', color: 'blue' },
-    { value: 'đã hoàn thành', label: 'Hoàn thành', color: 'green' },
+    { value: 'grouping', label: 'Chờ nhóm', color: 'blue' },
+    { value: 'collecting', label: 'Chờ thu gom', color: 'yellow' },
+    { value: 'cancelled', label: 'Hủy bỏ', color: 'red' },
+    { value: 'recycle', label: 'Tái chế', color: 'green' },
   ];
 
-  const renderRequestTime = (request: any) => {
-    // preserve previous inline logic: format request.date using formatTimestamp
-    if (!request) return '';
-    if (request.date) {
-      const formatted = formatTimestamp(request.date);
-      return formatted || request.date;
-    }
-    return '';
-  };
-  return (
-    <MainLayout headerTitle="Yêu cầu của bạn">
-      <View className="flex-1 bg-white">
-        {/* Status Filter */}
-        <StatusFilter
-          options={statusOptions}
-          selectedStatus={selectedStatus}
-          onStatusChange={setSelectedStatus}
-        />
+  const selectedOption = statusGroupOptions.find(
+    opt => opt.value === selectedStatusGroup,
+  );
 
-        {/* Request List */}
+  const renderProductStatusBadge = (status: string | null | undefined) => {
+    if (!status) return null;
+    const s = String(status).trim();
+    let label = s;
+    let bgClass = 'bg-gray-400';
+
+    if (s === 'Chờ gom nhóm') {
+      label = 'Chờ gom nhóm';
+      bgClass = 'bg-blue-600';
+    } else if (s === 'Chờ thu gom') {
+      label = 'Chờ thu gom';
+      bgClass = 'bg-amber-500';
+    } else if (s === 'Hủy bỏ') {
+      label = 'Hủy bỏ';
+      bgClass = 'bg-red-500';
+    } else if (
+      ['Tái chế', 'Đã đóng gói', 'Đã thu gom', 'Nhập kho'].includes(s)
+    ) {
+      label = 'Tái chế';
+      bgClass = 'bg-green-600';
+    }
+
+    return (
+      <View className={`${bgClass} px-2 py-1 rounded-lg`}>
+        <Text className="text-white text-[10px] font-semibold">{label}</Text>
+      </View>
+    );
+  };
+
+  const getColorClass = (color: string) => {
+    const colorMap: Record<string, string> = {
+      gray: 'bg-gray-400',
+      blue: 'bg-blue-500',
+      yellow: 'bg-amber-500',
+      red: 'bg-red-500',
+      green: 'bg-green-500',
+    };
+    return colorMap[color] || 'bg-gray-400';
+  };
+
+  const filterDropdown = (
+    <View className="relative">
+      <TouchableOpacity
+        onPress={() => setFilterDropdownOpen(!filterDropdownOpen)}
+        className="flex-row items-center px-3 py-1.5 rounded-lg border border-gray-200 bg-secondary-100"
+      >
+        <View
+          className={`w-2 h-2 rounded-full mr-1.5 ${getColorClass(
+            selectedOption?.color || 'gray',
+          )}`}
+        />
+        <Text className="text-[13px] font-medium text-white">
+          {selectedOption?.label || 'Tất cả'}
+        </Text>
+        <IconIon
+          name="funnel-outline"
+          size={16}
+          color="#fff"
+          className="ml-1"
+        />
+      </TouchableOpacity>
+
+      {filterDropdownOpen && (
+        <View
+          className="absolute top-11 right-0 w-40 bg-white rounded-lg border border-gray-200 shadow-lg z-50"
+          style={{ elevation: 5 }}
+        >
+          {statusGroupOptions.map((option, index) => (
+            <TouchableOpacity
+              key={option.value}
+              onPress={() => {
+                setSelectedStatusGroup(option.value);
+                setFilterDropdownOpen(false);
+              }}
+              className={`flex-row items-center px-3 py-2.5 ${
+                index < statusGroupOptions.length - 1
+                  ? 'border-b border-gray-100'
+                  : ''
+              } ${
+                selectedStatusGroup === option.value ? 'bg-gray-50' : 'bg-white'
+              }`}
+            >
+              <View
+                className={`w-2 h-2 rounded-full mr-2 ${getColorClass(
+                  option.color,
+                )}`}
+              />
+              <Text
+                className={`text-[13px] text-gray-700 ${
+                  selectedStatusGroup === option.value
+                    ? 'font-semibold'
+                    : 'font-normal'
+                }`}
+              >
+                {option.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+
+  return (
+    <MainLayout
+      headerTitle="Yêu cầu của bạn"
+      onRefresh={loadProducts}
+      headerRightComponent={filterDropdown}
+    >
+      <View className="flex-1 bg-white">
+        {/* Product List */}
         <ScrollView className="flex-1 px-4 mt-2">
           {loading ? (
             <View className="items-center justify-center py-12">
@@ -128,53 +219,48 @@ const RequestScreen = () => {
                 Đang tải...
               </Text>
             </View>
-          ) : filteredRequests.length === 0 ? (
+          ) : filteredProducts.length === 0 ? (
             <View className="items-center justify-center py-12">
               <Icon name="inbox" size={64} color="#DDD" />
               <Text className="text-text-muted mt-4 text-center">
-                Không có đơn hàng nào
+                Không có sản phẩm nào
               </Text>
             </View>
           ) : (
-            filteredRequests.map((request: any) => (
+            filteredProducts.map((prod: any) => (
               <TouchableOpacity
-                key={request.id}
+                key={prod.productId}
                 className="flex-row items-center bg-white border border-gray-200 rounded-xl p-3 mb-3 shadow-sm"
-                onPress={() => openRequest(request)}
+                onPress={() => openProduct(prod)}
               >
                 {/* Image */}
-                {request.imageUrls && request.imageUrls.length > 0 ? (
+                <View className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
                   <Image
-                    source={{ uri: request.imageUrls[0] }}
-                    className="w-16 h-16 rounded-lg"
+                    source={{ uri: prod.productImages?.[0] || '' }}
+                    className="w-full h-full"
                     resizeMode="cover"
                   />
-                ) : (
-                  <View className="w-16 h-16 rounded-lg bg-gray-100" />
-                )}
+                </View>
 
                 {/* Content */}
                 <View className="flex-1 ml-3">
-                  <Text className="text-base font-semibold text-gray-900 mb-1">
-                    {request.subCategory}
+                  <Text
+                    className="text-base font-semibold text-gray-900 mb-1"
+                    numberOfLines={1}
+                  >
+                    {prod.categoryName} • {prod.brandName}
                   </Text>
-                  <View className="flex-row items-center">
-                    <Icon name="clock" size={14} color="#9ca3af" />
-                    <Text className="text-sm text-gray-500 ml-1">
-                      {renderRequestTime(request)}
-                    </Text>
-                  </View>
+                  <Text className="text-sm text-gray-600" numberOfLines={2}>
+                    {prod.description}
+                  </Text>
+                  <Text className="text-xs text-gray-400 mt-1">
+                    {prod.sizeTierName}
+                  </Text>
                 </View>
 
                 {/* Status Badge */}
-                <View
-                  className={`${getStatusBadgeClass(
-                    request.status,
-                  )} px-3 py-1 rounded-lg`}
-                >
-                  <Text className="text-xs font-medium text-white">
-                    {request.status}
-                  </Text>
+                <View className="ml-2">
+                  {renderProductStatusBadge(prod.status)}
                 </View>
               </TouchableOpacity>
             ))

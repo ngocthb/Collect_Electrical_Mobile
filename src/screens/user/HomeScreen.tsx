@@ -18,22 +18,11 @@ export default function HomeScreen() {
       id: 1,
       title: 'Ví của tôi',
       image: homepage2,
-      color: '#E8F5E8',
-      textColor: '#388E3C',
     },
     {
       id: 2,
       title: 'Các điểm thu',
       image: homepage1,
-      textColor: '#4F46E5',
-      color: '#EEF2FF',
-    },
-    {
-      id: 3,
-      title: 'Xác thực nhân viên',
-      image: homepage4,
-      color: '#FCE4EC',
-      textColor: '#C2185B',
     },
   ];
 
@@ -59,8 +48,8 @@ export default function HomeScreen() {
         <View className="flex-row justify-between">
           <View className="mb-6">
             <Text className="text-gray-600 text-base mb-1">Xin chào!</Text>
-            <Text className="text-2xl font-bold text-gray-800">
-              {user?.name || 'Naruto'}
+            <Text className="text-2xl font-bold text-primary-100">
+              {user?.name || 'User'}
             </Text>
           </View>
         </View>
@@ -70,21 +59,23 @@ export default function HomeScreen() {
           {menuItems.map(item => (
             <TouchableOpacity
               key={item.id}
-              className="w-[48%] mb-4 p-4 rounded-xl items-center justify-center"
-              style={{ backgroundColor: item.color }}
+              className="w-[48%] mb-4 p-4 rounded-xl items-center justify-center bg-primary-50 border-2 border-primary-100"
               onPress={() => handleMenuPress(item.id)}
             >
-              <View className="items-center justify-center h-28">
-                <Image
-                  source={item.image}
-                  className="w-20 h-20 mb-2"
-                  resizeMode="contain"
-                />
+              <View className="items-center justify-center">
+                <View className="items-center justify-center">
+                  <View className="w-20 h-20 rounded-full overflow-hidden bg-white">
+                    <View className="w-full h-full p-2">
+                      <Image
+                        source={item.image}
+                        className="w-16 h-16"
+                        resizeMode="contain"
+                      />
+                    </View>
+                  </View>
+                </View>
 
-                <Text
-                  className="text-sm font-medium text-center mt-3"
-                  style={{ color: item.textColor }}
-                >
+                <Text className="text-sm font-medium text-center mt-3 text-primary-100">
                   {item.title}
                 </Text>
               </View>

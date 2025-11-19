@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, Image, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
+import { getUserPoints } from '../../services/pointsService';
 import AppButton from '../../components/ui/AppButton';
 import SubLayout from '../../layout/SubLayout';
-
+import { useAppSelector } from '../../store/hooks';
 const wallet1 = require('../../assets/images/wallet1.png');
 const wallet2 = require('../../assets/images/wallet2.png');
 const avatar = require('../../assets/images/avatar.jpg');
@@ -13,7 +13,7 @@ const thumb2 = require('../../assets/images/homepage2.png');
 
 export default function WalletScreen() {
   const navigation = useNavigation<any>();
-
+  const { user } = useAppSelector(s => s.auth);
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -22,10 +22,13 @@ export default function WalletScreen() {
     (async () => {
       setLoading(true);
       try {
-        // TODO: replace this with real userId from auth state
-        const userId = '7f5c8b33-1b52-4d11-91b0-932c3d243c71';
-        const pointsModule = await import('../../services/pointsService');
-        const res = await pointsModule.getUserPoints(userId);
+        const userId = user?.userId;
+        if (!userId) {
+          if (mounted) setLoading(false);
+          return;
+        }
+
+        const res = await getUserPoints(userId);
         if (mounted && res && typeof res.points === 'number')
           setBalance(res.points);
       } catch (e) {
@@ -37,7 +40,7 @@ export default function WalletScreen() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [user]);
 
   const history = [
     {
@@ -123,12 +126,12 @@ export default function WalletScreen() {
         {/* History */}
         <Text className="text-lg font-semibold mb-3">Lịch sử nhận xu</Text>
         <View className="bg-white rounded-lg p-3 shadow-sm">
-          <FlatList
-            data={history}
-            renderItem={renderHistory}
-            keyExtractor={i => i.id}
-            ItemSeparatorComponent={() => <View className="h-2" />}
-          />
+          {history.map((item, idx) => (
+            <React.Fragment key={item.id}>
+              {renderHistory({ item })}
+              {idx < history.length - 1 && <View className="h-2" />}
+            </React.Fragment>
+          ))}
         </View>
       </View>
     </SubLayout>

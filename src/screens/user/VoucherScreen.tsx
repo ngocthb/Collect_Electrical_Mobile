@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import SubLayout from '../../layout/SubLayout';
@@ -79,11 +79,11 @@ export default function VoucherScreen2() {
           <Text style={{ fontWeight: '700', color: '#111' }}>25,0000</Text> 🪙
         </Text>
 
-        <FlatList
-          data={vouchers}
-          renderItem={renderVoucher}
-          keyExtractor={i => i.id}
-        />
+        {vouchers.map(v => (
+          <View key={v.id} className="mb-4">
+            {renderVoucher({ item: v })}
+          </View>
+        ))}
       </View>
     </SubLayout>
   );

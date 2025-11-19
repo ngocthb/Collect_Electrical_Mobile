@@ -205,61 +205,6 @@ export const loginMock = createAsyncThunk(
   },
 );
 
-// Google Sign-In with Firebase
-export const loginWithGoogle = createAsyncThunk(
-  'auth/loginWithGoogle',
-  async (_, { rejectWithValue }) => {
-    try {
-      await auth().signOut();
-
-      await GoogleSignin.signOut();
-      await GoogleSignin.hasPlayServices({
-        showPlayServicesUpdateDialog: true,
-      });
-
-      const signInResult = await GoogleSignin.signIn();
-      const idToken = signInResult.data?.idToken;
-      const user = signInResult.data?.user;
-
-      if (!idToken || !user) {
-        return rejectWithValue('Không thể lấy thông tin từ Google');
-      }
-
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-
-      const userCredential = await auth().signInWithCredential(
-        googleCredential,
-      );
-
-      const firebaseToken = await userCredential.user.getIdToken();
-      const apiResp = await authService.getTokenByLoginGoogle(firebaseToken);
-
-      return {
-        user: {
-          userId: '7f5c8b33-1b52-4d11-91b0-932c3d243c71',
-          name: 'Trần Huỳnh Bảo Ngọc',
-          email: 'ngocthbse183850@fpt.edu.vn',
-          phone: '0901234567',
-          address:
-            'Vinhomes Grand Park – Nguyễn Xiển, Phường Long Thạnh Mỹ, TP. Thủ Đức',
-          avatar: 'https://picsum.photos/id/1011/200/200',
-          iat: 10.842003,
-          ing: 106.82958,
-        },
-        role: 'user' as const,
-      };
-    } catch (error: any) {
-      console.error('[GoogleLogin] Error:', error);
-
-      if (error.code === 'ERR_CANCELED') {
-        return rejectWithValue('Đăng nhập Google đã bị hủy');
-      }
-
-      return rejectWithValue('Đăng nhập Google thất bại. Vui lòng thử lại.');
-    }
-  },
-);
-
 // Hydrate auth state from AsyncStorage (call once on app startup)
 export const hydrateAuth = createAsyncThunk('auth/hydrate', async () => {
   try {
@@ -389,42 +334,6 @@ const authSlice = createSlice({
       state.error =
         (action.payload as string) || action.error.message || 'Lỗi đăng nhập';
     });
-
-    // loginWithGoogle handlers
-    builder.addCase(loginWithGoogle.pending, state => {
-      state.loading = true;
-      state.error = null;
-    });
-    builder.addCase(
-      loginWithGoogle.fulfilled,
-      (state, action: PayloadAction<any>) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.role = action.payload.role;
-        state.error = null;
-        state.pendingRegistration = null;
-
-        // Persist auth to AsyncStorage
-        try {
-          AsyncStorage.setItem(
-            'auth',
-            JSON.stringify({
-              user: action.payload.user,
-              role: action.payload.role,
-            }),
-          );
-        } catch (e) {
-          console.warn('Failed to persist Google auth to AsyncStorage', e);
-        }
-      },
-    );
-    builder.addCase(loginWithGoogle.rejected, (state, action) => {
-      state.loading = false;
-      state.error =
-        (action.payload as string) ||
-        action.error.message ||
-        'Lỗi đăng nhập Google';
-    });
   },
 });
 
@@ -434,6 +343,7 @@ export const {
   verifyPendingRegistration,
   clearPendingRegistration,
   setError,
+  setLoading,
   setUser,
   setRole,
 } = authSlice.actions;

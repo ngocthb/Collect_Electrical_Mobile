@@ -113,8 +113,8 @@ const Sidebar = ({ visible, onClose }: SidebarProps) => {
                   </Text>
 
                   {role !== 'delivery' && (
-                    <View className="flex-row items-center justify-center mt-1">
-                      <Text className="text-base font-bold text-text-main mr-2">
+                    <View className="flex-row items-center justify-start mt-1">
+                      <Text className="text-base font-bold text-primary-100 mr-2">
                         {points != null ? points : 0}
                       </Text>
                       <View className="w-6 h-6 bg-yellow-400 rounded-full items-center justify-center">
