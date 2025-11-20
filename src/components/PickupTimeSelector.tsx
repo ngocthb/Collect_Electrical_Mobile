@@ -5,7 +5,6 @@ import DaySelection from './DaySelection';
 import CustomTimeModal from './CustomTimeModal';
 import { days, type Day, predefinedTimeSlots } from '../data/timeSlots';
 import { useAppSelector } from '../store/hooks';
-import { useNavigation } from '@react-navigation/core';
 import { useDispatch } from 'react-redux';
 import type { TimeSlot } from '../types/TimeSlot';
 import { toggleSyncSlots, updateTimeSlot } from '../store/slices/timeSlotSlice';
@@ -75,13 +74,6 @@ const PickupTimeSelector: React.FC = () => {
     setOpenForDay(null);
   };
 
-  const applyCustom = (dayName: string) => {
-    const slots = { startTime: customStart, endTime: customEnd };
-    dispatch(updateTimeSlot({ dayName, pickUpDate: '', slots } as TimeSlot));
-    setSelectedPresetLabel('Giờ tự chọn');
-    setOpenForDay(null);
-  };
-
   const openCustomModal = (
     dayName: string,
     existing?: { startTime: string; endTime: string },
@@ -129,13 +121,13 @@ const PickupTimeSelector: React.FC = () => {
         </Text>
         <TouchableOpacity
           className={`px-3 py-1 rounded-full ${
-            sameTimeForAll ? 'bg-primary-100' : 'bg-gray-200'
+            sameTimeForAll ? 'bg-primary-100' : 'bg-primary-50'
           }`}
           onPress={handleSyncSlots}
         >
           <Text
-            className={`text-sm ${
-              sameTimeForAll ? 'text-white' : 'text-gray-700'
+            className={`text-sm font-semibold ${
+              sameTimeForAll ? 'text-white' : 'text-primary-100'
             }`}
           >
             {sameTimeForAll ? 'Bật' : 'Tắt'}
@@ -205,7 +197,7 @@ const PickupTimeSelector: React.FC = () => {
                       }
                     >
                       <View
-                        className="w-3 h-2 rounded-full "
+                        className="w-2 h-2 rounded-full mr-2"
                         style={{ backgroundColor: ps.color }}
                       />
                       <View>

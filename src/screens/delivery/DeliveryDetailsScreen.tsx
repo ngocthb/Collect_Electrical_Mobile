@@ -37,7 +37,7 @@ const DeliveryDetailsScreen = () => {
   }, [normalizedRequest?.sender?.iat, normalizedRequest?.sender?.ing]);
 
   const handleConfirm = useCallback(() => {
-    navigation.navigate('DeliveryConfirm', {
+    navigation.navigate('DeliveryPhotoConfirm', {
       requestId: normalizedRequest?.collectionRouteId,
     });
   }, [navigation, normalizedRequest?.collectionRouteId]);
@@ -69,6 +69,7 @@ const DeliveryDetailsScreen = () => {
       console.warn('Refresh failed:', err);
     }
   }, [normalizedRequest?.sender?.iat, normalizedRequest?.sender?.ing]);
+
   return (
     <SubLayout
       title="Chi tiết đơn hàng"

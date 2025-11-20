@@ -18,7 +18,7 @@ const AppImageGallery = ({
 
   return (
     <View className="mb-2">
-      <Text className="text-sm font-semibold mb-2 text-gray-900">
+      <Text className="text-sm font-semibold mb-2 text-primary-100">
         Hình ảnh / Video về sản phẩm
         <Text className="text-red-500"> *</Text>
       </Text>

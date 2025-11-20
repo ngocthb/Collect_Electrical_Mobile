@@ -18,7 +18,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   onRefresh,
   headerRightComponent,
 }) => {
-  const navigation = useNavigation<any>();
   const [isSidebarVisible, setSidebarVisible] = React.useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
 

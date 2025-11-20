@@ -110,9 +110,9 @@ const DaySelection: React.FC<DaySelectionProps> = ({
 
   return (
     <>
-      <View className="flex-row justify-between">
+      <View className="flex-row justify-between mb-2">
         <View className="flex-row items-center">
-          <Text className="text-sm font-medium  text-text-main items-center ">
+          <Text className="text-sm font-medium  text-primary-100 items-center ">
             Thời gian có thể lấy hàng
           </Text>
           <Text className="text-red-500"> *</Text>
@@ -142,17 +142,20 @@ const DaySelection: React.FC<DaySelectionProps> = ({
               <TouchableOpacity
                 key={day}
                 className={`px-3 py-2 rounded-full border ${
-                  selectedDays.includes(day)
-                    ? 'bg-primary-100 border-primary-100'
-                    : 'bg-white border-gray-200'
+                  selectedDays.includes(day) ? 'bg-secondary-100' : 'bg-white'
                 }`}
+                style={{
+                  borderColor: selectedDays.includes(day)
+                    ? '#19CCA1'
+                    : '#E5E7EB', // secondary-100 = #19CCA1, gray-200 = #E5E7EB
+                }}
                 onPress={() => toggleDaySelection(day)}
               >
                 <Text
                   className={`text-sm font-semibold ${
                     selectedDays.includes(day)
                       ? 'text-white'
-                      : 'text-primary-100'
+                      : 'text-secondary-100'
                   }`}
                 >
                   {day}

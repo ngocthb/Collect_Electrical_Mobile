@@ -1,21 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { getUserPoints } from '../../services/pointsService';
+import {
+  getUserPoints,
+  getUserPointTransactions,
+} from '../../services/pointsService';
 import AppButton from '../../components/ui/AppButton';
 import SubLayout from '../../layout/SubLayout';
 import { useAppSelector } from '../../store/hooks';
+import { formatTimestamp } from '../../utils/dateUtils';
 const wallet1 = require('../../assets/images/wallet1.png');
 const wallet2 = require('../../assets/images/wallet2.png');
-const avatar = require('../../assets/images/avatar.jpg');
 const thumb1 = require('../../assets/images/homepage1.png');
-const thumb2 = require('../../assets/images/homepage2.png');
 
 export default function WalletScreen() {
   const navigation = useNavigation<any>();
   const { user } = useAppSelector(s => s.auth);
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -42,44 +52,61 @@ export default function WalletScreen() {
     };
   }, [user]);
 
-  const history = [
-    {
-      id: 'h1',
-      title: 'Máy giặt cũ',
-      amount: 12000,
-      date: 'Thứ 3, 10 Tháng 10 2025',
-      image: thumb1,
-    },
-    {
-      id: 'h2',
-      title: 'Lò vi sóng hư',
-      amount: 2000,
-      date: 'Thứ 3, Tháng 08 2025',
-      image: thumb2,
-    },
-  ];
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const userId = user?.userId;
+      console.log(userId);
+      if (!userId) return;
+      setLoadingTransactions(true);
+      try {
+        const res = await getUserPointTransactions(userId);
+        if (mounted && Array.isArray(res)) setTransactions(res);
+      } catch (e) {
+        console.warn('[Wallet] Failed to load transactions', e);
+      } finally {
+        if (mounted) setLoadingTransactions(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [user?.userId]);
 
-  const renderHistory = ({ item }: any) => (
-    <View className="flex-row items-start py-3">
-      <Image
-        source={item.image}
-        className="w-16 h-16 rounded-lg mr-3 bg-gray-100"
-      />
-      <View className="flex-1">
-        <Text className="text-base font-semibold text-gray-900">
-          {item.title}
-        </Text>
-        <Text className="text-sm text-gray-500 mt-1">
-          Bạn đã thu được{' '}
-          <Text className="text-green-600 font-semibold">
-            {item.amount.toLocaleString()}
-          </Text>{' '}
-          <Text style={{ fontSize: 12 }}>🪙</Text>
-        </Text>
-        <Text className="text-xs text-gray-400 mt-2">{item.date}</Text>
-      </View>
-    </View>
-  );
+  const renderHistory = ({ item }: any) => {
+    const img =
+      item?.images && item.images.length > 0 ? { uri: item.images[0] } : thumb1;
+
+    const desc =
+      item.desciption ||
+      item.description ||
+      item.transactionType ||
+      'Giao dịch';
+    const productId = item.productId || item.postId || null;
+    return (
+      <TouchableOpacity
+        onPress={() =>
+          productId && navigation.navigate('DeliveryInfo', { productId })
+        }
+        className="flex-row items-start py-3"
+      >
+        <Image source={img} className="w-16 h-16 rounded-lg mr-3 bg-gray-100" />
+        <View className="flex-1">
+          <Text className="text-base font-semibold text-gray-900">{desc}</Text>
+          <Text className="text-sm text-gray-500 mt-1">
+            Bạn đã thu được{' '}
+            <Text className="text-green-600 font-semibold">
+              {(item.point ?? 0).toLocaleString()}
+            </Text>{' '}
+            <Text style={{ fontSize: 12 }}>🪙</Text>
+          </Text>
+          <Text className="text-xs text-gray-400 mt-2">
+            {formatTimestamp(item.createdAt)}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SubLayout title="Ví của tôi" onBackPress={() => navigation.goBack()}>
@@ -125,13 +152,34 @@ export default function WalletScreen() {
 
         {/* History */}
         <Text className="text-lg font-semibold mb-3">Lịch sử nhận xu</Text>
-        <View className="bg-white rounded-lg p-3 shadow-sm">
-          {history.map((item, idx) => (
-            <React.Fragment key={item.id}>
-              {renderHistory({ item })}
-              {idx < history.length - 1 && <View className="h-2" />}
-            </React.Fragment>
-          ))}
+        <View className="flex-row items-center bg-white border border-gray-200 rounded-xl p-3 mb-3 shadow-sm">
+          {loadingTransactions ? (
+            <View className="py-8 items-center">
+              <ActivityIndicator size="large" color="#3B82F6" />
+            </View>
+          ) : (
+            <>
+              {transactions && transactions.length > 0 ? (
+                transactions.map((item, idx) => (
+                  <React.Fragment
+                    key={
+                      item.pointTransactionId ??
+                      item.postId ??
+                      item.productId ??
+                      String(item.createdAt)
+                    }
+                  >
+                    {renderHistory({ item })}
+                    {idx < transactions.length - 1 && <View className="h-2" />}
+                  </React.Fragment>
+                ))
+              ) : (
+                <View className="py-8 items-center">
+                  <Text className="text-gray-500">Không có giao dịch</Text>
+                </View>
+              )}
+            </>
+          )}
         </View>
       </View>
     </SubLayout>

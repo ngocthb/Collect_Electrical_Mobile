@@ -93,12 +93,13 @@ const DeliveryOrderCard = ({
             <View className="flex-row items-center mb-1">
               <View>
                 <Text className="text-sm font-bold text-text-main">
-                  {getOrderName(order)}
+                  {order?.sender?.name}
                 </Text>
               </View>
             </View>
-            <Text className="text-xs text-text-muted mb-2">
-              {getOrderTime(order)}
+            <Text className="text-xs text-text-main">
+              <Icon name="clock" size={10} color="#19CCA1" />{' '}
+              {order?.estimatedTime}
             </Text>
           </View>
 
@@ -152,34 +153,15 @@ const DeliveryOrderCard = ({
         </View>
 
         <View className="bg-primary-50 rounded-xl p-3 mb-2">
+          <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-2">
+            {order?.subCategoryName} • {order?.brandName}
+          </Text>
           <View className="flex-row items-center mb-3">
-            <Icon name="map-marker" size={18} color="#4169E1" />
+            <Icon name="map-marker" size={16} color="#4169E1" />
             <Text className="ml-2 text-sm font-normal text-text-main">
-              {getOrderAddress(order)}
+              {order?.address}
             </Text>
           </View>
-
-          {/* {status === 'pending' && isSelectedDateToday && (
-            <View className="flex-row justify-evenly">
-              <View className="w-2/5">
-                <AppButton
-                  title="Từ chối"
-                  size="small"
-                  disabled={actionsDisabled}
-                  onPress={() => onReject(order)}
-                  color="#E53935"
-                />
-              </View>
-              <View className="w-2/5">
-                <AppButton
-                  title="Xác nhận"
-                  size="small"
-                  disabled={actionsDisabled}
-                  onPress={() => !actionsDisabled && onConfirm(order)}
-                />
-              </View>
-            </View>
-          )} */}
         </View>
       </View>
     </View>

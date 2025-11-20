@@ -131,7 +131,7 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
       ) : (
         <>
           <View className="flex-row justify-between mb-2 items-center">
-            <Text className="text-sm font-semibold text-gray-900">
+            <Text className="text-sm font-semibold text-primary-100">
               Chọn địa chỉ<Text className="text-red-500"> *</Text>
             </Text>
             <TouchableOpacity

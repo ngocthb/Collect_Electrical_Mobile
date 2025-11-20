@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Image } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
 import toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Feather';
 import ScanQrComponent from '../../components/ScanQrComponent';
@@ -7,17 +7,20 @@ import AppButton from '../../components/ui/AppButton';
 import AppAvatar from '../../components/ui/AppAvatar';
 import SubLayout from '../../layout/SubLayout';
 import { useNavigation } from '@react-navigation/core';
-import { useRoute } from '@react-navigation/native';
 import routeService from '../../services/routeService';
+import ImageModal from '../../components/ui/ImageModal';
 
 const UserConfirmScreen = () => {
   const [shipperId, setShipperId] = useState<string | null>(null);
   const [shipperInfo, setShipperInfo] = useState<any | null>(null);
-
+  const [isModalVisible, setModalVisible] = useState(false);
   const [code, setCode] = useState<string | null>(null);
-
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const navigation = useNavigation<any>();
   const [request, setRequest] = useState<any | null>(null);
+  const toggleModal = () => {
+    setModalVisible(!isModalVisible);
+  };
 
   // Handle QR scan
   const handleQRScan = (data: string) => {
@@ -84,8 +87,13 @@ const UserConfirmScreen = () => {
     });
   };
 
-  console.log(request);
+  const handleImagePress = (imageUri: string) => {
+    setSelectedImage(imageUri);
+    toggleModal();
+  };
 
+  console.log(request);
+  console.log(shipperInfo);
   return (
     <SubLayout
       title="Xác nhận người giao hàng"
@@ -153,7 +161,7 @@ const UserConfirmScreen = () => {
                 </View>
 
                 {/* Request/Product Info */}
-                <View className="bg-white rounded-lg w-full border border-gray-100 p-4">
+                <View className="bg-gray-50 rounded-xl p-4 w-full mb-6">
                   <View className="flex-row justify-between">
                     <Text className="text-sm text-gray-500 font-semibold mb-3">
                       Thông tin đơn hàng
@@ -180,20 +188,22 @@ const UserConfirmScreen = () => {
                             className="mb-3"
                           >
                             {request.pickUpItemImages.map(
-                              (img: any, idx: number) => (
-                                <Image
-                                  key={idx}
-                                  source={
-                                    typeof img === 'string' ? { uri: img } : img
-                                  }
-                                  style={{
-                                    width: 80,
-                                    height: 80,
-                                    borderRadius: 8,
-                                    marginRight: 8,
-                                  }}
-                                  resizeMode="cover"
-                                />
+                              (img: any, i: number) => (
+                                <TouchableOpacity
+                                  key={i}
+                                  onPress={() => handleImagePress(img)}
+                                >
+                                  <Image
+                                    source={img && { uri: img }}
+                                    style={{
+                                      width: 84,
+                                      height: 84,
+                                      borderRadius: 12,
+                                      marginRight: 12,
+                                    }}
+                                    resizeMode="cover"
+                                  />
+                                </TouchableOpacity>
                               ),
                             )}
                           </ScrollView>
@@ -265,6 +275,11 @@ const UserConfirmScreen = () => {
           )}
         </View>
       </ScrollView>
+      <ImageModal
+        visible={isModalVisible}
+        imageUri={selectedImage}
+        onClose={toggleModal}
+      />
     </SubLayout>
   );
 };

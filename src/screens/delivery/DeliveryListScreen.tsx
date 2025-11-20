@@ -163,6 +163,8 @@ export default function DeliveryListScreen() {
     )}/${pad(e.getMonth() + 1)}`;
   };
 
+  console.log(filteredOrders);
+
   return (
     <SubLayout
       title="Đơn hàng"

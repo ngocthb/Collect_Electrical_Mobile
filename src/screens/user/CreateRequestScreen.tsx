@@ -1,21 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import toast from 'react-native-toast-message';
 
 import type { Asset } from 'react-native-image-picker';
 import { useRoute } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 
-import { getSizeOptions, getAttributes } from '../../services/categoryService';
+import { getAttributes } from '../../services/categoryService';
 import SubLayout from '../../layout/SubLayout';
 import AppSearchableDropdown from '../../components/ui/AppSearchableDropdown';
-import AppInput from '../../components/ui/AppInput';
+import AttributeSizePanel from '../../components/AttributeSizePanel';
 import PickupTimeSelector from '../../components/PickupTimeSelector';
 import ImagePickerModal from '../../components/ImagePickerModal';
 import AppImageGallery from '../../components/ui/AppImageGallery';
@@ -24,7 +18,7 @@ import SizeOptions from '../../components/SizeOptions';
 import AddressSelector from '../../components/AddressSelector';
 
 import tags from '../../data/tags';
-import type { Attribute, SizeTier, SubCategory } from '../../types/Category';
+import type { Attribute, SubCategory } from '../../types/Category';
 import type { Address } from '../../types/Address';
 
 import { useAppSelector } from '../../store/hooks';
@@ -48,20 +42,16 @@ const CreateRequestScreen = () => {
   const dispatch = useDispatch();
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
 
-  const [sizeOptions, setSizeOptions] = useState<SizeTier[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
 
   const [selectedCategory, setSelectedCategory] = useState<SubCategory | null>(
     null,
   );
-  const [selectedSizeTier, setSelectedSizeTier] = useState<SizeTier | null>(
-    null,
-  );
-  const [customInputEnabled, setCustomInputEnabled] = useState(false);
+  // Default to custom input (no preset size tiers)
+  const [customInputEnabled, setCustomInputEnabled] = useState(true);
   const [attributeValues, setAttributeValues] = useState<
     Record<string, string>
   >({});
-  const [isLoadingSizeOptions, setIsLoadingSizeOptions] = useState(false);
   const [isLoadingAttributes, setIsLoadingAttributes] = useState(false);
   const [selectedImages, setSelectedImages] = useState<Asset[]>([]);
   const [isImagePickerVisible, setIsImagePickerVisible] = useState(false);
@@ -88,16 +78,12 @@ const CreateRequestScreen = () => {
       return typeof val === 'string' && val.trim() !== '';
     });
 
-  const hasSizeTier = selectedSizeTier !== null;
-  const hasSizeOptions = sizeOptions.length > 0;
-
   const isStep1Valid =
     selectedBrandId !== null &&
     selectedCategory !== null &&
     selectedImages.length > 0 &&
-    (!hasSizeOptions ||
-      hasSizeTier ||
-      (customInputEnabled && allAttributesFilled));
+    // attributes (if any) must be filled by selection
+    (attributes.length === 0 || allAttributesFilled);
 
   const isStep2Valid = address !== null && timeSlots.length > 0;
 
@@ -109,14 +95,15 @@ const CreateRequestScreen = () => {
       if (!isMounted.current) return;
 
       if (selectedCategory) {
-        setIsLoadingSizeOptions(true);
+        // Fetch attributes for custom input by default
+        setIsLoadingAttributes(true);
         try {
-          const sizes = await getSizeOptions(selectedCategory.id);
-          if (isMounted.current) setSizeOptions(sizes);
+          const fetchedAttributes = await getAttributes(selectedCategory.id);
+          if (isMounted.current) setAttributes(fetchedAttributes);
         } catch (e) {
-          console.error('Failed to fetch size tiers on refresh', e);
+          console.error('Failed to fetch attributes on refresh', e);
         } finally {
-          if (isMounted.current) setIsLoadingSizeOptions(false);
+          if (isMounted.current) setIsLoadingAttributes(false);
         }
       }
     } catch (error) {
@@ -125,62 +112,32 @@ const CreateRequestScreen = () => {
   };
 
   useEffect(() => {
-    isMounted.current = true;
-    loadData();
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    const fetchSizeOptions = async () => {
+    const fetchAttributes = async () => {
       if (selectedCategory) {
-        console.log('Fetching size options for category:', selectedCategory);
-        setIsLoadingSizeOptions(true);
+        setIsLoadingAttributes(true);
         try {
-          const sizes = await getSizeOptions(selectedCategory.id);
-          console.log('Size options received:', sizes);
-          setSizeOptions(sizes);
+          const fetchedAttributes = await getAttributes(selectedCategory.id);
+          setAttributes(fetchedAttributes);
         } catch (error) {
-          console.error('Failed to fetch size tiers:', error);
+          console.error('Failed to fetch attributes:', error);
         } finally {
-          setIsLoadingSizeOptions(false);
+          setIsLoadingAttributes(false);
         }
       } else {
-        setSizeOptions([]);
+        setAttributes([]);
       }
     };
 
-    setSelectedSizeTier(null);
-    setCustomInputEnabled(false);
+    // Reset attribute inputs when category changes
+    setCustomInputEnabled(true);
     setAttributes([]);
     setAttributeValues({});
-    fetchSizeOptions();
+    fetchAttributes();
   }, [selectedCategory]);
 
-  const handleCustomInputToggle = async () => {
-    setSelectedSizeTier(null);
-    setCustomInputEnabled(true);
+  // no-op: custom input is enabled by default; attributes are fetched on category change
 
-    if (selectedCategory) {
-      setIsLoadingAttributes(true);
-      try {
-        const fetchedAttributes = await getAttributes(selectedCategory.id);
-        setAttributes(fetchedAttributes);
-      } catch (error) {
-        console.error('Failed to fetch attributes:', error);
-      } finally {
-        setIsLoadingAttributes(false);
-      }
-    }
-  };
-
-  const handleSizeTierSelect = (size: SizeTier | null) => {
-    setSelectedSizeTier(size);
-    setCustomInputEnabled(false);
-    setAttributes([]);
-    setAttributeValues({});
-  };
+  // attributes selections handled per-attribute below
 
   const handleAddImage = (assets: Asset[]) => {
     setSelectedImages(prev => [...prev, ...assets]);
@@ -216,10 +173,47 @@ const CreateRequestScreen = () => {
 
       const urls = await handleUploadImages(selectedImages);
       const formattedAttributes =
-        Object.entries(attributeValues).map(([key, value]) => ({
-          attributeId: key,
-          value: value,
-        })) || null;
+        Object.entries(attributeValues)
+          .map(([key, value]) => {
+            const raw = value;
+
+            const rawStr = String(raw).trim();
+            if (rawStr === '' || rawStr === 'undefined') {
+              console.log('  -> skipped (empty/undefined string)');
+              return null;
+            }
+
+            try {
+              const parsed = JSON.parse(rawStr);
+
+              if (typeof parsed === 'number' || typeof parsed === 'string') {
+                return {
+                  attributeId: key,
+                  value: String(parsed),
+                };
+              }
+
+              // Check if parsed is an object with .value property (dropdown selections)
+              const numeric = parsed?.value;
+              if (typeof numeric !== 'undefined' && numeric !== null) {
+                return {
+                  attributeId: key,
+                  value: String(numeric),
+                };
+              }
+
+              return null;
+            } catch (e) {
+              return {
+                attributeId: key,
+                value: rawStr,
+              };
+            }
+          })
+          .filter(
+            (it): it is { attributeId: string; value: string } => it !== null,
+          ) || null;
+
       const payload: CreateRequestPayload = {
         senderId: user?.userId || '',
         description: selectedTags.join(', '),
@@ -229,11 +223,13 @@ const CreateRequestScreen = () => {
         product: {
           parentCategoryId: categoryId,
           subCategoryId: selectedCategory?.id || '',
-          sizeTierId: selectedSizeTier?.id || null,
+
+          sizeTierId: null,
           brandId: selectedBrandId || '',
           attributes: formattedAttributes || null,
         },
       };
+
       const data = await create.create(payload);
 
       toast.show({
@@ -244,7 +240,6 @@ const CreateRequestScreen = () => {
 
       dispatch(clearTimeSlot());
 
-      // Navigate ngay lập tức
       navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (error) {
       console.error('Error creating request:', error);
@@ -259,7 +254,7 @@ const CreateRequestScreen = () => {
       onRefresh={loadData}
     >
       <ScrollView className="flex-1 bg-white">
-        <View className="px-6 py-4" style={{ flex: 1 }}>
+        <View className="px-6" style={{ flex: 1 }}>
           <View style={{ display: currentStep === 1 ? 'flex' : 'none' }}>
             <>
               <AppSearchableDropdown
@@ -302,87 +297,33 @@ const CreateRequestScreen = () => {
                 />
               </View>
 
-              {isLoadingSizeOptions ? (
-                <View className="py-4">
-                  <Text className="text-gray-500">Đang tải kích thước...</Text>
-                  <ActivityIndicator size="small" color="#4169E1" />
-                </View>
-              ) : sizeOptions.length > 0 ? (
-                <View className="">
-                  <SizeOptions
-                    title="Chọn kích thước"
-                    options={sizeOptions.map(option => option.name)}
-                    selectedOptions={
-                      selectedSizeTier ? [selectedSizeTier.name] : []
-                    }
-                    emptyText="Không có kích thước có sẵn"
-                    onToggle={name => {
-                      const selected = sizeOptions.find(
-                        option => option.name === name,
-                      );
-                      handleSizeTierSelect(selected || null);
+              {isLoadingAttributes ? (
+                <ActivityIndicator size="small" color="#4169E1" />
+              ) : attributes.length > 0 ? (
+                <View>
+                  <AttributeSizePanel
+                    attributes={attributes}
+                    values={attributeValues}
+                    onChange={(id: string, text: string) => {
+                      console.log('handleAttributeChange called', id, text);
+                      setAttributeValues(prev => {
+                        const next = { ...prev, [id]: String(text) };
+                        console.log('attributeValues next:', next);
+                        return next;
+                      });
                     }}
+                    isLoading={isLoadingAttributes}
                   />
                 </View>
-              ) : selectedCategory ? (
-                <View className="py-4">
-                  <Text className="text-gray-500">
-                    Không có kích thước cho danh mục này
+              ) : (
+                <View className="mt-4 flex-row items-center justify-center">
+                  <Text className="text-sm text-gray-600">
+                    Không có thuộc tính để tự điền
                   </Text>
-                </View>
-              ) : null}
-
-              {!isLoadingSizeOptions && sizeOptions.length === 0 ? null : (
-                <View className="mb-2">
-                  <TouchableOpacity
-                    className={`px-4 py-2.5 rounded-lg border-2 border-dashed flex-row items-center justify-center ${
-                      customInputEnabled
-                        ? 'bg-blue-100 border-blue-500'
-                        : 'bg-white border-gray-300'
-                    }`}
-                    onPress={handleCustomInputToggle}
-                  >
-                    <Text
-                      className={`text-sm font-semibold ${
-                        customInputEnabled ? 'text-blue-500' : 'text-gray-600'
-                      }`}
-                    >
-                      + Tự điền
-                    </Text>
-                  </TouchableOpacity>
                 </View>
               )}
 
-              {customInputEnabled &&
-                (isLoadingAttributes ? (
-                  <ActivityIndicator size="small" color="#4169E1" />
-                ) : attributes.length > 0 ? (
-                  <View className="mt-4">
-                    {attributes.map(attribute => (
-                      <AppInput
-                        key={attribute.id}
-                        label={attribute.name}
-                        placeholder={`Nhập ${attribute.name.toLowerCase()}`}
-                        required
-                        value={attributeValues[attribute.id] || ''}
-                        onChangeText={text =>
-                          setAttributeValues(prev => ({
-                            ...prev,
-                            [attribute.id]: text,
-                          }))
-                        }
-                      />
-                    ))}
-                  </View>
-                ) : (
-                  <View className="mt-4 flex-row items-center justify-center">
-                    <Text className="text-sm text-gray-600">
-                      Không có thuộc tính để tự điền
-                    </Text>
-                  </View>
-                ))}
-
-              <View className="mb-4 mt-4">
+              <View className=" mt-4">
                 <AppImageGallery
                   images={selectedImages}
                   onRemove={handleRemoveImage}

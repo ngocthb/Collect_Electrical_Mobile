@@ -23,6 +23,8 @@ interface DeliveryQrModalProps {
   request?: any;
   product?: any;
   requestId?: string;
+  onAccept?: () => void;
+  onSkip?: () => void;
 }
 
 const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
@@ -31,6 +33,8 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
   request,
   product: productProp,
   requestId,
+  onAccept,
+  onSkip,
 }) => {
   const navigation = useNavigation<any>();
   const user = useAppSelector(s => s.auth.user);
@@ -85,51 +89,69 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
       .build();
 
     newConnection.on('ReceiveConfirmation', (routeId, status) => {
-      if (routeId === product.collectionRouteId) {
-        if (status === 'User_Confirm') {
-          setIsWaitingForConfirmation(false);
-          navigation.navigate('DeliveryPhotoConfirm', {
-            requestId: product.collectionRouteId,
-          });
-        } else if (status === 'User_Reject') {
-          setIsWaitingForConfirmation(false);
-          toast.show({
-            type: 'confirm',
-            text1: 'Xác nhận thất bại',
-            text2:
-              'Người gửi không xác nhận bạn là người lấy hàng. Vui lòng kiểm tra lại thông tin.',
-            autoHide: false,
-            props: {
-              button1: 'Đóng',
-              button2: 'Về trang đơn hàng',
-              onCancel: () => {
-                toast.hide();
-              },
-              onConfirm: () => {
-                toast.hide();
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: 'DeliveryOrder' }],
-                });
-              },
-            },
-          });
-        }
-      } else {
+      if (routeId !== product.collectionRouteId) {
         console.log('[DeliveryQr] ⚠️ RouteId mismatch - ignoring notification');
+        return;
       }
+
+      setIsWaitingForConfirmation(false);
+
+      const s = String(status ?? '').toLowerCase();
+      try {
+        if (s.includes('confirm')) {
+          try {
+            onAccept?.();
+          } catch (e) {
+            console.warn('[DeliveryQr] onAccept handler error', e);
+          }
+        } else if (s.includes('reject')) {
+          try {
+            onSkip?.();
+          } catch (e) {
+            console.warn('[DeliveryQr] onSkip handler error', e);
+          }
+          // Show toast for rejects coming from server/SignalR
+          toast.show({
+            type: 'error',
+            text1: 'Từ chối',
+            text2: 'Khách hàng đã từ chối lấy hàng',
+          });
+        } else {
+          // Fallback to legacy exact matches
+          if (status === 'User_Confirm') {
+            try {
+              onAccept?.();
+            } catch (e) {
+              console.warn('[DeliveryQr] onAccept handler error', e);
+            }
+          } else if (status === 'User_Reject') {
+            try {
+              onSkip?.();
+            } catch (e) {
+              console.warn('[DeliveryQr] onSkip handler error', e);
+            }
+            toast.show({
+              type: 'error',
+              text1: 'Từ chối',
+              text2: 'Khách hàng đã từ chối lấy hàng',
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('[DeliveryQr] handler error', e);
+      }
+
+      // Close modal after handling
+      onClose?.();
     });
 
-    // Add more event listeners for debugging
     newConnection.onreconnecting(error => {
       console.log('[DeliveryQr] 🔄 SignalR reconnecting...', error);
     });
 
     newConnection.onreconnected(connectionId => {
-      // Rejoin group after reconnection
       newConnection
         .invoke('JoinShipperGroup', product.collectionRouteId)
-
         .catch(err =>
           console.error('[DeliveryQr] Error rejoining group:', err),
         );
@@ -139,7 +161,6 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
       console.log('[DeliveryQr] ❌ SignalR connection closed', error);
     });
 
-    // Now start the connection
     newConnection
       .start()
       .then(() => {
@@ -157,32 +178,12 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
       if (newConnection) {
         newConnection
           .stop()
-
           .catch(err =>
             console.error('[DeliveryQr] Error stopping connection:', err),
           );
       }
     };
   }, [product?.collectionRouteId, navigation]);
-
-  const [isSkipping, setIsSkipping] = useState(false);
-
-  const handleSkip = async () => {
-    if (!product) return;
-    const id = product?.collectionRouteId;
-    setIsSkipping(true);
-    try {
-      const res = await routeService.userConfirmRouter(id, false, true);
-
-      navigation.navigate('DeliveryPhotoConfirm', {
-        requestId: product.collectionRouteId,
-      });
-    } catch (error: any) {
-      console.error('[DeliveryQr] Skip error:', error);
-    } finally {
-      setIsSkipping(false);
-    }
-  };
 
   const confirmPayload = {
     code: product?.collectionRouteId,
@@ -248,7 +249,6 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
                 )}
               </View>
 
-              {/* Waiting status indicator */}
               {isWaitingForConfirmation && product && (
                 <View className="w-full bg-blue-50 rounded-xl p-4 border border-blue-200 mb-4">
                   <View className="flex-row items-center justify-center">
@@ -262,16 +262,6 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
                   </Text>
                 </View>
               )}
-
-              {/* <View className="w-full">
-                <AppButton
-                  title="Bỏ qua"
-                  color="#ef4444"
-                  loading={isSkipping}
-                  disabled={!product || isSkipping}
-                  onPress={handleSkip}
-                />
-              </View> */}
             </View>
           </ScrollView>
         </View>

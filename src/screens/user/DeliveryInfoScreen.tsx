@@ -15,26 +15,66 @@ import { useNavigation } from '@react-navigation/core';
 import { useRoute } from '@react-navigation/native';
 import axiosClient from '../../config/axios';
 import { Image } from 'react-native';
+import AppAvatar from '../../components/ui/AppAvatar';
 import { formatTimestamp } from '../../utils/dateUtils';
+import AppButton from '../../components/ui/AppButton';
+import routeService from '../../services/routeService';
+import {
+  connectShippingHub,
+  joinRouteGroup,
+  disconnect,
+} from '../../services/signalrService';
 
 const DeliveryInfoScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const requestId: string | undefined = route.params?.requestId;
+  const productId: string | undefined = route.params?.productId;
 
   const [request, setRequest] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [isRejected, setIsRejected] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showVerifyButton, setShowVerifyButton] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
+
+  useEffect(() => {
+    if (!productId) return;
+    let mounted = true;
+
+    const start = async () => {
+      try {
+        await connectShippingHub({
+          ShowConfirmButton: (data: any) => {
+            console.log('📩 Received ShowConfirmButton event:', data);
+            if (mounted) setShowVerifyButton(true);
+          },
+        });
+
+        await joinRouteGroup(productId);
+        console.log('👉 Joined SignalR group for product:', productId);
+      } catch (err) {
+        console.error('❌ SignalR connection/join error:', err);
+      }
+    };
+
+    start();
+
+    return () => {
+      mounted = false;
+      disconnect().catch(err =>
+        console.error('SignalR disconnect error:', err),
+      );
+    };
+  }, [productId]);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
-      if (!requestId) return;
+      if (!productId) return;
       setLoading(true);
       try {
-        const r = await axiosClient.get(`/posts/${requestId}`);
+        const r = await axiosClient.get(`/products/${productId}`);
         console.log(r);
         setIsRejected((r as any).status === 'Đã Từ Chối');
         const data = r as any;
@@ -83,7 +123,7 @@ const DeliveryInfoScreen = () => {
     return () => {
       mounted = false;
     };
-  }, [requestId]);
+  }, [productId]);
 
   const renderTimeSlots = (slots: Record<string, string[]>) => {
     if (!slots) return null;
@@ -129,8 +169,8 @@ const DeliveryInfoScreen = () => {
     if (allDaysSameGroup) {
       const g = grouped[0];
       return (
-        <View className="bg-white rounded-3xl shadow-md mb-5 p-6">
-          <Text className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
+        <View className="bg-white border border-gray-200  rounded-2xl shadow-lg mb-3 py-2 px-4">
+          <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-2 ">
             Khung thời gian
           </Text>
           <View className="flex-row items-center justify-between py-2">
@@ -144,8 +184,8 @@ const DeliveryInfoScreen = () => {
     }
 
     return (
-      <View className="bg-white rounded-3xl shadow-md mb-5 p-6">
-        <Text className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
+      <View className="bg-white border border-gray-200  rounded-2xl shadow-lg mb-3 py-2 px-4 ">
+        <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-2 ">
           Khung thời gian
         </Text>
         {grouped.map((g, idx) => (
@@ -168,8 +208,8 @@ const DeliveryInfoScreen = () => {
   };
 
   const renderAttributesOrCondition = () => {
-    if (request?.product?.attributes && request.product.attributes.length > 0) {
-      const attrs: any[] = request.product.attributes;
+    if (request?.attributes && request.attributes.length > 0) {
+      const attrs: any[] = request.attributes;
       const normalize = (s: string) => (s || '').toLowerCase();
       const findByName = (keywords: string[]) =>
         attrs.find(a =>
@@ -201,39 +241,31 @@ const DeliveryInfoScreen = () => {
         '';
 
       return (
-        <View className="bg-white rounded-3xl shadow-md mb-5 p-6">
-          <Text className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
+        <View className="bg-white border border-gray-200  rounded-2xl shadow-lg mb-3 py-2 px-4 ">
+          <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-2 ">
             Thông số kỹ thuật
           </Text>
           {canRenderBox ? (
             <View className="flex-row justify-between py-2  ">
-              <Text className="text-gray-600">
-                Kích thước ({unit ? ` ${unit}` : ''})
+              <Text className="text-gray-600 text-sm">
+                Dài x Rộng x Cao ({unit ? ` ${unit}` : ''})
               </Text>
               <Text className="text-gray-900 font-medium">
                 {`${lengthAttr.value} x ${widthAttr.value} x ${heightAttr.value}`}
-                {` (d x r x c)`}
               </Text>
             </View>
           ) : null}
 
           {otherAttrs.map((attr: any, index: number) => (
             <View key={index} className="flex-row justify-between py-2">
-              <Text className="text-gray-600">{attr.attributeName}</Text>
+              <Text className="text-gray-600  text-sm">
+                {attr.attributeName}
+              </Text>
               <Text className="text-gray-900 font-medium">
                 {attr.value} {attr.unit || ''}
               </Text>
             </View>
           ))}
-        </View>
-      );
-    } else if (request?.product?.sizeTierName) {
-      return (
-        <View className="bg-white rounded-3xl shadow-md mb-5 p-6">
-          <Text className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
-            Kích thước
-          </Text>
-          <Text className="text-gray-900">{request.product.sizeTierName}</Text>
         </View>
       );
     }
@@ -249,6 +281,23 @@ const DeliveryInfoScreen = () => {
     toggleModal();
   };
 
+  const handleSkip = async () => {
+    if (!request) return;
+    const id = request.collectionRouterId;
+    if (!id) return;
+    console.log(id);
+    setIsSkipping(true);
+    try {
+      await routeService.userConfirmRouter(id, false, true);
+      setShowVerifyButton(false);
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+    } catch (error: any) {
+      console.error('[DeliveryQr] Skip error:', error);
+    } finally {
+      setIsSkipping(false);
+    }
+  };
+
   return (
     <SubLayout
       title="Thông tin giao hàng"
@@ -259,28 +308,77 @@ const DeliveryInfoScreen = () => {
           <ActivityIndicator size="large" color="#4169E1" />
         </View>
       ) : (
-        <ScrollView className="flex-1 ">
-          <View className="p-5">
-            <View className="bg-white rounded-3xl shadow-md mb-5 p-6">
-              {request?.category && (
-                <Text className="text-sm text-gray-500 mb-1">
-                  {request.category}
-                </Text>
-              )}
+        <ScrollView className="flex-1 bg-gray-50">
+          <View className="px-5 py-4">
+            {request?.collector && (
+              <View className="bg-white border border-gray-200  rounded-2xl shadow-lg mb-3 py-2 px-4 ">
+                <View className="flex-row justify-between">
+                  <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-2 ">
+                    Nhân viên thu gom
+                  </Text>
+                  <View className="flex-row items-center">
+                    <Icon name="calendar" size={14} color="#19CCA1" />
+                    <Text className="text-text-sub text-xs font-semibold uppercase tracking-wider ml-2">
+                      {request?.pickUpDate} • {request?.estimatedTime}
+                    </Text>
+                  </View>
+                </View>
+                <View className="flex-row items-center">
+                  <AppAvatar
+                    name={request.collector.name}
+                    uri={request.collector.avatar}
+                    size={56}
+                    style={{ marginRight: 12 }}
+                  />
+                  <View className="flex-1">
+                    <Text className="text-gray-900 font-semibold text-base mb-1">
+                      {request.collector.name}
+                    </Text>
+
+                    {request.collector.email && (
+                      <View className="flex-row items-center mt-1">
+                        <Icon name="mail" size={14} color="#6B7280" />
+                        <Text className="text-gray-600 text-sm ml-2">
+                          {request.collector.email}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              </View>
+            )}
+
+            <View className="bg-white border border-gray-200  rounded-2xl shadow-lg mb-3 py-3 px-4 ">
+              <View className="flex-row justify-between items-center mb-2">
+                {request?.categoryName && (
+                  <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider ">
+                    {request.categoryName} • {request.brandName}
+                  </Text>
+                )}
+                <View
+                  className={`${getStatusBadgeClass(
+                    request?.status,
+                  )} px-3 py-1 rounded-lg `}
+                >
+                  <Text className="text-xs font-medium text-white">
+                    {request?.status ?? 'Đang xử lý'}
+                  </Text>
+                </View>
+              </View>
               {/* request thumbnail */}
-              {request?.image && (
+              {request?.productImages && (
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   className="space-x-3"
                 >
-                  {request.images.map((img: any, i: number) => (
+                  {request.productImages.map((img: any, i: number) => (
                     <TouchableOpacity
                       key={i}
-                      onPress={() => handleImagePress(img.uri)}
+                      onPress={() => handleImagePress(img)}
                     >
                       <Image
-                        source={img && img.uri ? { uri: img.uri } : img}
+                        source={img && { uri: img }}
                         style={{
                           width: 84,
                           height: 84,
@@ -288,99 +386,99 @@ const DeliveryInfoScreen = () => {
                           marginRight: 12,
                         }}
                         resizeMode="cover"
-                        onError={e =>
-                          console.warn('[DeliveryInfo] image load error', i, e)
-                        }
-                        onLoad={() =>
-                          console.log('[DeliveryInfo] image loaded', i)
-                        }
                       />
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
               )}
-              <View className="flex-row justify-between items-center mt-2">
-                <View
-                  className={`${getStatusBadgeClass(
-                    request?.status,
-                  )} px-3 py-1 rounded-lg mr-3`}
-                >
-                  <Text className="text-xs font-medium text-white">
-                    {request?.status ?? 'Đang xử lý'}
-                  </Text>
-                </View>
-                <Text className="text-sm text-gray-500">
-                  {formatTimestamp(request?.date)}
-                </Text>
-              </View>
 
               <View className="space-y-4">
-                <View className="flex-row items-center justify-between pt-3 ">
+                <View className="flex pt-3 ">
                   <View className="flex-row items-center">
-                    <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center">
-                      <Icon name="map-pin" size={20} color="#3B82F6" />
+                    <View className="w-6 h-6 rounded-full bg-secondary-50 items-center justify-center">
+                      <Icon name="map-pin" size={12} color="#3B82F6" />
                     </View>
                     <View
                       style={{
                         flex: 1,
                         marginLeft: 12,
-                        alignItems: 'flex-end',
+                        alignItems: 'flex-start',
                         minHeight: 30,
                       }}
                     >
                       <Text
                         style={{ textAlign: 'left' }}
-                        className="text-gray-900l text-sm"
+                        className="text-text-sub text-sm"
                       >
                         {request?.address ?? '—'}
                       </Text>
                     </View>
                   </View>
+                  <View className="flex-row items-center mt-2">
+                    <View className="w-6 h-6 rounded-full bg-secondary-50 items-center justify-center">
+                      <Icon name="layers" size={12} color="#19CCA1" />
+                    </View>
+                    <View
+                      style={{
+                        flex: 1,
+                        marginLeft: 12,
+                        alignItems: 'flex-start',
+                      }}
+                    >
+                      <Text
+                        style={{ textAlign: 'left' }}
+                        className="text-text-sub text-sm"
+                      >
+                        {request?.description ?? '—'}
+                      </Text>
+                    </View>
+                  </View>
+                  {isRejected && (
+                    <View className="mt-3">
+                      <Text className="text-red-500 text-xs font-semibold uppercase tracking-wider mb-2 ">
+                        Lí do từ chối
+                      </Text>
+                      <Text className="text-gray-900">
+                        {request.rejectMessage}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               </View>
             </View>
 
-            {request?.description && (
-              <View className="bg-white rounded-3xl shadow-md mb-5 p-6">
-                <Text className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
-                  Mô tả
-                </Text>
-                <Text className="text-gray-900">{request.description}</Text>
-              </View>
-            )}
-            {isRejected && (
-              <View className="bg-white rounded-3xl shadow-md mb-5 p-6">
-                <Text className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
-                  Lí do từ chối
-                </Text>
-                <Text className="text-gray-900">{request.rejectMessage}</Text>
-              </View>
-            )}
-
             {/* time slots */}
             {renderTimeSlots(request?.timeSlots)}
 
-            {/* Attributes or Condition */}
             {renderAttributesOrCondition()}
 
-            {/* Help Section */}
-            <TouchableOpacity
-              className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex-row items-center mb-4"
-              onPress={() => {}}
-            >
-              <View className="w-12 h-12 rounded-full bg-amber-100 items-center justify-center mr-4">
-                <Icon name="help-circle" size={28} color="#F59E0B" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-amber-900 font-semibold text-base mb-1">
-                  Cần hỗ trợ?
+            {showVerifyButton && (
+              <View className="bg-green-50 border-2 border-green-500 rounded-2xl p-5 mb-4">
+                <Text className="text-text-main font-semibold text-sm mb-4 text-center">
+                  Nhân viên thu gom đang ở gần vị trí của bạn. Vui lòng chuẩn bị
+                  xác thực.
                 </Text>
-                <Text className="text-amber-700 text-sm">
-                  Liên hệ bộ phận chăm sóc khách hàng
-                </Text>
+                <View className="flex-row">
+                  <View style={{ width: '48%', marginRight: '4%' }}>
+                    <AppButton
+                      title="Xác thực nhân viên"
+                      onPress={() => {
+                        navigation.navigate('UserConfirm');
+                      }}
+                    />
+                  </View>
+                  <View style={{ width: '48%' }}>
+                    <AppButton
+                      title={'Bỏ qua xác thực'}
+                      onPress={handleSkip}
+                      color="#ef4444"
+                      disabled={isSkipping}
+                      loading={isSkipping}
+                    />
+                  </View>
+                </View>
               </View>
-              <Icon name="chevron-right" size={24} color="#F59E0B" />
-            </TouchableOpacity>
+            )}
           </View>
         </ScrollView>
       )}

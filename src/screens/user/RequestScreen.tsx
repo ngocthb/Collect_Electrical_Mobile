@@ -74,15 +74,18 @@ const RequestScreen = () => {
         break;
       }
     }
-
+    console.log(prod);
     if (groupKey === 'collecting') {
-      navigation.navigate('Delivering', { notification: prod });
+      // navigation.navigate('Delivering', { notification: prod });
+      navigation.navigate('DeliveryInfo', { productId: prod.productId });
     } else if (groupKey === 'recycle') {
       navigation.navigate('UserNotificationDetail', { product: prod });
     } else if (groupKey === 'grouping') {
-      navigation.navigate('ShipmentDetail', { notification: prod });
+      navigation.navigate('DeliveryInfo', { productId: prod.productId });
+      // navigation.navigate('ShipmentDetail', { notification: prod });
     } else if (groupKey === 'cancelled') {
-      navigation.navigate('CancelledProduct', { product: prod });
+      navigation.navigate('DeliveryInfo', { productId: prod.productId });
+      // navigation.navigate('CancelledProduct', { product: prod });
     } else {
       navigation.navigate('ProductDetail', { productId: prod.productId });
     }
@@ -245,7 +248,7 @@ const RequestScreen = () => {
                 {/* Content */}
                 <View className="flex-1 ml-3">
                   <Text
-                    className="text-base font-semibold text-gray-900 mb-1"
+                    className="text-base font-semibold text-primary-100 mb-1"
                     numberOfLines={1}
                   >
                     {prod.categoryName} • {prod.brandName}

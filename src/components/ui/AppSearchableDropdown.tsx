@@ -128,7 +128,7 @@ const AppSearchableDropdown: React.FC<Props> = ({
   return (
     <TouchableWithoutFeedback onPress={() => setIsOpen(false)}>
       <View className="mb-4">
-        <Text className="text-sm font-semibold mb-2 text-gray-900">
+        <Text className="text-sm font-semibold mb-2 text-primary-100">
           {displayLabel} <Text className="text-red-500"> *</Text>
         </Text>
 
@@ -142,15 +142,7 @@ const AppSearchableDropdown: React.FC<Props> = ({
                 type === 'subcategory' ? 'danh mục con' : 'thương hiệu'
               }`}
               placeholderTextColor="#9CA3AF"
-              style={{
-                borderWidth: 1,
-                borderColor: '#D1D5DB',
-                borderRadius: 8,
-                paddingHorizontal: 16,
-                paddingVertical: 10,
-                backgroundColor: '#fff',
-                paddingRight: 44,
-              }}
+              className="border border-gray-300 rounded-lg px-4 py-2.5 bg-white pr-11"
             />
 
             {selected && query && (

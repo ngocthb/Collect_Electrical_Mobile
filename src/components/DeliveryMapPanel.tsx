@@ -7,6 +7,7 @@ import { maskPhone } from '../utils/validations';
 import DeliveryQrModal from '../components/DeliveryQrModal';
 // @ts-ignore
 import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
+import axiosClient from '../config/axios';
 
 type Props = {
   normalizedRequest: any;
@@ -29,7 +30,9 @@ const DeliveryMapPanel: React.FC<Props> = ({
   resetQrTrigger,
 }) => {
   const [showQrModal, setShowQrModal] = useState(false);
+  const [showActionButtons, setShowActionButtons] = useState(false);
   const hasShownQrModalRef = React.useRef(false);
+  const hasNotifiedArrivalRef = React.useRef(false);
 
   // Reset QR modal flag when resetQrTrigger changes (manual refresh only)
   useEffect(() => {
@@ -45,7 +48,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
       if (
         typeof distanceInMeters === 'number' &&
         distanceInMeters > 0 &&
-        distanceInMeters < 5000
+        distanceInMeters < 5000000000
       ) {
         console.log(
           '✅ Auto-showing QR modal after refresh, distance:',
@@ -53,6 +56,24 @@ const DeliveryMapPanel: React.FC<Props> = ({
         );
         setShowQrModal(true);
         hasShownQrModalRef.current = true;
+
+        if (normalizedRequest?.productId) {
+          (async () => {
+            try {
+              hasNotifiedArrivalRef.current = true;
+              const response = await axiosClient.post(
+                `/products/notify-arrival/${normalizedRequest.productId}`,
+              );
+              console.log(
+                '📍 Notify arrival (manual refresh) called:',
+                response,
+              );
+            } catch (err) {
+              console.warn('Failed to notify arrival (manual refresh):', err);
+              hasNotifiedArrivalRef.current = false;
+            }
+          })();
+        }
       }
     }
   }, [resetQrTrigger, distanceInMeters]);
@@ -75,6 +96,33 @@ const DeliveryMapPanel: React.FC<Props> = ({
       hasShownQrModalRef.current = true;
     }
   }, [distanceInMeters, resetQrTrigger]);
+
+  console.log(normalizedRequest);
+  // Notify arrival API when distance < 5000m
+  useEffect(() => {
+    const notifyArrival = async () => {
+      if (
+        typeof distanceInMeters === 'number' &&
+        distanceInMeters > 0 &&
+        distanceInMeters < 5000000000 &&
+        !hasNotifiedArrivalRef.current &&
+        normalizedRequest?.postId
+      ) {
+        try {
+          hasNotifiedArrivalRef.current = true;
+          const response = await axiosClient.post(
+            `/products/notify-arrival/${normalizedRequest.productId}`,
+          );
+          console.log('📍 Notify arrival API called:', response);
+        } catch (err) {
+          console.warn('Failed to notify arrival:', err);
+          hasNotifiedArrivalRef.current = false;
+        }
+      }
+    };
+
+    notifyArrival();
+  }, [distanceInMeters, normalizedRequest?.postId]);
 
   const receiver = normalizedRequest?.sender;
   const cleanReceiverId = receiver?.userId
@@ -165,8 +213,9 @@ const DeliveryMapPanel: React.FC<Props> = ({
             {/* Order Details */}
             <View className="mb-4"></View>
             <View className="mb-4">
-              <Text className="text-xs text-gray-500 mb-3">
-                Hình ảnh sản phẩm
+              <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-3">
+                {normalizedRequest?.subCategoryName} •{' '}
+                {normalizedRequest?.brandName}
               </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {normalizedRequest?.pickUpItemImages?.map(
@@ -207,19 +256,26 @@ const DeliveryMapPanel: React.FC<Props> = ({
               </View>
             </View>
 
-            <View className="flex-row justify-between ">
-              <View style={{ width: '48%' }}>
-                <AppButton
-                  title="Lấy hàng thất bại"
-                  onPress={onReject}
-                  color="#E53935"
-                />
-              </View>
-              <View style={{ width: '48%' }}>
-                <AppButton title="Lấy hàng thành công" onPress={onConfirm} />
-              </View>
-            </View>
-            <View className="h-5" />
+            {showActionButtons && (
+              <>
+                <View className="flex-row justify-between ">
+                  <View style={{ width: '48%' }}>
+                    <AppButton
+                      title="Lấy hàng thất bại"
+                      onPress={onReject}
+                      color="#E53935"
+                    />
+                  </View>
+                  <View style={{ width: '48%' }}>
+                    <AppButton
+                      title="Lấy hàng thành công"
+                      onPress={onConfirm}
+                    />
+                  </View>
+                </View>
+                <View className="h-5" />
+              </>
+            )}
           </>
         )}
       </View>
@@ -228,6 +284,15 @@ const DeliveryMapPanel: React.FC<Props> = ({
         visible={showQrModal}
         onClose={() => setShowQrModal(false)}
         request={normalizedRequest}
+        onAccept={() => {
+          setShowQrModal(false);
+          setShowActionButtons(true);
+        }}
+        onSkip={() => {
+          setShowQrModal(false);
+
+          setShowActionButtons(false);
+        }}
       />
     </ScrollView>
   );

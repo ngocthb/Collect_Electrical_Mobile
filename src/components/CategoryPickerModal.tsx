@@ -69,11 +69,6 @@ export default function CategoryPickerModal({
     }
   }, [visible]);
 
-  const confirm = () => {
-    const cat = categories.find(c => c.id === selected);
-    if (cat) onConfirm(cat);
-  };
-
   return (
     <Modal
       visible={visible}

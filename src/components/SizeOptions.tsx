@@ -19,7 +19,7 @@ const SizeOptions: React.FC<SizeOptionsProps> = ({
 }) => {
   return (
     <View className="mb-4">
-      <Text className="text-sm font-semibold mb-3 text-gray-900">
+      <Text className="text-sm font-semibold mb-3 text-primary-100">
         {title}
         <Text className="text-red-500"> *</Text>
       </Text>
@@ -30,16 +30,17 @@ const SizeOptions: React.FC<SizeOptionsProps> = ({
               key={option}
               className={`px-4 py-2.5 rounded-full mr-2 mb-2 border-2 ${
                 selectedOptions.includes(option)
-                  ? 'bg-blue-500 border-blue-500'
-                  : 'bg-white border-gray-200'
+                  ? 'bg-secondary-100'
+                  : 'bg-white'
               }`}
+              style={{ borderColor: '#E0F7F4' }}
               onPress={() => onToggle(option)}
             >
               <Text
                 className={`text-sm font-semibold ${
                   selectedOptions.includes(option)
                     ? 'text-white'
-                    : 'text-gray-600'
+                    : 'text-secondary-100'
                 }`}
               >
                 {option}
