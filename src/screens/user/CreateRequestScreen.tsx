@@ -223,7 +223,6 @@ const CreateRequestScreen = () => {
         product: {
           parentCategoryId: categoryId,
           subCategoryId: selectedCategory?.id || '',
-
           sizeTierId: null,
           brandId: selectedBrandId || '',
           attributes: formattedAttributes || null,

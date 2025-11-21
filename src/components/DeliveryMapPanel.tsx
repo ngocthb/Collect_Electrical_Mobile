@@ -48,7 +48,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
       if (
         typeof distanceInMeters === 'number' &&
         distanceInMeters > 0 &&
-        distanceInMeters < 5000000000
+        distanceInMeters < 5000
       ) {
         console.log(
           '✅ Auto-showing QR modal after refresh, distance:',
@@ -104,7 +104,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
       if (
         typeof distanceInMeters === 'number' &&
         distanceInMeters > 0 &&
-        distanceInMeters < 5000000000 &&
+        distanceInMeters < 5000 &&
         !hasNotifiedArrivalRef.current &&
         normalizedRequest?.postId
       ) {

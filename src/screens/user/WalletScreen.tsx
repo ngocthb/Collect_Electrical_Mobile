@@ -56,7 +56,6 @@ export default function WalletScreen() {
     let mounted = true;
     (async () => {
       const userId = user?.userId;
-      console.log(userId);
       if (!userId) return;
       setLoadingTransactions(true);
       try {
@@ -88,7 +87,7 @@ export default function WalletScreen() {
         onPress={() =>
           productId && navigation.navigate('DeliveryInfo', { productId })
         }
-        className="flex-row items-start py-3"
+        className="flex-row items-start "
       >
         <Image source={img} className="w-16 h-16 rounded-lg mr-3 bg-gray-100" />
         <View className="flex-1">
@@ -152,7 +151,7 @@ export default function WalletScreen() {
 
         {/* History */}
         <Text className="text-lg font-semibold mb-3">Lịch sử nhận xu</Text>
-        <View className="flex-row items-center bg-white border border-gray-200 rounded-xl p-3 mb-3 shadow-sm">
+        <View>
           {loadingTransactions ? (
             <View className="py-8 items-center">
               <ActivityIndicator size="large" color="#3B82F6" />
@@ -161,17 +160,12 @@ export default function WalletScreen() {
             <>
               {transactions && transactions.length > 0 ? (
                 transactions.map((item, idx) => (
-                  <React.Fragment
-                    key={
-                      item.pointTransactionId ??
-                      item.postId ??
-                      item.productId ??
-                      String(item.createdAt)
-                    }
+                  <View
+                    key={idx}
+                    className="bg-white border border-gray-200 rounded-xl p-3 mb-3 shadow-sm"
                   >
                     {renderHistory({ item })}
-                    {idx < transactions.length - 1 && <View className="h-2" />}
-                  </React.Fragment>
+                  </View>
                 ))
               ) : (
                 <View className="py-8 items-center">

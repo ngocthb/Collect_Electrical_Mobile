@@ -59,6 +59,7 @@ const UserConfirmScreen = () => {
 
   const handleConfirm = async () => {
     if (code) {
+      console.log(code);
       await routeService.userConfirmRouter(code, true, false);
     }
     toast.show({

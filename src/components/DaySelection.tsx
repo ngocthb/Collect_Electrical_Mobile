@@ -1,14 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { days, type Day } from '../data/timeSlots';
-import { useAppDispatch } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   saveTimeSlot,
   removeTimeSlot,
   clearTimeSlot,
 } from '../store/slices/timeSlotSlice';
-import { useAppSelector } from '../store/hooks';
-import { useEffect } from 'react';
+
 interface DaySelectionProps {
   selectedDays: Day[];
   setSelectedDays: React.Dispatch<React.SetStateAction<Day[]>>;
@@ -20,6 +19,8 @@ const DaySelection: React.FC<DaySelectionProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const timeSlot = useAppSelector(state => state.timeSlots.list);
+
+  // Sync selectedDays with Redux store
   useEffect(() => {
     if (timeSlot && timeSlot.length > 0) {
       const updatedSelectedDays: Day[] = timeSlot.map(
@@ -31,6 +32,7 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     }
   }, [timeSlot]);
 
+  // Get today's day name
   const getTodayDayName = (): Day => {
     const dayMap: Day[] = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
     const today = new Date();
@@ -38,11 +40,37 @@ const DaySelection: React.FC<DaySelectionProps> = ({
   };
 
   const todayDayName = getTodayDayName();
+
+  // Reorder days starting from today
   const reorderedDays = [
     ...days.slice(days.indexOf(todayDayName)),
     ...days.slice(0, days.indexOf(todayDayName)),
   ];
 
+  // Safe function to get today's date in Vietnam timezone
+  const getTodayInVietnam = (): Date => {
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(now);
+
+    const year = parseInt(
+      parts.find(p => p.type === 'year')?.value || '1970',
+      10,
+    );
+    const month = parseInt(
+      parts.find(p => p.type === 'month')?.value || '01',
+      10,
+    );
+    const day = parseInt(parts.find(p => p.type === 'day')?.value || '01', 10);
+
+    return new Date(year, month - 1, day);
+  };
+
+  // Get next date for a specific day
   const getNextDateForDay = (dayName: Day) => {
     const dayMap: Record<Day, number> = {
       T2: 1,
@@ -54,21 +82,25 @@ const DaySelection: React.FC<DaySelectionProps> = ({
       CN: 0,
     };
 
-    const today = new Date();
+    const today = getTodayInVietnam();
     const targetDay = dayMap[dayName];
     const currentDay = today.getDay();
 
     let daysToAdd = targetDay - currentDay;
-    if (daysToAdd <= 0) {
-      daysToAdd += 7;
-    }
+    if (daysToAdd <= 0) daysToAdd += 7;
 
     const targetDate = new Date(today);
     targetDate.setDate(today.getDate() + daysToAdd);
 
-    return targetDate.toISOString().split('T')[0];
+    // Format as YYYY-MM-DD in Vietnam timezone
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+    });
+
+    return formatter.format(targetDate);
   };
 
+  // Toggle a single day selection
   const toggleDaySelection = (day: Day) => {
     setSelectedDays(prev => {
       const isRemoving = prev.includes(day);
@@ -88,6 +120,7 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     });
   };
 
+  // Toggle all days selection
   const isAllSelected = days.every(d => selectedDays.includes(d));
   const toggleAll = () => {
     if (isAllSelected) {
@@ -112,7 +145,7 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     <>
       <View className="flex-row justify-between mb-2">
         <View className="flex-row items-center">
-          <Text className="text-sm font-medium  text-primary-100 items-center ">
+          <Text className="text-sm font-medium text-primary-100">
             Thời gian có thể lấy hàng
           </Text>
           <Text className="text-red-500"> *</Text>
@@ -135,6 +168,7 @@ const DaySelection: React.FC<DaySelectionProps> = ({
           </TouchableOpacity>
         </View>
       </View>
+
       <View className="mb-3">
         <View className="py-1">
           <View className="flex-row items-center justify-between">
@@ -147,7 +181,7 @@ const DaySelection: React.FC<DaySelectionProps> = ({
                 style={{
                   borderColor: selectedDays.includes(day)
                     ? '#19CCA1'
-                    : '#E5E7EB', // secondary-100 = #19CCA1, gray-200 = #E5E7EB
+                    : '#E5E7EB',
                 }}
                 onPress={() => toggleDaySelection(day)}
               >
