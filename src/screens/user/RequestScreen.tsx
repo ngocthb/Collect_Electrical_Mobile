@@ -27,10 +27,17 @@ const RequestScreen = () => {
   const isMounted = useRef(true);
 
   const statusGroupMap: Record<string, string[]> = {
+    pending: ['Chờ duyệt'],
     grouping: ['Chờ gom nhóm'],
     collecting: ['Chờ thu gom'],
-    cancelled: ['Hủy bỏ'],
-    recycle: ['Tái chế', 'Đã đóng gói', 'Đã thu gom', 'Nhập kho'],
+    cancelled: ['Đã từ chối'],
+    recycle: [
+      'Tái chế',
+      'Đã đóng gói',
+      'Đã thu gom',
+      'Nhập kho',
+      'Đã đóng thùng',
+    ],
   };
 
   const loadProducts = async () => {
@@ -60,42 +67,46 @@ const RequestScreen = () => {
   }, [isFocused]);
 
   const filteredProducts = selectedStatusGroup
-    ? products.filter(p =>
-        statusGroupMap[selectedStatusGroup].includes(p.status),
-      )
+    ? products.filter(p => {
+        const statuses = statusGroupMap[selectedStatusGroup] || [];
+        const normalized = statuses.map(s => String(s).trim().toLowerCase());
+        const pStatus = String(p.status || '')
+          .trim()
+          .toLowerCase();
+        return normalized.includes(pStatus);
+      })
     : products;
 
   const openProduct = (prod: any) => {
-    const status = String(prod.status || '').trim();
+    const status = String(prod.status || '')
+      .trim()
+      .toLowerCase();
     let groupKey = '';
     for (const k of Object.keys(statusGroupMap)) {
-      if (statusGroupMap[k].includes(status)) {
+      const candidates = (statusGroupMap[k] || []).map(s =>
+        String(s).trim().toLowerCase(),
+      );
+      if (candidates.includes(status)) {
         groupKey = k;
         break;
       }
     }
-    console.log(prod);
-    if (groupKey === 'collecting') {
-      // navigation.navigate('Delivering', { notification: prod });
-      navigation.navigate('DeliveryInfo', { productId: prod.productId });
-    } else if (groupKey === 'recycle') {
-      navigation.navigate('UserNotificationDetail', { product: prod });
-    } else if (groupKey === 'grouping') {
-      navigation.navigate('DeliveryInfo', { productId: prod.productId });
-      // navigation.navigate('ShipmentDetail', { notification: prod });
-    } else if (groupKey === 'cancelled') {
-      navigation.navigate('DeliveryInfo', { productId: prod.productId });
-      // navigation.navigate('CancelledProduct', { product: prod });
+
+    if (groupKey === 'recycle') {
+      navigation.navigate('UserNotificationDetail', {
+        productId: prod.productId,
+      });
     } else {
-      navigation.navigate('ProductDetail', { productId: prod.productId });
+      navigation.navigate('DeliveryInfo', { productId: prod.productId });
     }
   };
 
   const statusGroupOptions = [
     { value: '', label: 'Tất cả', color: 'gray' },
     { value: 'grouping', label: 'Chờ nhóm', color: 'blue' },
+    { value: 'pending', label: 'Chờ duyệt', color: 'purple' },
     { value: 'collecting', label: 'Chờ thu gom', color: 'yellow' },
-    { value: 'cancelled', label: 'Hủy bỏ', color: 'red' },
+    { value: 'cancelled', label: 'Từ chối', color: 'red' },
     { value: 'recycle', label: 'Tái chế', color: 'green' },
   ];
 
@@ -105,21 +116,30 @@ const RequestScreen = () => {
 
   const renderProductStatusBadge = (status: string | null | undefined) => {
     if (!status) return null;
-    const s = String(status).trim();
-    let label = s;
+    const s = String(status).trim().toLowerCase();
+    let label = String(status).trim();
     let bgClass = 'bg-gray-400';
 
-    if (s === 'Chờ gom nhóm') {
+    if (s === 'chờ gom nhóm') {
       label = 'Chờ gom nhóm';
       bgClass = 'bg-blue-600';
-    } else if (s === 'Chờ thu gom') {
+    } else if (s === 'chờ duyệt') {
+      label = 'Chờ duyệt';
+      bgClass = 'bg-purple-600';
+    } else if (s === 'chờ thu gom') {
       label = 'Chờ thu gom';
       bgClass = 'bg-amber-500';
-    } else if (s === 'Hủy bỏ') {
-      label = 'Hủy bỏ';
+    } else if (s === 'đã từ chối' || s === 'từ chối' || s === 'đã từ chối') {
+      label = 'Từ chối';
       bgClass = 'bg-red-500';
     } else if (
-      ['Tái chế', 'Đã đóng gói', 'Đã thu gom', 'Nhập kho'].includes(s)
+      [
+        'tái chế',
+        'đã đóng gói',
+        'đã thu gom',
+        'nhập kho',
+        'đã đóng thùng',
+      ].includes(s)
     ) {
       label = 'Tái chế';
       bgClass = 'bg-green-600';
@@ -139,6 +159,7 @@ const RequestScreen = () => {
       yellow: 'bg-amber-500',
       red: 'bg-red-500',
       green: 'bg-green-500',
+      purple: 'bg-purple-500',
     };
     return colorMap[color] || 'bg-gray-400';
   };
@@ -150,58 +171,74 @@ const RequestScreen = () => {
         className="flex-row items-center px-3 py-1.5 rounded-lg border border-gray-200 bg-secondary-100"
       >
         <View
-          className={`w-2 h-2 rounded-full mr-1.5 ${getColorClass(
-            selectedOption?.color || 'gray',
-          )}`}
+          className={`w-2 h-2 rounded-full mr-1.5 ${
+            selectedOption?.color === 'gray'
+              ? 'bg-white border border-gray-300'
+              : getColorClass(selectedOption?.color || 'gray')
+          }`}
         />
-        <Text className="text-[13px] font-medium text-white">
+        <Text className="text-xs font-medium text-white mr-2">
           {selectedOption?.label || 'Tất cả'}
         </Text>
-        <IconIon
-          name="funnel-outline"
-          size={16}
-          color="#fff"
-          className="ml-1"
-        />
+        <IconIon name="funnel-outline" size={16} color="#fff" />
       </TouchableOpacity>
 
       {filterDropdownOpen && (
-        <View
-          className="absolute top-11 right-0 w-40 bg-white rounded-lg border border-gray-200 shadow-lg z-50"
-          style={{ elevation: 5 }}
-        >
-          {statusGroupOptions.map((option, index) => (
-            <TouchableOpacity
-              key={option.value}
-              onPress={() => {
-                setSelectedStatusGroup(option.value);
-                setFilterDropdownOpen(false);
-              }}
-              className={`flex-row items-center px-3 py-2.5 ${
-                index < statusGroupOptions.length - 1
-                  ? 'border-b border-gray-100'
-                  : ''
-              } ${
-                selectedStatusGroup === option.value ? 'bg-gray-50' : 'bg-white'
-              }`}
-            >
-              <View
-                className={`w-2 h-2 rounded-full mr-2 ${getColorClass(
-                  option.color,
-                )}`}
-              />
-              <Text
-                className={`text-[13px] text-gray-700 ${
+        <>
+          {/* Overlay - bấm vào đây sẽ đóng dropdown */}
+          <TouchableOpacity
+            style={{
+              position: 'absolute',
+              top: -1000,
+              left: -1000,
+              right: -1000,
+              bottom: -1000,
+              zIndex: 998,
+            }}
+            activeOpacity={1}
+            onPress={() => setFilterDropdownOpen(false)}
+          />
+
+          {/* Dropdown menu */}
+          <View
+            className="absolute top-11 right-0 w-40 bg-white rounded-lg border border-gray-200 shadow-lg"
+            style={{ zIndex: 999, elevation: 5 }}
+          >
+            {statusGroupOptions.map((option, index) => (
+              <TouchableOpacity
+                key={option.value}
+                onPress={() => {
+                  setSelectedStatusGroup(option.value);
+                  setFilterDropdownOpen(false);
+                }}
+                className={`flex-row items-center px-3 py-2.5 ${
+                  index < statusGroupOptions.length - 1
+                    ? 'border-b border-gray-100'
+                    : ''
+                } ${
                   selectedStatusGroup === option.value
-                    ? 'font-semibold'
-                    : 'font-normal'
+                    ? 'bg-gray-50'
+                    : 'bg-white'
                 }`}
               >
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+                <View
+                  className={`w-2 h-2 rounded-full mr-2 ${getColorClass(
+                    option.color,
+                  )}`}
+                />
+                <Text
+                  className={`text-[13px] text-gray-700 ${
+                    selectedStatusGroup === option.value
+                      ? 'font-semibold'
+                      : 'font-normal'
+                  }`}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </>
       )}
     </View>
   );
@@ -212,7 +249,7 @@ const RequestScreen = () => {
       onRefresh={loadProducts}
       headerRightComponent={filterDropdown}
     >
-      <View className="flex-1 bg-white">
+      <View className="flex-1 bg-gray-50">
         {/* Product List */}
         <ScrollView className="flex-1 px-4 mt-2">
           {loading ? (

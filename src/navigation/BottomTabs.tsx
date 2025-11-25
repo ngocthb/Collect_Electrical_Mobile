@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { TouchableOpacity, View } from 'react-native';
 import CenterPlusButton from '../components/ui/CenterPlusButton';
 import { useNavigation } from '@react-navigation/native';
 import IconOcticons from 'react-native-vector-icons/Octicons';
@@ -81,7 +80,8 @@ function BottomTabs() {
         headerShown: false,
         tabBarActiveTintColor: '#19CCA1',
         tabBarInactiveTintColor: '#818898',
-        tabBarStyle: { backgroundColor: '#fff', height: 60 },
+        tabBarStyle: { height: 60, backgroundColor: '#fff' },
+
         tabBarIcon: ({ color, size }) => {
           const props = { color, size: size ?? 22 };
           switch (route.name) {

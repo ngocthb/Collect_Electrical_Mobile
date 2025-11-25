@@ -285,7 +285,6 @@ const DeliveryInfoScreen = () => {
     if (!request) return;
     const id = request.collectionRouterId;
     if (!id) return;
-    console.log(id);
     setIsSkipping(true);
     try {
       await routeService.userConfirmRouter(id, false, true);

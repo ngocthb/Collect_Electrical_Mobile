@@ -15,13 +15,13 @@ import React, { useEffect, useState } from 'react';
 import { getUserPoints } from '../../services/pointsService';
 
 const menuItems = [
-  { id: 1, title: 'Hồ sơ của tôi', icon: 'user' },
-  { id: 7, title: 'QR của tôi', icon: 'maximize' },
-  { id: 2, title: 'Ví của tôi', icon: 'credit-card' },
-  { id: 3, title: 'Lịch thu gom mặc định', icon: 'calendar' },
-  { id: 5, title: 'Thống kê', icon: 'bar-chart-2' },
-  { id: 6, title: 'Địa chỉ mặc định', icon: 'map-pin' },
-  { id: 4, title: 'Đổi mật khẩu', icon: 'lock' },
+  { id: 1, title: 'Hồ sơ của tôi', icon: 'user', color: '#4169E1' },
+  { id: 7, title: 'QR của tôi', icon: 'maximize', color: '#7C3AED' },
+  { id: 2, title: 'Ví của tôi', icon: 'credit-card', color: '#F59E0B' },
+  { id: 3, title: 'Lịch thu gom mặc định', icon: 'calendar', color: '#3B82F6' },
+  { id: 5, title: 'Thống kê', icon: 'bar-chart-2', color: '#F97316' },
+  { id: 6, title: 'Địa chỉ mặc định', icon: 'map-pin', color: '#059669' },
+  { id: 4, title: 'Đổi mật khẩu', icon: 'lock', color: '#EF4444' },
 ];
 
 const ProfileScreen = () => {
@@ -105,12 +105,12 @@ const ProfileScreen = () => {
         <ScrollView className="flex-1 px-6">
           {/* Profile Section */}
           <View className="flex-row items-center  ">
-            <View>
+            <View className="relative bg-secondary-100 rounded-full p-1">
               <AppAvatar
-                name={user?.name ?? 'User'}
-                uri={user?.avatar ?? undefined}
+                name={user?.name}
+                uri={user?.avatar ?? null}
                 size={80}
-                style={{ marginBottom: 8 }}
+                style={{ borderWidth: 4, borderColor: '#fff' }}
               />
             </View>
 
@@ -123,16 +123,13 @@ const ProfileScreen = () => {
               </Text>
               {role !== 'delivery' && (
                 <View className="flex-row items-center mt-2">
-                  <Text className="text-base font-bold text-gray-800 mr-2">
-                    {isUser ? (
-                      loading ? (
+                  <Text className="text-base font-bold text-primary-100 mr-2">
+                    {isUser &&
+                      (loading ? (
                         <ActivityIndicator color="#000" />
                       ) : (
                         `${(balance ?? 0).toLocaleString()}`
-                      )
-                    ) : (
-                      '220'
-                    )}
+                      ))}
                   </Text>
                   <View className="w-6 h-6 bg-yellow-400 rounded-full items-center justify-center">
                     <Text className="text-xs">🪙</Text>
@@ -150,7 +147,7 @@ const ProfileScreen = () => {
                 className="flex-row items-center py-6 "
                 onPress={() => handleMenuPress(item.id)}
               >
-                <Icon name={item.icon} size={24} color="#333" />
+                <Icon name={item.icon} size={24} color={item.color || '#333'} />
                 <Text className="ml-4 text-base text-text-sub">
                   {item.title}
                 </Text>

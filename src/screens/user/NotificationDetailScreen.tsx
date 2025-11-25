@@ -23,14 +23,14 @@ const TimelineItem: React.FC<TimelineItemProps> = ({
 }) => (
   <View className="flex-row mt-1">
     <View className="items-center mr-4">
-      <View className="w-10 h-10 rounded-full bg-blue-500 items-center justify-center">
+      <View className="w-10 h-10 rounded-full bg-secondary-100 items-center justify-center">
         <Icon name={icon} size={20} color="#fff" />
       </View>
       {!isLast && <View className="w-0.5 flex-1 bg-gray-200 my-1" />}
     </View>
     <View className="flex-1 pb-6">
       <View className="flex-row justify-between items-start mb-1">
-        <Text className="font-semibold text-gray-900 text-sm flex-1">
+        <Text className="font-semibold text-primary-100 text-sm flex-1">
           {title}
         </Text>
         <Text className="text-sm text-gray-400">{date}</Text>
@@ -53,10 +53,23 @@ const NotificationDetailScreen: React.FC<NotificationDetailScreenProps> = ({
   const [timelineData, setTimelineData] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const postId = 'a2d7b801-b0fb-4f7d-9b83-b741d23666a1';
+  const productId = route.params.productId;
 
   const mapStatusToIcon = (status: string) => {
-    switch (status) {
+    const s = String(status || '')
+      .trim()
+      .toLowerCase();
+    // Vietnamese status mappings
+    if (s === 'chờ duyệt') return 'clock';
+    if (s === 'chờ thu gom') return 'calendar';
+    if (s === 'đã thu gom' || s === 'đã lấy hàng' || s === 'đã thu gom')
+      return 'package';
+    if (s === 'nhập kho') return 'archive';
+    if (s === 'đã đóng thùng' || s === 'đã đóng gói' || s === 'đã đóng thùng')
+      return 'check-circle';
+
+    // Fallbacks for English/internal codes
+    switch (s) {
       case 'created':
         return 'plus-circle';
       case 'scheduled':
@@ -79,7 +92,16 @@ const NotificationDetailScreen: React.FC<NotificationDetailScreenProps> = ({
   };
 
   const mapStatusToLabel = (status: string) => {
-    switch (status) {
+    const s = String(status || '')
+      .trim()
+      .toLowerCase();
+    if (s === 'chờ duyệt') return 'Chờ duyệt';
+    if (s === 'chờ thu gom') return 'Chờ thu gom';
+    if (s === 'đã thu gom') return 'Đã thu gom';
+    if (s === 'nhập kho') return 'Nhập kho';
+    if (s === 'đã đóng thùng' || s === 'đã đóng gói') return 'Đã đóng thùng';
+
+    switch (s) {
       case 'created':
         return 'Yêu cầu đã tạo';
       case 'scheduled':
@@ -104,12 +126,14 @@ const NotificationDetailScreen: React.FC<NotificationDetailScreenProps> = ({
   useEffect(() => {
     let mounted = true;
     const fetchTimeline = async () => {
-      if (!postId) return;
+      if (!productId) return;
       setLoading(true);
       try {
-        const data: any = await trackingService.getPostTimeline(String(postId));
+        const data: any = await trackingService.getPostTimeline(
+          String(productId),
+        );
         if (!mounted) return;
-        // map items to UI model and sort in reverse chronological order (newest first)
+
         const parseDateTime = (it: any) => {
           try {
             if (!it || !it.date) return new Date(0);
@@ -125,7 +149,7 @@ const NotificationDetailScreen: React.FC<NotificationDetailScreenProps> = ({
             return new Date(0);
           }
         };
-
+        console.log(data);
         const mapped = Array.isArray(data)
           ? data
               .slice()
@@ -156,7 +180,7 @@ const NotificationDetailScreen: React.FC<NotificationDetailScreenProps> = ({
     return () => {
       mounted = false;
     };
-  }, [postId]);
+  }, [productId]);
 
   return (
     <SubLayout

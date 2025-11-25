@@ -48,7 +48,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
       if (
         typeof distanceInMeters === 'number' &&
         distanceInMeters > 0 &&
-        distanceInMeters < 5000
+        distanceInMeters < 1000
       ) {
         console.log(
           '✅ Auto-showing QR modal after refresh, distance:',
@@ -85,7 +85,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
       !resetQrTrigger &&
       typeof distanceInMeters === 'number' &&
       distanceInMeters > 0 &&
-      distanceInMeters < 5000 &&
+      distanceInMeters < 1000 &&
       !hasShownQrModalRef.current
     ) {
       console.log(
@@ -97,14 +97,12 @@ const DeliveryMapPanel: React.FC<Props> = ({
     }
   }, [distanceInMeters, resetQrTrigger]);
 
-  console.log(normalizedRequest);
-  // Notify arrival API when distance < 5000m
   useEffect(() => {
     const notifyArrival = async () => {
       if (
         typeof distanceInMeters === 'number' &&
         distanceInMeters > 0 &&
-        distanceInMeters < 5000 &&
+        distanceInMeters < 1000 &&
         !hasNotifiedArrivalRef.current &&
         normalizedRequest?.postId
       ) {
@@ -141,19 +139,48 @@ const DeliveryMapPanel: React.FC<Props> = ({
 
   // pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
+  const isRefreshingRef = React.useRef(false);
 
   const handleRefreshInternal = async () => {
     if (!onRefresh) return;
     try {
+      if (isRefreshingRef.current) return;
+      isRefreshingRef.current = true;
       setRefreshing(true);
       await onRefresh();
     } catch (e) {
       console.warn('Refresh error:', e);
     } finally {
+      isRefreshingRef.current = false;
       setRefreshing(false);
     }
   };
 
+  // Auto-refresh every 2 minutes (120000 ms)
+  useEffect(() => {
+    if (!onRefresh) return;
+    let mounted = true;
+    const interval = setInterval(async () => {
+      if (!mounted) return;
+      try {
+        if (isRefreshingRef.current) return;
+        isRefreshingRef.current = true;
+        await onRefresh();
+      } catch (e) {
+        console.warn('Auto-refresh error:', e);
+      } finally {
+        isRefreshingRef.current = false;
+        if (mounted) setRefreshing(false);
+      }
+    }, 120000);
+
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [onRefresh]);
+
+  console.log(normalizedRequest);
   return (
     <ScrollView
       className="flex-1"
@@ -172,15 +199,18 @@ const DeliveryMapPanel: React.FC<Props> = ({
         {isExpanded && (
           <>
             <View className="mb-4">
-              <Text className="text-xs text-gray-500 mb-3">
+              <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-3">
                 Thông tin người gửi
               </Text>
               <View className=" bg-gray-50 rounded-2xl p-4">
                 <View className="flex-row items-center">
-                  <AppAvatar
-                    uri={normalizedRequest?.sender?.avatar}
-                    size={56}
-                  />
+                  <View className="relative bg-secondary-100 rounded-full p-1">
+                    <AppAvatar
+                      name={normalizedRequest?.sender?.name}
+                      uri={normalizedRequest?.sender?.avatar}
+                      size={56}
+                    />
+                  </View>
                   <View className="flex-1 ml-4">
                     <Text className="text-base font-bold text-gray-900">
                       {normalizedRequest?.sender?.name ?? 'Người gửi'}
@@ -200,14 +230,6 @@ const DeliveryMapPanel: React.FC<Props> = ({
                   {normalizedRequest?.sender?.address || '—'}
                 </Text>
               </View>
-            </View>
-
-            {/* Warning */}
-            <View className="flex-row items-center bg-amber-50 rounded-xl p-4 mb-6">
-              <Icon name="information" size={20} color="#F59E0B" />
-              <Text className="flex-1 text-sm text-amber-900 ml-3">
-                Xảy ra sự cố ? Liên hệ với trung tâm hỗ trợ
-              </Text>
             </View>
 
             {/* Order Details */}
@@ -290,7 +312,6 @@ const DeliveryMapPanel: React.FC<Props> = ({
         }}
         onSkip={() => {
           setShowQrModal(false);
-
           setShowActionButtons(false);
         }}
       />

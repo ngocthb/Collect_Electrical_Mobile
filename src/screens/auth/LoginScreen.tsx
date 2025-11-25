@@ -14,7 +14,12 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { loginMock, setError, setLoading } from '../../store/authSlice';
 import Toast from 'react-native-toast-message';
-import { signInWithGoogle } from '../../services/authService';
+import { signInWithGoogle, fetchUserProfile } from '../../services/authService';
+import {
+  setUser,
+  setRole,
+  setLoading as setLoadingAction,
+} from '../../store/authSlice';
 
 const login = require('../../assets/images/login.png');
 const google = require('../../assets/images/google.jpg');
@@ -47,32 +52,6 @@ export default function LoginScreen() {
         text2: message,
       });
       dispatch(setError(message));
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      dispatch(setLoading(true));
-      await signInWithGoogle();
-      const result = await dispatch(
-        loginMock({
-          identifier: 'ngocthbse183850@fpt.edu.vn',
-          password: '123456',
-        }),
-      ).unwrap();
-      Toast.show({
-        type: 'success',
-        text1: 'Đăng nhập thành công!',
-        text2: 'Chào mừng bạn đến với ứng dụng',
-      });
-    } catch (error: any) {
-      Toast.show({
-        type: 'error',
-        text1: 'Đăng nhập thất bại',
-        text2: error || 'Vui lòng thử lại',
-      });
-    } finally {
-      dispatch(setLoading(false));
     }
   };
 
@@ -169,27 +148,6 @@ export default function LoginScreen() {
           loading={auth.loading}
           disabled={auth.loading || !email || !password}
         />
-
-        {/* <View className="flex-row items-center mt-4 w-full">
-          <View className="flex-1 h-px bg-gray-300" />
-          <Text className="px-2 text-sm text-text-muted">hoặc</Text>
-          <View className="flex-1 h-px bg-gray-300" />
-        </View> */}
-
-        {/* Google Sign-In Button */}
-        {/* <View className="mt-4">
-          <TouchableOpacity
-            onPress={handleGoogleLogin}
-            disabled={auth.loading}
-            className="items-center py-4 px-8 justify-center bg-white rounded-lg shadow-lg "
-          >
-            <Image
-              source={google} // đường dẫn icon Google
-              className="w-6 h-6"
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-        </View> */}
 
         {/* Register link */}
         <View className="flex-row justify-center mt-6">

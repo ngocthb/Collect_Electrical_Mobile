@@ -11,9 +11,10 @@ import {
 
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { loginMock, setError, setLoading } from '../../store/authSlice';
+import { setError, setLoading } from '../../store/authSlice';
+import { setUser, setRole } from '../../store/authSlice';
 import Toast from 'react-native-toast-message';
-import { signInWithGoogle } from '../../services/authService';
+import { signInWithGoogle, fetchUserProfile } from '../../services/authService';
 
 const simpleLogin = require('../../assets/images/simplelogin.png');
 const google = require('../../assets/images/google.jpg');
@@ -28,12 +29,14 @@ export default function SimpleLoginScreen() {
     try {
       dispatch(setLoading(true));
       await signInWithGoogle();
-      await dispatch(
-        loginMock({
-          identifier: 'ngocthbse183850@fpt.edu.vn',
-          password: '123456',
-        }),
-      ).unwrap();
+
+      const profileData: any = await fetchUserProfile();
+      dispatch(setUser(profileData));
+      const roleVal = (profileData?.role || profileData?.Role || '')
+        .toString()
+        .toLowerCase();
+      if (roleVal === 'delivery') dispatch(setRole('delivery'));
+      else dispatch(setRole('user'));
 
       Toast.show({
         type: 'success',
@@ -95,7 +98,10 @@ export default function SimpleLoginScreen() {
         </View>
 
         {/* BOTTOM CARD */}
-        <View className="bg-primary-100 rounded-t-3xl px-8 pt-12 pb-10">
+        <View
+          className="bg-primary-100 px-8 pt-12 pb-10"
+          style={{ borderTopLeftRadius: 48, borderTopRightRadius: 48 }}
+        >
           {/* GOOGLE LOGIN BUTTON */}
           <TouchableOpacity
             onPress={handleGoogleLogin}

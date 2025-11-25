@@ -12,7 +12,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import IconMaterial from 'react-native-vector-icons/MaterialIcons';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { getUserPoints } from '../services/pointsService';
-import { logout } from '../store/authSlice';
+import { logout } from '../store/slices/authSlice';
 import AppAvatar from './ui/AppAvatar';
 import Animated, {
   useSharedValue,

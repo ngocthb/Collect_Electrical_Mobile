@@ -117,8 +117,7 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
             text2: 'Khách hàng đã từ chối lấy hàng',
           });
         } else {
-          // Fallback to legacy exact matches
-          if (status === 'User_Confirm') {
+          if (status === 'User_Confirm' || status === 'User_Skip') {
             try {
               onAccept?.();
             } catch (e) {
@@ -235,7 +234,7 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
                 {product ? (
                   <>
                     <QRCode value={JSON.stringify(confirmPayload)} size={220} />
-                    <Text className="mt-6 text-sm font-bold tracking-widest text-blue-600">
+                    <Text className="mt-6 text-xs font-bold tracking-widest text-primary-100 text-center">
                       {product?.collectionRouteId}
                     </Text>
                   </>

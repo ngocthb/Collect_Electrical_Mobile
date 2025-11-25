@@ -1,5 +1,6 @@
 import { User } from '../../types/index';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AuthState {
   user: User | null;
@@ -33,6 +34,7 @@ const authSlice = createSlice({
     },
 
     logout: state => {
+      AsyncStorage.clear(); // Clear all stored data on logout
       state.user = null;
       state.isLoading = false;
       state.error = null;

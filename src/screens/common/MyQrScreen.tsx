@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import MainLayout from '../../layout/MainLayout';
+
 import { useAppSelector } from '../../store/hooks';
 import QRCode from 'react-native-qrcode-svg';
 import SubLayout from '../../layout/SubLayout';

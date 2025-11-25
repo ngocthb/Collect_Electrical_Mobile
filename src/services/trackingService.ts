@@ -1,8 +1,10 @@
 import axiosClient from '../config/axios';
 
-const getPostTimeline = async (postId: string) => {
+const getPostTimeline = async (productId: string) => {
   try {
-    const res = await axiosClient.get(`/tracking/post/${postId}/timeline`);
+    const res = await axiosClient.get(
+      `/tracking/product/${productId}/timeline`,
+    );
     return res;
   } catch (e) {
     throw e;
