@@ -13,23 +13,27 @@ import AppAvatar from '../../components/ui/AppAvatar';
 import { useAppSelector } from '../../store/hooks';
 import React, { useEffect, useState } from 'react';
 import { getUserPoints } from '../../services/pointsService';
+import { uninitZegoService } from '../../config/zego';
+import { logout } from '../../store/slices/authSlice';
+import { signOut } from '../../services/authService';
 
+import { useAppDispatch } from '../../store/hooks';
 const menuItems = [
-  { id: 1, title: 'Hồ sơ của tôi', icon: 'user', color: '#4169E1' },
-  { id: 7, title: 'QR của tôi', icon: 'maximize', color: '#7C3AED' },
-  { id: 2, title: 'Ví của tôi', icon: 'credit-card', color: '#F59E0B' },
-  { id: 3, title: 'Lịch thu gom mặc định', icon: 'calendar', color: '#3B82F6' },
+  { id: 1, title: 'Hồ sơ của tôi', icon: 'user', color: '#3366FF' },
+  { id: 2, title: 'QR của tôi', icon: 'maximize', color: '#7C3AED' },
+  { id: 3, title: 'Ví của tôi', icon: 'credit-card', color: '#F59E0B' },
+  { id: 4, title: 'Lịch thu gom mặc định', icon: 'calendar', color: '#e85a4f' },
   { id: 5, title: 'Thống kê', icon: 'bar-chart-2', color: '#F97316' },
   { id: 6, title: 'Địa chỉ mặc định', icon: 'map-pin', color: '#059669' },
-  { id: 4, title: 'Đổi mật khẩu', icon: 'lock', color: '#EF4444' },
+  { id: 7, title: 'Đổi mật khẩu', icon: 'lock', color: '#EF4444' },
 ];
 
 const ProfileScreen = () => {
-  const { user, role } = useAppSelector(s => s.auth);
+  const { user } = useAppSelector(s => s.auth);
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const isUser = String(role ?? '').toLowerCase() === 'user';
-
+  const isUser = String(user?.role ?? '').toLowerCase() === 'user';
+  const dispatch = useAppDispatch();
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -53,19 +57,11 @@ const ProfileScreen = () => {
   }, [isUser, user]);
 
   const filteredMenu = menuItems.filter(item => {
-    // Hide wallet, schedule, default address for delivery users
-    if (role === 'delivery' && [2, 3, 6].includes(item.id)) {
-      return false;
+    if (isUser) {
+      return [1, 2, 3, 6, 7].includes(item.id);
     }
-    // Hide stats for non-delivery users
-    if (role !== 'delivery' && item.id === 5) {
-      return false;
-    }
-    // Only allow MyQr (id:7) for normal users
-    if (item.id === 7 && role !== 'user') {
-      return false;
-    }
-    return true;
+
+    return [1, 5, 7].includes(item.id);
   });
 
   const navigation = useNavigation<any>();
@@ -76,16 +72,13 @@ const ProfileScreen = () => {
         navigation.navigate('EditProfile');
         break;
       case 2:
-        navigation.navigate('Wallet');
+        navigation.navigate('MyQr');
         break;
       case 3:
-        navigation.navigate('DefaultSchedule');
+        navigation.navigate('Wallet');
         break;
       case 4:
-        navigation.navigate('ChangePassword');
-        break;
-      case 7:
-        navigation.navigate('MyQr');
+        navigation.navigate('DefaultSchedule');
         break;
       case 5:
         navigation.navigate('Statistics');
@@ -93,69 +86,120 @@ const ProfileScreen = () => {
       case 6:
         navigation.navigate('DefaultAddress');
         break;
+      case 7:
+        navigation.navigate('ChangePassword');
+        break;
       default:
-        // no-op (future handlers)
+        console.warn(`Unhandled menu item ID: ${id}`);
         break;
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await uninitZegoService();
+      // Clear token and sign out from services first
+      await signOut();
+      // Then reset redux auth state
+      dispatch(logout());
+    } catch (e) {
+      // ignore
+    }
+  };
   return (
-    <MainLayout>
-      <View className="flex-1 bg-white">
-        <ScrollView className="flex-1 px-6">
-          {/* Profile Section */}
-          <View className="flex-row items-center  ">
-            <View className="relative bg-secondary-100 rounded-full p-1">
-              <AppAvatar
-                name={user?.name}
-                uri={user?.avatar ?? null}
-                size={80}
-                style={{ borderWidth: 4, borderColor: '#fff' }}
-              />
-            </View>
-
-            <View className="flex ml-4 justify-center">
-              <Text className="text-lg font-bold text-gray-800">
-                {user?.name ?? 'Khách hàng'}
-              </Text>
-              <Text className="text-sm text-gray-500">
-                {user?.email ?? '—'}
-              </Text>
-              {role !== 'delivery' && (
-                <View className="flex-row items-center mt-2">
-                  <Text className="text-base font-bold text-primary-100 mr-2">
-                    {isUser &&
-                      (loading ? (
-                        <ActivityIndicator color="#000" />
-                      ) : (
-                        `${(balance ?? 0).toLocaleString()}`
-                      ))}
-                  </Text>
-                  <View className="w-6 h-6 bg-yellow-400 rounded-full items-center justify-center">
-                    <Text className="text-xs">🪙</Text>
-                  </View>
+    <MainLayout hideHeader={true}>
+      <View className="flex-1 bg-background-50">
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          {/* Profile Header Card */}
+          <View className="px-6 pt-12 pb-6">
+            <View className="bg-primary-100 rounded-3xl p-6 border-2 border-red-200">
+              <View className="flex-row items-center">
+                <View className="relative mr-4">
+                  <AppAvatar
+                    name={user?.name}
+                    uri={user?.avatar ?? null}
+                    size={85}
+                    style={{ borderWidth: 3, borderColor: '#fff' }}
+                  />
                 </View>
-              )}
+
+                <View className="flex-1">
+                  <Text
+                    className="text-xl font-bold text-white mb-1"
+                    numberOfLines={1}
+                  >
+                    {user?.name ?? 'Khách hàng'}
+                  </Text>
+                  <Text className="text-sm text-white/90" numberOfLines={1}>
+                    {user?.email ?? '—'}
+                  </Text>
+
+                  {isUser && (
+                    <View className="mt-3 bg-white/20 rounded-full px-4 py-2 self-start mr-6">
+                      <View className="flex-row items-center">
+                        <Text className="text-white font-bold text-base mr-2">
+                          {isUser &&
+                            (loading ? (
+                              <ActivityIndicator color="#fff" size="small" />
+                            ) : (
+                              (balance ?? 0).toLocaleString()
+                            ))}
+                        </Text>
+                        <Text className="text-lg">🪙</Text>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </View>
             </View>
           </View>
 
-          {/* Menu Items */}
-          <View className="py-4">
-            {filteredMenu.map(item => (
-              <TouchableOpacity
-                key={item.id}
-                className="flex-row items-center py-6 "
-                onPress={() => handleMenuPress(item.id)}
-              >
-                <Icon name={item.icon} size={24} color={item.color || '#333'} />
-                <Text className="ml-4 text-base text-text-sub">
-                  {item.title}
-                </Text>
-                <View className="flex-1" />
-                <Icon name="chevron-right" size={24} color="#999" />
-              </TouchableOpacity>
-            ))}
+          {/* Menu Section */}
+          <View className="px-6 pb-6">
+            <View className="bg-white border-2 border-red-200 rounded-2xl shadow-sm overflow-hidden">
+              {filteredMenu.map((item, index) => (
+                <TouchableOpacity
+                  key={item.id}
+                  className={`flex-row items-center px-5 py-4 ${
+                    index !== filteredMenu.length - 1
+                      ? 'border-b border-gray-100'
+                      : ''
+                  }`}
+                  onPress={() => handleMenuPress(item.id)}
+                  activeOpacity={0.7}
+                >
+                  <View
+                    className="w-10 h-10 rounded-full items-center justify-center"
+                    style={{ backgroundColor: `${item.color}15` }}
+                  >
+                    <Icon name={item.icon} size={20} color={item.color} />
+                  </View>
+                  <Text className="ml-4 flex-1 text-base text-gray-800 font-medium">
+                    {item.title}
+                  </Text>
+                  <Icon name="chevron-right" size={20} color="#D1D5DB" />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Logout Button */}
+            <TouchableOpacity
+              onPress={handleLogout}
+              className="mt-4 bg-white border-2 border-red-200 rounded-2xl shadow-sm px-5 py-4 flex-row items-center"
+              activeOpacity={0.7}
+            >
+              <View className="w-10 h-10 rounded-full items-center justify-center bg-red-50">
+                <Icon name="log-out" size={20} color="#EF4444" />
+              </View>
+              <Text className="ml-4 flex-1 text-base text-red-500 font-semibold">
+                Đăng xuất
+              </Text>
+              <Icon name="chevron-right" size={20} color="#D1D5DB" />
+            </TouchableOpacity>
           </View>
+
+          {/* Bottom Spacing */}
+          <View className="h-8" />
         </ScrollView>
       </View>
     </MainLayout>

@@ -38,7 +38,7 @@ const AppAvatar: React.FC<Props> = ({ name, uri, size = 80, style }) => {
   return (
     <View
       style={[
-        { width: size, height: size, borderRadius, backgroundColor: '#19CCA1' },
+        { width: size, height: size, borderRadius, backgroundColor: '#E98074' },
         styles.container,
         style,
       ]}

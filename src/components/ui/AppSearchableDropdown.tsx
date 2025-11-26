@@ -142,7 +142,7 @@ const AppSearchableDropdown: React.FC<Props> = ({
                 type === 'subcategory' ? 'danh mục con' : 'thương hiệu'
               }`}
               placeholderTextColor="#9CA3AF"
-              className="border border-gray-300 rounded-lg px-4 py-2.5 bg-white pr-11"
+              className="border border-gray-300 rounded-lg px-4 py-2.5 bg-white pr-11 text-text-main"
             />
 
             {selected && query && (
@@ -191,7 +191,7 @@ const AppSearchableDropdown: React.FC<Props> = ({
                           key={String(itemId)}
                           onPress={() => handleSelect(item)}
                           className={`px-4 py-3 border-b border-gray-100 ${
-                            picked ? 'bg-primary-50' : ''
+                            picked ? 'bg-red-100' : ''
                           }`}
                         >
                           <Text className="text-gray-900">

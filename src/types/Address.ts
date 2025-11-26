@@ -1,10 +1,10 @@
-export type Address = {
-  id: string;
-  name: string;
-  phone: string;
+export interface Address {
+  userAddressId: string;
+  userId: string;
   address: string;
-  latitude: number;
-  longitude: number;
-};
+  iat: number;
+  ing: number;
+  isDefault: boolean;
+}
 
 export * from './Address';

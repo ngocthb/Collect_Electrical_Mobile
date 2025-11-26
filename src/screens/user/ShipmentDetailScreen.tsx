@@ -101,7 +101,7 @@ export default function ShipmentDetailScreen() {
               onPress={() => handleCall(shipper.phone)}
               className="p-2 mr-2 bg-blue-50 rounded-lg"
             >
-              <Icon name="phone" size={18} color="#4169E1" />
+              <Icon name="phone" size={18} color="#e85a4f" />
             </TouchableOpacity>
           </View>
         </View>

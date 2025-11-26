@@ -32,7 +32,7 @@ export const predefinedTimeSlots: PredefinedTimeSlot[] = [
     label: 'Giờ hành chính ',
     times: ['09:00 AM', '05:00 PM'],
     icon: 'briefcase',
-    color: '#3B82F6',
+    color: '#e85a4f',
   },
   {
     label: 'Chỉ buổi tối ',

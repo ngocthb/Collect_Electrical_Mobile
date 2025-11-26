@@ -23,7 +23,7 @@ import Config from '../config/env';
 MapboxGL.setAccessToken(Config.MAPBOX_ACCESS_TOKEN);
 
 interface MapboxPickerProps {
-  onLocationSelect: (location: LocationData) => void;
+  onLocationSelect: (location: LocationData) => Promise<void> | void;
   initialLocation?: LocationData;
   searchPlaceholder?: string;
   confirmButtonText?: string;
@@ -56,6 +56,7 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
     [number, number] | null
   >(null);
   const [showCurrentLocation, setShowCurrentLocation] = useState<boolean>(true);
+  const [confirmLoading, setConfirmLoading] = useState<boolean>(false);
 
   const mapRef = useRef<MapboxGL.MapView>(null);
   const cameraRef = useRef<MapboxGL.Camera>(null);
@@ -138,8 +139,9 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
 
     setSelectedLocation(location);
     setMarkerCoordinate([longitude, latitude]);
+    // Clear search results and search input after selecting a result
     setSearchResults([]);
-    setSearchQuery(feature.place_name);
+    setSearchQuery('');
     setShowCurrentLocation(false);
 
     cameraRef.current?.setCamera({
@@ -165,7 +167,6 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
       const location = await reverseGeocodeService(longitude, latitude);
       setMarkerCoordinate([longitude, latitude]);
       setSelectedLocation(location);
-      setSearchQuery(location.name);
       setShowCurrentLocation(false);
     } catch (error) {
       const fallbackLocation: LocationData = {
@@ -175,15 +176,23 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
       };
       setMarkerCoordinate([longitude, latitude]);
       setSelectedLocation(fallbackLocation);
-      setSearchQuery('Vị trí đã chọn');
       setShowCurrentLocation(false);
     }
   };
 
   const handleConfirmLocation = (): void => {
-    if (selectedLocation) {
-      onLocationSelect(selectedLocation);
-    }
+    if (!selectedLocation) return;
+    (async () => {
+      setConfirmLoading(true);
+      try {
+        await onLocationSelect(selectedLocation);
+      } catch (err) {
+        // propagate or handle if needed
+        console.warn('onLocationSelect error', err);
+      } finally {
+        setConfirmLoading(false);
+      }
+    })();
   };
 
   const handleMyLocation = async () => {
@@ -225,7 +234,7 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
             onSubmitEditing={() => Keyboard.dismiss()}
           />
           {loading && (
-            <ActivityIndicator className="ml-2" size="small" color="#3b82f6" />
+            <ActivityIndicator className="ml-2" size="small" color="#e85a4f" />
           )}
           {searchQuery.length > 0 && (
             <TouchableOpacity
@@ -244,15 +253,14 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
       {/* Search Results */}
       {searchResults.length > 0 && (
         <View className="absolute top-16 left-2 right-2 max-h-72 bg-white rounded-xl shadow-lg z-30">
-          <FlatList
-            data={searchResults}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => (
+          <View>
+            {searchResults.map(item => (
               <TouchableOpacity
+                key={item.id}
                 className="flex-row items-center px-4 py-3 border-b border-gray-100"
                 onPress={() => handleSelectLocation(item)}
               >
-                <Icon name="place" size={20} color="#3b82f6" className="mr-3" />
+                <Icon name="place" size={20} color="#e85a4f" className="mr-3" />
                 <Text
                   className="flex-1 text-sm text-gray-800"
                   numberOfLines={2}
@@ -260,9 +268,8 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
                   {item.place_name}
                 </Text>
               </TouchableOpacity>
-            )}
-            keyboardShouldPersistTaps="handled"
-          />
+            ))}
+          </View>
         </View>
       )}
 
@@ -301,7 +308,7 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
                 backgroundColor: 'white',
                 borderRadius: 20,
                 borderWidth: 2,
-                borderColor: '#3b82f6',
+                borderColor: '#e85a4f',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.25,
@@ -309,7 +316,7 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
                 elevation: 5,
               }}
             >
-              <Icon name="my-location" size={24} color="#3b82f6" />
+              <Icon name="my-location" size={24} color="#e85a4f" />
             </View>
           </MapboxGL.PointAnnotation>
         )}
@@ -334,7 +341,7 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
           onPress={handleMyLocation}
           activeOpacity={0.7}
         >
-          <Icon name="my-location" size={24} color="#3b82f6" />
+          <Icon name="my-location" size={24} color="#e85a4f" />
         </TouchableOpacity>
       )}
 
@@ -358,18 +365,18 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
             </Text>
           </View>
           <TouchableOpacity
-            className="bg-blue-500 py-4 rounded-xl items-center flex-row justify-center"
-            onPress={handleConfirmLocation}
+            className="bg-primary-100 py-4 rounded-xl items-center flex-row justify-center"
+            onPress={() => {
+              if (!confirmLoading) handleConfirmLocation();
+            }}
             activeOpacity={0.8}
+            disabled={confirmLoading}
           >
-            <Icon
-              name="check-circle"
-              size={20}
-              color="white"
-              className="mr-2"
-            />
+            {confirmLoading ? (
+              <ActivityIndicator size="small" color="#fff" className="mr-2" />
+            ) : null}
             <Text className="text-white text-base font-semibold">
-              {confirmButtonText}
+              {confirmLoading ? 'Đang xử lý...' : confirmButtonText}
             </Text>
           </TouchableOpacity>
         </View>

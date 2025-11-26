@@ -54,7 +54,7 @@ const CustomErrorToast = (props: any) => (
 const CustomInfoToast = (props: any) => (
   <BaseToast
     {...props}
-    style={[baseToastStyle, { borderLeftColor: '#3B82F6' }]}
+    style={[baseToastStyle, { borderLeftColor: '#e85a4f' }]}
     contentContainerStyle={{ paddingHorizontal: 12 }}
     text1Style={text1Style}
     text2Style={text2Style}

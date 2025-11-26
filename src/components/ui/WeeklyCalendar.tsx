@@ -90,12 +90,12 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                     }}
                     disabled={!cell}
                     className={`w-9 h-9 items-center justify-center rounded-md ${
-                      isSelected ? 'bg-blue-100' : ''
+                      isSelected ? 'bg-red-50' : ''
                     }`}
                   >
                     <Text
                       className={`text-sm ${
-                        isToday ? 'text-blue-600 font-bold' : 'text-gray-700'
+                        isToday ? 'text-primary-100 font-bold' : 'text-gray-700'
                       }`}
                     >
                       {cell ? cell.getDate() : ''}
@@ -128,24 +128,20 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
           onPress={e => e.stopPropagation()}
         >
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-lg font-bold text-gray-900">Chọn ngày</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Icon name="x" size={22} color="#9CA3AF" />
-            </TouchableOpacity>
-          </View>
-
-          <View className="flex-row items-center justify-between mb-3">
             <View className="flex-row items-center">
               <TouchableOpacity onPress={() => changeMonth(-1)} className="p-2">
-                <Icon name="chevron-left" size={20} color="#333" />
+                <Icon name="chevron-left" size={20} color="#e85a4f" />
               </TouchableOpacity>
               <Text className="text-sm font-semibold mx-2">
                 {currentMonth + 1}/{currentYear}
               </Text>
               <TouchableOpacity onPress={() => changeMonth(1)} className="p-2">
-                <Icon name="chevron-right" size={20} color="#333" />
+                <Icon name="chevron-right" size={20} color="#e85a4f" />
               </TouchableOpacity>
             </View>
+            <TouchableOpacity onPress={onClose}>
+              <Icon name="x" size={22} color="#9CA3AF" />
+            </TouchableOpacity>
           </View>
 
           <ScrollView>{renderMonthGrid()}</ScrollView>

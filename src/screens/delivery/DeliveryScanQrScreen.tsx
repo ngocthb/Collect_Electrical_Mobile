@@ -3,10 +3,11 @@ import { View, Text, ScrollView, Image } from 'react-native';
 import toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Feather';
 import routeService from '../../services/routeService';
-import { maskPhone } from '../../utils/validations';
+
 import ScanQrComponent from '../../components/ScanQrComponent';
 import AppButton from '../../components/ui/AppButton';
 import AppAvatar from '../../components/ui/AppAvatar';
+import ImageGalleryViewer from '../../components/ui/ImageGalleryViewer';
 import SubLayout from '../../layout/SubLayout';
 import { useSelector } from 'react-redux';
 
@@ -99,6 +100,7 @@ const DeliveryScanQrScreen = ({
     })();
   };
 
+  console.log(request);
   const handleScanClose = () => {
     toast.show({
       type: 'confirm',
@@ -140,19 +142,19 @@ const DeliveryScanQrScreen = ({
       title="Xác thực sản phẩm"
       onBackPress={() => navigation.goBack()}
     >
-      <ScrollView className="flex-1 bg-gray-50">
-        <View className="flex-1 px-6  pb-8">
+      <ScrollView className="flex-1 bg-background-50">
+        <View className="flex-1 px-6 pb-8">
           {!shipperId && (
             <View className="items-center pt-12">
-              <View className="w-20 h-20 bg-blue-100 rounded-full items-center justify-center ">
-                <Icon name="box" size={40} color="#3B82F6" />
+              <View className="w-20 h-20 bg-red-50 rounded-full items-center justify-center ">
+                <Icon name="box" size={40} color="#e85a4f" />
               </View>
             </View>
           )}
 
           {/* Status Card */}
           {shipperId ? (
-            <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-green-100 mt-10">
+            <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm border-2 border-red-200 ">
               <View className="items-center">
                 <View className="w-16 h-16 bg-green-100 rounded-full items-center justify-center mb-4">
                   <Icon name="check-circle" size={32} color="#10B981" />
@@ -160,129 +162,77 @@ const DeliveryScanQrScreen = ({
                 <Text className="text-xl font-bold text-green-600 mb-2">
                   Xác thực thành công!
                 </Text>
-                <Text className="text-sm text-gray-500 mb-4">
-                  Sản phẩm đã được hệ thống ghi nhận
-                </Text>
+
                 <Text className="text-sm text-text-main mb-4">
                   Mã sản phẩm : {shipperId}
                 </Text>
-                <View className=" justify-between  bg-gray-50 rounded-xl py-4 px-2 w-full mb-4 items-center gap-2">
+                <View className=" justify-between  bg-primary-100  rounded-xl py-4 px-2 w-full mb-4 items-center gap-2 border-2 border-red-200">
                   <View className="flex-row  items-center  w-full">
                     <View className="w-1/3 items-center">
-                      {senderInfo?.avatar ? (
-                        <Image
-                          source={{ uri: senderInfo.avatar }}
-                          className="w-20 h-20 rounded-full"
+                      <View className="relative ">
+                        <AppAvatar
+                          name={senderInfo?.name}
+                          uri={senderInfo.avatar}
+                          size={70}
                           style={{
-                            shadowColor: '#3B82F6',
-                            shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: 0.3,
-                            shadowRadius: 8,
+                            borderWidth: 3,
+                            borderColor: '#fff',
                           }}
-                          resizeMode="cover"
                         />
-                      ) : (
-                        <AppAvatar name={senderInfo?.name} size={70} />
-                      )}
+                      </View>
                     </View>
                     <View className="w-2/3 ">
-                      <Text className="text-sm text-start text-gray-600  mb-1">
+                      <Text className="text-sm text-start text-white  mb-1">
                         Người gửi hàng
                       </Text>
                       <Text className="text-lg font-bold text-gray-900 text-start">
                         {senderInfo?.name}
                       </Text>
-                      <Text className="text-sm text-gray-500 text-start mt-1">
-                        SĐT: {maskPhone(senderInfo?.phone) || '—'}
+                      <Text className="text-sm text-white text-start mt-1">
+                        {senderInfo?.email || '—'}
                       </Text>
                     </View>
                   </View>
-                  {senderInfo?.address && (
-                    <Text
-                      className="text-sm flex-1 text-gray-500 text-start mt-1"
-                      numberOfLines={3}
-                      ellipsizeMode="tail"
-                    >
-                      Đ/c: {senderInfo.address}
-                    </Text>
-                  )}
                 </View>
 
                 {/* Items to be delivered (from request) */}
                 <View className="bg-white rounded-lg w-full">
-                  {request ? (
-                    <View>
-                      <Text className="text-sm text-gray-500 mb-2">
-                        {request.itemName ?? request.name}
-                      </Text>
-                      {(request.pickUpItemImages ||
-                        request.confirmImages ||
-                        request.images) && (
-                        <ScrollView
-                          horizontal
-                          showsHorizontalScrollIndicator={false}
-                          className="mb-2"
-                        >
-                          {(
-                            request.pickUpItemImages ??
-                            request.confirmImages ??
-                            request.images
-                          ).map((img: any, idx: number) => (
-                            <Image
-                              key={idx}
-                              source={
-                                typeof img === 'string'
-                                  ? { uri: img }
-                                  : img && img.uri
-                                  ? { uri: img.uri }
-                                  : img
-                              }
-                              style={{
-                                width: 120,
-                                height: 80,
-                                borderRadius: 8,
-                                marginRight: 8,
-                              }}
-                            />
-                          ))}
-                        </ScrollView>
-                      )}
-                    </View>
-                  ) : (
-                    <Text className="text-sm text-gray-600">
-                      Không có thông tin đơn hàng
+                  <View>
+                    <Text className="text-text-main text-xs font-semibold uppercase tracking-wider mb-2">
+                      {request?.subCategoryName} • {request?.brandName}
                     </Text>
-                  )}
+                    <View className="mb-2">
+                      <ImageGalleryViewer
+                        images={(
+                          request.pickUpItemImages ??
+                          request.confirmImages ??
+                          request.images ??
+                          []
+                        ).map((img: any) =>
+                          typeof img === 'string' ? img : img?.uri || '',
+                        )}
+                        imageSize={120}
+                        imageSpacing={8}
+                        borderRadius={8}
+                      />
+                    </View>
+                  </View>
 
                   <View>
                     <Text className="text-base font-semibold mb-2">
                       Ảnh xác nhận
                     </Text>
                     {imageUrl.length > 0 && (
-                      <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        className="mb-2"
-                      >
-                        {imageUrl.map((img: any, idx: number) => (
-                          <Image
-                            key={idx}
-                            source={
-                              typeof img === 'string'
-                                ? { uri: img }
-                                : img && img.uri
-                                ? { uri: img.uri }
-                                : img
-                            }
-                            style={{
-                              width: 120,
-                              height: 80,
-                              borderRadius: 8,
-                              marginRight: 8,
-                            }}
-                          />
-                        ))}
-                      </ScrollView>
+                      <View className="mb-2">
+                        <ImageGalleryViewer
+                          images={imageUrl.map((img: any) =>
+                            typeof img === 'string' ? img : img?.uri || '',
+                          )}
+                          imageSize={120}
+                          imageSpacing={8}
+                          borderRadius={8}
+                        />
+                      </View>
                     )}
                   </View>
                 </View>

@@ -6,12 +6,7 @@ import { store } from './src/store';
 import RootNavigator from './src/navigation/RootNavigator';
 import { useEffect } from 'react';
 import { useAppDispatch } from './src/store/hooks';
-import {
-  setUser,
-  setRole,
-  setLoading as setLoadingAction,
-} from './src/store/authSlice';
-import { bootstrapAuth } from './src/services/authService';
+import { bootstrapApp } from './src/services/bootstrapService';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 // @ts-ignore
@@ -28,22 +23,7 @@ function AppContent() {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    const bootstrap = async () => {
-      try {
-        dispatch(setLoadingAction(true));
-        const result = await bootstrapAuth();
-        if (result.success && result.profile) {
-          dispatch(setUser(result.profile));
-          dispatch(setRole((result.role || 'user') as 'user' | 'delivery'));
-        }
-      } catch (e) {
-        console.warn('[bootstrap] error', e);
-      } finally {
-        dispatch(setLoadingAction(false));
-      }
-    };
-
-    bootstrap();
+    bootstrapApp(dispatch);
   }, [dispatch]);
 
   return (

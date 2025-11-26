@@ -17,7 +17,7 @@ const AttributeSizePanel: React.FC<Props> = ({
   onChange,
   isLoading = false,
 }) => {
-  if (isLoading) return <ActivityIndicator size="small" color="#4169E1" />;
+  if (isLoading) return <ActivityIndicator size="small" color="#e85a4f" />;
 
   if (!attributes || attributes.length === 0) {
     return (

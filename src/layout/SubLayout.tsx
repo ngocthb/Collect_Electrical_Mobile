@@ -9,6 +9,7 @@ interface SubLayoutProps {
   rightComponent?: React.ReactNode;
   onRefresh?: () => Promise<void> | void;
   noScroll?: boolean;
+  enableRefresh?: boolean;
 }
 
 const SubLayout: React.FC<SubLayoutProps> = ({
@@ -18,6 +19,7 @@ const SubLayout: React.FC<SubLayoutProps> = ({
   rightComponent,
   onRefresh,
   noScroll,
+  enableRefresh = true,
 }) => {
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -32,7 +34,7 @@ const SubLayout: React.FC<SubLayoutProps> = ({
   };
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 ">
       <BackHeader
         title={title}
         onBackPress={onBackPress}
@@ -44,12 +46,14 @@ const SubLayout: React.FC<SubLayoutProps> = ({
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor="#19CCA1"
-              colors={['#19CCA1']}
-            />
+            enableRefresh && onRefresh ? (
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor="#e85a4f"
+                colors={['#e85a4f']}
+              />
+            ) : undefined
           }
         >
           <View className="flex-1">{children}</View>

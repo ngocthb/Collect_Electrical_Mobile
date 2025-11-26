@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import toast from 'react-native-toast-message';
 import Config from './env';
+import { AxiosResponse } from 'axios';
 
 const axiosClient = axios.create({
   baseURL: Config.API_URL,
@@ -30,7 +31,7 @@ axiosClient.interceptors.request.use(
 
 // Response Interceptor
 axiosClient.interceptors.response.use(
-  response => response.data,
+  (response: AxiosResponse) => response.data as any,
   error => {
     // Xử lý lỗi chung (401, 403, 500...)
     if (error.response?.status === 401) {

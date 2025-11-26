@@ -12,7 +12,7 @@ interface Props {
 export default function CenterPlusButton({
   onPress,
   size = 64,
-  color = '#19CCA1',
+  color = '#e85a4f',
   topOffset = -20,
 }: Props) {
   const radius = size / 2;

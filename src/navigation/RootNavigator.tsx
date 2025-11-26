@@ -28,7 +28,7 @@ export default function RootNavigator() {
     <>
       {!auth.user ? (
         <AuthNavigator />
-      ) : auth.role === 'delivery' ? (
+      ) : auth.user.role === 'Collector' ? (
         <MainNavigator delivery />
       ) : (
         <MainNavigator />

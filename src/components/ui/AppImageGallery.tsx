@@ -44,7 +44,7 @@ const AppImageGallery = ({
                   <Icon
                     name="play"
                     size={20}
-                    color="#3B82F6"
+                    color="#e85a4f"
                     style={{ marginLeft: 2 }}
                   />
                 </View>
@@ -68,10 +68,10 @@ const AppImageGallery = ({
 
         {images.length < 5 && (
           <TouchableOpacity
-            className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-xl items-center justify-center bg-gray-50 mr-3 mb-3"
+            className="w-24 h-24 border-2 border-dashed border-red-200 rounded-xl items-center justify-center bg-gray-50 mr-3 mb-3"
             onPress={onAddPress}
           >
-            <Icon name="add" size={32} color="#9CA3AF" />
+            <Icon name="camera" size={32} color="#E98074" />
             <Text className="text-gray-400 text-xs mt-1">Thêm</Text>
           </TouchableOpacity>
         )}

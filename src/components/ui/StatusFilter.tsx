@@ -19,14 +19,7 @@ const StatusFilter: React.FC<StatusFilterProps> = ({
   onStatusChange,
 }) => {
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        backgroundColor: '#F3F4F6',
-        borderRadius: 12,
-        padding: 4,
-      }}
-    >
+    <View className="flex-row bg-background-50 p-2">
       {options.map(status => {
         const selected = selectedStatus === status.value;
         return (
@@ -51,7 +44,7 @@ const StatusFilter: React.FC<StatusFilterProps> = ({
                 fontSize: 11,
                 fontWeight: '700',
                 textAlign: 'center',
-                color: selected ? '#3B82F6' : '#9CA3AF',
+                color: selected ? '#e85a4f' : '#061826',
               }}
             >
               {status.label}

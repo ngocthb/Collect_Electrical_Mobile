@@ -313,7 +313,7 @@ const DeliveryRouteScreen = () => {
               >
                 <View
                   style={{
-                    backgroundColor: selected === idx ? '#1E40AF' : '#2563EB',
+                    backgroundColor: selected === idx ? '#1E40AF' : '#e85a4f',
                     borderRadius: 16,
                     width: 32,
                     height: 32,
@@ -409,7 +409,7 @@ const DeliveryRouteScreen = () => {
                       </Text>
                       <View className="flex-row items-center bg-gray-50 rounded-2xl p-4">
                         <View className="w-14 h-14 rounded-full bg-blue-100 items-center justify-center mr-3">
-                          <Icon name="user" size={28} color="#3B82F6" />
+                          <Icon name="user" size={28} color="#e85a4f" />
                         </View>
                         <View className="flex-1">
                           <Text className="text-base font-bold text-gray-900">

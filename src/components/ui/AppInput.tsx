@@ -66,35 +66,18 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
       setShowPassword(!showPassword);
     };
 
-    const clamp = (n: number) => {
-      if (typeof min === 'number' && n < min) return min;
-      if (typeof max === 'number' && n > max) return max;
-      return n;
-    };
-
     const containerPaddingClass = compact
       ? 'px-2  rounded-md'
       : 'px-3 py-1 rounded-lg';
     const inputTextSizeClass = compact ? 'text-xs' : 'text-sm';
-    const iconSize = compact ? 10 : 12;
-
-    const handleStep = (dir: 'up' | 'down') => {
-      if (disabled) return;
-      // parse current value to number, fall back to 0
-      const cur = parseFloat(String(value ?? ''));
-      const base = Number.isFinite(cur) ? cur : 0;
-      const delta = dir === 'up' ? step : -step;
-      const next = clamp(Number((base + delta).toString()));
-      onChangeText?.(String(next));
-    };
 
     const renderInputContainer = (extraClass = '') => (
       <View
         className={`flex-row items-center border bg-white ${containerPaddingClass} ${
           isFocused
-            ? 'border-blue-500'
-            : error
             ? 'border-red-500'
+            : error
+            ? 'border-blue-500'
             : 'border-gray-300'
         } ${disabled ? 'bg-gray-100' : ''} ${extraClass}`}
       >
@@ -119,34 +102,6 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
           numberOfLines={numberOfLines} // Pass the number of lines to TextInput
           {...props}
         />
-
-        {/* Stepper arrows (vertical up/down on the right) */}
-        {showStepper && isNumeric && (
-          <View className="flex-col items-center ml-2">
-            <TouchableOpacity
-              onPress={() => handleStep('up')}
-              disabled={disabled}
-              className="p-1"
-            >
-              <Icon
-                name="chevron-up-outline"
-                size={iconSize}
-                color={disabled ? '#D1D5DB' : '#666'}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => handleStep('down')}
-              disabled={disabled}
-              className="p-1"
-            >
-              <Icon
-                name="chevron-down-outline"
-                size={iconSize}
-                color={disabled ? '#D1D5DB' : '#666'}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
 
         {/* Password Toggle (only for password fields) */}
         {isPassword && (

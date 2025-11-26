@@ -8,12 +8,12 @@ interface AddressState {
 }
 
 const initialAddress: Address = {
-  id: '0',
-  name: '',
-  phone: '',
+  userAddressId: '',
+  userId: '',
   address: '',
-  latitude: 0,
-  longitude: 0,
+  iat: 0,
+  ing: 0,
+  isDefault: false,
 };
 
 const initialState: AddressState = {
@@ -32,12 +32,14 @@ const addressSlice = createSlice({
 
     addAddress(state, action: PayloadAction<Address>) {
       state.list.unshift(action.payload);
-      state.lastAddedId = action.payload.id;
+      state.lastAddedId = action.payload.userAddressId;
       state.current = initialAddress;
     },
 
     updateAddress(state, action: PayloadAction<Address>) {
-      const idx = state.list.findIndex(a => a.id === action.payload.id);
+      const idx = state.list.findIndex(
+        a => a.userAddressId === action.payload.userAddressId,
+      );
       if (idx !== -1) {
         state.list[idx] = action.payload;
       }

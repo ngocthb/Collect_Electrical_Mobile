@@ -107,7 +107,7 @@ const ScrollPicker = React.memo<{
             >
               <Text
                 className={`text-lg font-semibold ${
-                  option === value ? 'text-blue-600' : 'text-gray-400'
+                  option === value ? 'text-primary-100' : 'text-gray-400'
                 }`}
               >
                 {option}
@@ -208,7 +208,7 @@ const CustomTimeModal: React.FC<CustomTimeModalProps> = ({
               >
                 <Text
                   className={`text-base font-bold ${
-                    period === p ? 'text-blue-600' : 'text-gray-400'
+                    period === p ? 'text-primary-100' : 'text-gray-400'
                   }`}
                 >
                   {p}
@@ -312,7 +312,7 @@ const CustomTimeModal: React.FC<CustomTimeModalProps> = ({
               <Text className="text-gray-600 font-semibold">Hủy</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              className="px-6 py-3 bg-blue-500 rounded-xl"
+              className="px-6 py-3 bg-primary-100 rounded-xl"
               onPress={handleSave}
             >
               <Text className="text-white font-semibold">Lưu</Text>

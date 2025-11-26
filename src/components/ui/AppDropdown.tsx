@@ -162,7 +162,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
                     item !== options[options.length - 1] ? 1 : 0,
                   borderBottomColor: '#F3F4F6',
                   backgroundColor:
-                    selectedOption?.id === item.id ? '#EFF6FF' : '#FFFFFF',
+                    selectedOption?.id === item.id ? '#FEE2E2' : '#FFFFFF',
                 }}
                 onPress={() => handleSelect(item)}
               >
@@ -170,7 +170,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
                   style={{
                     fontSize: size === 'sub' ? 12 : 16,
                     color:
-                      selectedOption?.id === item.id ? '#2563EB' : '#374151',
+                      selectedOption?.id === item.id ? '#e85a4f' : '#374151',
                     fontWeight: selectedOption?.id === item.id ? '600' : '400',
                   }}
                 >

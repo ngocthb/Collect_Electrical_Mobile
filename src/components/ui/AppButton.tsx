@@ -26,7 +26,7 @@ const AppButton: React.FC<AppButtonProps> = ({
   onPress,
   loading = false,
   disabled = false,
-  color = '#2563EB',
+  color = '#e85a4f',
   textColor = '#FFFFFF',
   spinnerColor = '#FFFFFF',
   className = '',
@@ -47,7 +47,7 @@ const AppButton: React.FC<AppButtonProps> = ({
         backgroundColor: color,
         opacity: isDisabled ? 0.6 : 1,
       }}
-      className={`w-full flex-col items-center justify-center rounded-xl ${heightClass} ${className}`}
+      className={`w-full flex-col items-center justify-center rounded-xl border-2 border-red-200 ${heightClass} ${className}`}
     >
       {loading ? (
         <View className="flex-row items-center space-x-2">

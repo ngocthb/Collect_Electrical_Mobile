@@ -1,10 +1,8 @@
 import React, { useMemo } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import AppButton from '../components/ui/AppButton';
+
 import {
-  getOrderName,
-  getOrderTime,
   getOrderAddress,
   resolveStatus,
   getStatusColor,
@@ -58,11 +56,34 @@ const DeliveryOrderCard = ({
       normalizedRequest: order,
       pickupLocationName: getOrderAddress(order),
       isRouteLoading: false,
-      distanceText: '---',
+      distanceText: order?.distanceText || '---',
       durationText: '---',
     });
   };
-  console.log(order);
+
+  const handleDirections = async () => {
+    const lat = order?.iat ?? order?.lat;
+    const lng = order?.ing ?? order?.lng;
+
+    if (!lat || !lng) {
+      console.warn('No coordinates available for directions');
+      return;
+    }
+
+    try {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        const fallbackUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+        await Linking.openURL(fallbackUrl);
+      }
+    } catch (e) {
+      console.warn('Cannot open Google Maps', e);
+    }
+  };
+
   return (
     <View className="flex-row mb-8 relative z-10">
       <View className="items-center mr-3">
@@ -98,7 +119,7 @@ const DeliveryOrderCard = ({
               </View>
             </View>
             <Text className="text-xs text-text-main">
-              <Icon name="clock" size={10} color="#19CCA1" />{' '}
+              <Icon name="clock" size={10} color="#e85a4f" />{' '}
               {order?.estimatedTime}
             </Text>
           </View>
@@ -108,25 +129,25 @@ const DeliveryOrderCard = ({
               onPress={() =>
                 isSelectedDateToday && !actionsDisabled && handleEyePress()
               }
-              className="bg-primary-50 rounded-full p-2"
+              className="bg-gray-100 rounded-full p-2"
               disabled={!isSelectedDateToday || actionsDisabled}
               style={{
                 opacity: !isSelectedDateToday || actionsDisabled ? 0.4 : 1,
               }}
             >
-              <Icon name="eye" size={26} color="#4169E1" />
+              <Icon name="eye" size={26} color="#3366CC" />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() =>
-                isSelectedDateToday && !actionsDisabled && onOpenMap(order)
+                isSelectedDateToday && !actionsDisabled && handleDirections()
               }
-              className="bg-primary-50 rounded-full p-2"
+              className="bg-gray-100 rounded-full p-2"
               disabled={!isSelectedDateToday || actionsDisabled}
               style={{
                 opacity: !isSelectedDateToday || actionsDisabled ? 0.4 : 1,
               }}
             >
-              <Icon name="directions" size={26} color="#4169E1" />
+              <Icon name="directions" size={26} color="#3366CC" />
             </TouchableOpacity>
 
             {invitees.length > 0 && isSelectedDateToday && !actionsDisabled ? (
@@ -137,10 +158,10 @@ const DeliveryOrderCard = ({
               />
             ) : invitees.length > 0 ? (
               <View
-                className="bg-primary-50 rounded-full p-2"
+                className="bg-gray-100 rounded-full p-2"
                 style={{ opacity: 0.4 }}
               >
-                <Icon name="phone" size={26} color="#4169E1" />
+                <Icon name="phone-in-talk" size={26} color="#3366CC" />
               </View>
             ) : (
               <View>
@@ -152,14 +173,14 @@ const DeliveryOrderCard = ({
           </View>
         </View>
 
-        <View className="bg-primary-50 rounded-xl p-3 mb-2">
-          <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-2">
-            {order?.subCategoryName} • {order?.brandName}
+        <View className="bg-white rounded-xl p-3 mb-3 border border-red-200 flex-row items-center justify-between">
+          <Text className="flex-1 text-sm font-medium text-text-main">
+            {order?.address}
           </Text>
-          <View className="flex-row items-center mb-3">
-            <Icon name="map-marker" size={16} color="#4169E1" />
-            <Text className="ml-2 text-sm font-normal text-text-main">
-              {order?.address}
+
+          <View className="bg-red-50 px-3 py-1 rounded-lg ">
+            <Text className="text-primary-100 font-bold text-lg">
+              {order?.distanceText || '---'}
             </Text>
           </View>
         </View>

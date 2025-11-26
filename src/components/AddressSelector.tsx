@@ -1,11 +1,17 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Feather';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { maskPhone } from '../utils/validations';
+import { useNavigation } from '@react-navigation/native';
+
 import type { Address } from '../types/Address';
-import mockAddressService from '../services/mockAddressService';
+import addressService from '../services/addressService';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   saveAddress,
@@ -25,77 +31,50 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
   const navigation = useNavigation<any>();
   const dispatch = useAppDispatch();
 
-  const current = useAppSelector(state => state.address.current);
   const addresses = useAppSelector(state => state.address.list);
-  const lastAddedId = useAppSelector(state => state.address.lastAddedId);
 
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      const fetchAddresses = async () => {
-        // Only fetch if addresses list is empty
-        if (addresses.length === 0) {
-          setIsLoading(true);
-          const data = await mockAddressService.list();
-          dispatch(setAddressList(data));
-          setIsLoading(false);
-        }
-
-        // Use setTimeout to avoid setState during render
-        setTimeout(() => {
-          // Auto-select newly created address
-          if (lastAddedId) {
-            const newlyAdded = addresses.find(a => a.id === lastAddedId);
-            if (newlyAdded) {
-              onSelectAddress(newlyAdded);
-              dispatch(clearLastAddedId());
-              return;
-            }
-          }
-
-          if (current && current.id !== '0') {
-            const found = addresses.find(a => a.id === current.id);
-            if (found) {
-              onSelectAddress(found);
-              return;
-            }
-          }
-
-          if (addresses.length > 0 && selectedAddress === null) {
-            onSelectAddress(addresses[0]);
-          }
-        }, 0);
-      };
-
-      fetchAddresses();
-    }, [
-      current,
-      addresses.length,
-      lastAddedId,
-      dispatch,
-      onSelectAddress,
-      selectedAddress,
-    ]),
-  );
+  // Auto-select default address when component mounts or addresses change
+  useEffect(() => {
+    if (!selectedAddress && addresses && addresses.length > 0) {
+      const defaultAddr = addresses.find(a => a.isDefault);
+      if (defaultAddr) {
+        onSelectAddress(defaultAddr);
+      }
+    }
+  }, [addresses, selectedAddress, onSelectAddress]);
 
   const handleEditAddress = async (address: Address) => {
     dispatch(saveAddress(address));
     await new Promise<void>(resolve => setTimeout(resolve, 200));
-    navigation.navigate('CreateAddress');
+    navigation.navigate('MapboxLocationScreen', {
+      mode: 'edit',
+      address: address,
+    });
   };
 
   const handleCreateNewAddress = async () => {
     onSelectAddress(null);
     setIsCreatingNew(true);
 
-    navigation.navigate('CreateAddress');
+    navigation.navigate('MapboxLocationScreen', {
+      mode: 'create',
+    });
     setIsCreatingNew(false);
   };
 
   const handleDeleteAddress = (addr: Address) => {
+    if (addr.isDefault) {
+      toast.show({
+        type: 'warning',
+        text1: 'Không thể xóa',
+        text2: 'Vui lòng chọn một địa chỉ khác làm mặc định trước khi xóa.',
+      });
+      return;
+    }
     toast.show({
       type: 'confirm',
       text1: 'Xóa địa chỉ',
@@ -108,124 +87,131 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
           toast.hide();
         },
         onConfirm: async () => {
-          await mockAddressService.remove(addr.id);
-          const updated = addresses.filter(a => a.id !== addr.id);
-          dispatch(setAddressList(updated));
-          if (selectedAddress?.id === addr.id) onSelectAddress(null);
+          try {
+            await addressService.deleteAddress(addr.userAddressId);
+            const updated = addresses.filter(
+              a => a.userAddressId !== addr.userAddressId,
+            );
+            dispatch(setAddressList(updated));
+            if (selectedAddress?.userAddressId === addr.userAddressId)
+              onSelectAddress(null);
 
-          setIsDeleteMode(false);
-          toast.show({
-            type: 'success',
-            text1: 'Xóa thành công',
-            text2: `"${addr.address}" đã được xóa.`,
-          });
+            setIsDeleteMode(false);
+            toast.show({
+              type: 'success',
+              text1: 'Xóa thành công',
+              text2: `"${addr.address}" đã được xóa.`,
+            });
+          } catch (error) {
+            console.error('Failed to delete address:', error);
+            toast.show({
+              type: 'error',
+              text1: 'Lỗi',
+              text2: 'Không thể xóa địa chỉ',
+            });
+          }
         },
       },
     });
   };
 
   return (
-    <View className="mb-4">
-      {isLoading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
-      ) : (
-        <>
-          <View className="flex-row justify-between mb-2 items-center">
-            <Text className="text-sm font-semibold text-primary-100">
-              Chọn địa chỉ<Text className="text-red-500"> *</Text>
-            </Text>
-            <TouchableOpacity
-              className="p-2 bg-red-100 rounded-full"
-              onPress={() => setIsDeleteMode(!isDeleteMode)}
-            >
-              <Icon name="trash-2" size={18} color="#ef4444" />
-            </TouchableOpacity>
-          </View>
+    <TouchableWithoutFeedback
+      onPress={() => isDeleteMode && setIsDeleteMode(false)}
+    >
+      <View className="mb-4">
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#e85a4f" />
+        ) : (
+          <>
+            <View className="flex-row justify-between mb-2 items-center">
+              <Text className="text-sm font-semibold text-primary-100">
+                Chọn địa chỉ<Text className="text-red-500"> *</Text>
+              </Text>
+              <TouchableOpacity
+                className="p-2 bg-red-100 rounded-full"
+                onPress={() => setIsDeleteMode(!isDeleteMode)}
+              >
+                <Icon name="trash-2" size={18} color="#e85a4f" />
+              </TouchableOpacity>
+            </View>
 
-          {addresses.map(addr => (
-            <TouchableOpacity
-              key={addr.id}
-              className={`px-4 py-2.5 rounded-lg border-2 mb-2 flex-row items-center justify-between ${
-                selectedAddress?.id === addr.id
-                  ? 'bg-blue-100 border-blue-500'
-                  : 'bg-white border-gray-300'
-              }`}
-              onPress={() => onSelectAddress(addr)}
-            >
-              <View className="flex-1 mr-2">
-                <View className="flex-row justify-between">
-                  <Text className="text-sm font-semibold text-gray-900">
-                    {addr.name}
-                  </Text>
-                  <Text className="text-xs text-gray-500">
-                    {maskPhone(addr.phone)}
-                  </Text>
+            {addresses.map(addr => (
+              <TouchableOpacity
+                key={addr.userAddressId}
+                className={`px-4 py-2.5 rounded-lg border-2 mb-2 flex-row items-center justify-between ${
+                  selectedAddress?.userAddressId === addr.userAddressId
+                    ? 'bg-red-50 border-primary-100'
+                    : 'bg-white  border-red-200'
+                }`}
+                onPress={() => onSelectAddress(addr)}
+              >
+                <View className="flex-1 mr-2">
+                  <View className="flex-row items-center mb-1">
+                    <Text
+                      className="text-xs text-gray-600 flex-1"
+                      numberOfLines={2}
+                    >
+                      {addr.address}
+                    </Text>
+                    {addr.isDefault && (
+                      <View className="ml-2 bg-primary-100 px-2 py-0.5 rounded-full">
+                        <Text className="text-[10px] font-semibold text-white">
+                          Mặc định
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
-                <Text className="text-xs text-gray-600" numberOfLines={2}>
-                  {addr.address}
-                </Text>
-              </View>
 
-              {isDeleteMode ? (
-                <TouchableOpacity
-                  className="p-2 bg-red-100 rounded-full"
-                  onPress={() => handleDeleteAddress(addr)}
-                >
-                  <Icon name="minus" size={18} color="#ef4444" />
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  className="p-2"
-                  onPress={async () => {
-                    onSelectAddress(addr);
-                    await new Promise<void>(resolve =>
-                      setTimeout(resolve, 200),
-                    );
-                    handleEditAddress(addr);
-                  }}
-                >
-                  <Icon name="chevron-right" size={18} color="#6B7280" />
-                </TouchableOpacity>
-              )}
-            </TouchableOpacity>
-          ))}
+                {isDeleteMode ? (
+                  <TouchableOpacity
+                    className="p-2 bg-red-100 rounded-full"
+                    onPress={() => handleDeleteAddress(addr)}
+                  >
+                    <Icon name="minus" size={18} color="#ef4444" />
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    className="p-2"
+                    onPress={async () => {
+                      onSelectAddress(addr);
+                      await new Promise<void>(resolve =>
+                        setTimeout(resolve, 200),
+                      );
+                      handleEditAddress(addr);
+                    }}
+                  >
+                    <Icon name="chevron-right" size={18} color="#6B7280" />
+                  </TouchableOpacity>
+                )}
+              </TouchableOpacity>
+            ))}
 
-          <TouchableOpacity
-            className={`px-4 py-2.5 rounded-lg border-2 border-dashed flex-row items-center justify-center ${
-              isCreatingNew
-                ? 'bg-blue-100 border-blue-500'
-                : 'bg-white border-gray-300'
-            }`}
-            onPress={() => {
-              if (addresses.length >= 5) {
-                toast.show({
-                  type: 'warning',
-                  text1: 'Giới hạn địa chỉ',
-                  text2: 'Bạn chỉ được tạo tối đa 5 địa chỉ.',
-                });
-                return;
-              }
-              handleCreateNewAddress();
-            }}
-            disabled={addresses.length >= 5}
-          >
-            <Icon
-              name="plus"
-              size={16}
-              color={isCreatingNew ? '#3B82F6' : '#6B7280'}
-            />
-            <Text
-              className={`text-sm font-semibold ml-2 ${
-                isCreatingNew ? 'text-blue-600' : 'text-gray-600'
-              }`}
-              style={addresses.length >= 5 ? { color: '#d1d5db' } : {}}
+            <TouchableOpacity
+              className={`px-4 py-2.5 rounded-xl border-2 border-dashed flex-row items-center justify-center border-red-200 bg-white`}
+              onPress={() => {
+                if (addresses.length >= 5) {
+                  toast.show({
+                    type: 'warning',
+                    text1: 'Giới hạn địa chỉ',
+                    text2:
+                      'Đã đạt giới hạn tối đa. Vui lòng xóa bớt địa chỉ cũ.',
+                  });
+                  return;
+                }
+                handleCreateNewAddress();
+              }}
             >
-              Tạo địa chỉ mới
-            </Text>
-          </TouchableOpacity>
-        </>
-      )}
-    </View>
+              <Icon name="plus" size={16} color="#e85a4f" />
+              <Text className={`text-sm font-semibold ml-2 text-primary-100`}>
+                Tạo địa chỉ mới
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 

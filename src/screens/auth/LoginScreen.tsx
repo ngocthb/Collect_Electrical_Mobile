@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, use } from 'react';
 import {
   View,
   Text,
@@ -10,19 +10,14 @@ import {
 } from 'react-native';
 import AppInput from '../../components/ui/AppInput';
 import AppButton from '../../components/ui/AppButton';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { loginMock, setError, setLoading } from '../../store/authSlice';
+import { setError, setLoading, setUser } from '../../store/slices/authSlice';
 import Toast from 'react-native-toast-message';
-import { signInWithGoogle, fetchUserProfile } from '../../services/authService';
-import {
-  setUser,
-  setRole,
-  setLoading as setLoadingAction,
-} from '../../store/authSlice';
+import { fetchUserProfile } from '../../services/authService';
+import { signIn } from '../../services/authService';
+const logo = require('../../assets/images/logo.png');
 
-const login = require('../../assets/images/login.png');
-const google = require('../../assets/images/google.jpg');
 export default function LoginScreen() {
   const dispatch = useAppDispatch();
   const auth = useAppSelector(s => s.auth);
@@ -34,61 +29,41 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     try {
-      const result = await dispatch(
-        loginMock({ identifier: email, password }),
-      ).unwrap();
-      // success
+      dispatch(setLoading(true));
+
+      await signIn(email, password);
+      const userProfile: any = await fetchUserProfile();
+      dispatch(setUser(userProfile));
+      console.log(userProfile);
+      if (userProfile.role === 'Collector') {
+        // @ts-ignore
+        globalThis.navigation?.replace('Dashboard');
+      } else {
+        // @ts-ignore
+        globalThis.navigation?.replace('MainTabs');
+      }
       Toast.show({
         type: 'success',
         text1: 'Đăng nhập thành công!',
-        text2: `Chào mừng ${result.user?.name || result.user?.email}`,
+        text2: `Chào mừng ${userProfile.name || userProfile.email}`,
       });
-    } catch (error: any) {
-      const message =
-        (error && (error.message || String(error))) || 'Đăng nhập thất bại';
+    } catch (error) {
       Toast.show({
         type: 'error',
         text1: 'Đăng nhập thất bại',
-        text2: message,
+        text2: 'Tên đăng nhập hoặc mật khẩu không đúng',
       });
-      dispatch(setError(message));
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
-  useEffect(() => {
-    if (auth.user && auth.role) {
-      Toast.show({
-        type: 'success',
-        text1: 'Đăng nhập thành công!',
-        text2: `Chào mừng ${auth.user.name || auth.user.email}`,
-      });
-
-      if (auth.role === 'user') {
-        // @ts-ignore
-        globalThis.navigation?.replace('MainTabs');
-      } else if (auth.role === 'delivery') {
-        // @ts-ignore
-        globalThis.navigation?.replace('Dashboard');
-      }
-    }
-  }, [auth.user, auth.role]);
-
-  useFocusEffect(
-    useCallback(() => {
-      // clear any previous auth error when screen becomes active
-      dispatch(setError(null));
-      return () => {
-        // also clear on blur if needed
-        dispatch(setError(null));
-      };
-    }, [dispatch]),
-  );
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View className="flex-1 bg-white px-6 items-center justify-center">
         {/* Logo */}
         <View className="w-28 h-28 items-center justify-center mb-8">
-          <Image source={login} className="w-24 h-24" resizeMode="contain" />
+          <Image source={logo} className="w-24 h-24" resizeMode="contain" />
         </View>
 
         {/* Welcome text */}
@@ -145,8 +120,8 @@ export default function LoginScreen() {
         <AppButton
           title="Đăng nhập"
           onPress={handleLogin}
-          loading={auth.loading}
-          disabled={auth.loading || !email || !password}
+          loading={auth.isLoading}
+          disabled={auth.isLoading || !email || !password}
         />
 
         {/* Register link */}
@@ -159,7 +134,7 @@ export default function LoginScreen() {
               navigation.navigate('SimpleLogin');
             }}
           >
-            <Text className="text-secondary-100 text-base font-bold ml-2 ">
+            <Text className="text-primary-100 text-base font-bold ml-2 ">
               Đăng nhập
             </Text>
           </TouchableOpacity>

@@ -16,16 +16,16 @@ const DeliveryDetailsScreen = () => {
   // Fetch distance once on mount
   useEffect(() => {
     const fetchInitialDistance = async () => {
-      if (!normalizedRequest?.sender?.iat || !normalizedRequest?.sender?.ing) {
-        console.log('Sender location not available');
+      const lat = normalizedRequest?.iat ?? normalizedRequest?.sender?.iat;
+      const lng = normalizedRequest?.ing ?? normalizedRequest?.sender?.ing;
+
+      if (!lat || !lng) {
+        console.log('Location not available');
         return;
       }
 
       try {
-        const res = await getCurrentLocationDistance(
-          normalizedRequest.sender.iat,
-          normalizedRequest.sender.ing,
-        );
+        const res = await getCurrentLocationDistance(lat, lng);
         setDistanceInMeters(res.distance);
         console.log('Initial distance:', res.distance);
       } catch (err) {
@@ -34,7 +34,12 @@ const DeliveryDetailsScreen = () => {
     };
 
     fetchInitialDistance();
-  }, [normalizedRequest?.sender?.iat, normalizedRequest?.sender?.ing]);
+  }, [
+    normalizedRequest?.iat,
+    normalizedRequest?.ing,
+    normalizedRequest?.sender?.iat,
+    normalizedRequest?.sender?.ing,
+  ]);
 
   const handleConfirm = useCallback(() => {
     navigation.navigate('DeliveryPhotoConfirm', {
@@ -51,16 +56,16 @@ const DeliveryDetailsScreen = () => {
   const [resetQrTrigger, setResetQrTrigger] = useState(0);
 
   const handleRefresh = useCallback(async () => {
-    if (!normalizedRequest?.sender?.iat || !normalizedRequest?.sender?.ing) {
+    const lat = normalizedRequest?.iat ?? normalizedRequest?.sender?.iat;
+    const lng = normalizedRequest?.ing ?? normalizedRequest?.sender?.ing;
+
+    if (!lat || !lng) {
       return;
     }
 
     try {
       console.log('🔄 Manual refresh triggered');
-      const res = await getCurrentLocationDistance(
-        normalizedRequest.sender.iat,
-        normalizedRequest.sender.ing,
-      );
+      const res = await getCurrentLocationDistance(lat, lng);
       setDistanceInMeters(res.distance);
       // Only increment trigger on MANUAL refresh
       setResetQrTrigger(prev => prev + 1);
@@ -68,7 +73,12 @@ const DeliveryDetailsScreen = () => {
     } catch (err) {
       console.warn('Refresh failed:', err);
     }
-  }, [normalizedRequest?.sender?.iat, normalizedRequest?.sender?.ing]);
+  }, [
+    normalizedRequest?.iat,
+    normalizedRequest?.ing,
+    normalizedRequest?.sender?.iat,
+    normalizedRequest?.sender?.ing,
+  ]);
 
   return (
     <SubLayout

@@ -88,8 +88,8 @@ export default function CategoryPickerModal({
           style={{
             width: '100%',
             backgroundColor: '#fff',
-            borderTopLeftRadius: 16,
-            borderTopRightRadius: 16,
+            borderTopLeftRadius: 30,
+            borderTopRightRadius: 30,
             padding: 16,
             paddingBottom: 24,
             maxHeight: '80%',
@@ -115,7 +115,7 @@ export default function CategoryPickerModal({
               className="items-center justify-center"
               style={{ minHeight: minHeight - 100 }} // Account for header and padding
             >
-              <ActivityIndicator size="large" color="#3B82F6" />
+              <ActivityIndicator size="large" color="#e85a4f" />
               <Text className="text-gray-600 mt-2">Đang tải danh mục...</Text>
             </View>
           ) : error ? (
@@ -143,14 +143,14 @@ export default function CategoryPickerModal({
                       onPress={() => setSelected(cat.id)}
                       className={`flex-row items-center py-3 px-2 rounded-lg ${
                         selected === cat.id
-                          ? 'bg-blue-50 border border-blue-200'
+                          ? 'bg-red-50 border border-primary-100'
                           : 'bg-transparent'
                       }`}
                     >
                       <View
                         className={`w-5 h-5 rounded-full border-2 mr-3 ${
                           selected === cat.id
-                            ? 'bg-blue-500 border-blue-500'
+                            ? 'bg-primary-100 border-primary-100'
                             : 'bg-white border-gray-300'
                         }`}
                       >
@@ -163,7 +163,7 @@ export default function CategoryPickerModal({
                       <Text
                         className={`text-base ${
                           selected === cat.id
-                            ? 'text-blue-600 font-medium'
+                            ? 'text-primary-100 font-medium'
                             : 'text-gray-800'
                         }`}
                       >

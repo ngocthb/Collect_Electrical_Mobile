@@ -354,7 +354,7 @@ const MapboxTurnbyturn: React.FC<MapboxPickerProps> = ({
                   routeData.steps[currentStepIndex].maneuver.modifier,
                 )}
                 size={24}
-                color="#3b82f6"
+                color="#e85a4f"
               />
             </View>
             <View className="flex-1">
@@ -404,7 +404,7 @@ const MapboxTurnbyturn: React.FC<MapboxPickerProps> = ({
             <MapboxGL.LineLayer
               id="routeLine"
               style={{
-                lineColor: '#3b82f6',
+                lineColor: '#e85a4f',
                 lineWidth: 5,
                 lineCap: 'round',
                 lineJoin: 'round',
@@ -425,10 +425,10 @@ const MapboxTurnbyturn: React.FC<MapboxPickerProps> = ({
                 height: isNavigating ? 32 : 40,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: isNavigating ? '#3b82f6' : 'white',
+                backgroundColor: isNavigating ? '#e85a4f' : 'white',
                 borderRadius: isNavigating ? 16 : 20,
                 borderWidth: isNavigating ? 4 : 2,
-                borderColor: isNavigating ? 'white' : '#3b82f6',
+                borderColor: isNavigating ? 'white' : '#e85a4f',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.25,
@@ -437,7 +437,7 @@ const MapboxTurnbyturn: React.FC<MapboxPickerProps> = ({
               }}
             >
               {!isNavigating && (
-                <Icon name="my-location" size={24} color="#3b82f6" />
+                <Icon name="my-location" size={24} color="#e85a4f" />
               )}
             </View>
           </MapboxGL.PointAnnotation>
@@ -474,7 +474,7 @@ const MapboxTurnbyturn: React.FC<MapboxPickerProps> = ({
           onPress={handleMyLocation}
           activeOpacity={0.7}
         >
-          <Icon name="my-location" size={24} color="#3b82f6" />
+          <Icon name="my-location" size={24} color="#e85a4f" />
         </TouchableOpacity>
       )}
 

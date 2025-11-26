@@ -19,8 +19,11 @@ import {
 } from '../../utils/deliveryHelpers';
 import SubLayout from '../../layout/SubLayout';
 import StatusFilter from '../../components/ui/StatusFilter';
-import { useSelector } from 'react-redux';
-
+import { useAppSelector } from '../../store/hooks';
+import {
+  getCurrentLocation,
+  calculateDistance,
+} from '../../services/mapboxService';
 const statusOptions = [
   { value: 'all', label: 'Tất cả', color: '#666' },
   { value: 'pending', label: 'Chờ giao', color: '#FF9800' },
@@ -36,9 +39,10 @@ export default function DeliveryListScreen() {
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showWeekCalendar, setShowWeekCalendar] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [ordersWithDistance, setOrdersWithDistance] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const userId = useSelector((state: any) => state.auth.user?.userId);
+  const user = useAppSelector(s => s.auth.user);
+  const userId = user?.userId;
   const isSelectedDateToday = (() => {
     const selected = new Date(selectedDate);
     selected.setHours(0, 0, 0, 0);
@@ -63,7 +67,7 @@ export default function DeliveryListScreen() {
     return date;
   };
 
-  const fetchOrdersForWeek = async (date: Date) => {
+  const fetchOrdersForWeek = async (date: Date, userId: string) => {
     setIsLoading(true);
     try {
       const start = startOfWeek(date);
@@ -72,18 +76,46 @@ export default function DeliveryListScreen() {
         const d = new Date(start);
         d.setDate(start.getDate() + i);
         const dateStr = formatAPIDate(d);
-        try {
-          const res: any = await routeService.listByDate(userId, dateStr);
-          if (res && Array.isArray(res)) acc.push(...res);
-        } catch (e) {
-          // continue if one day fails
-          console.warn('failed loading day', dateStr, (e as any)?.message ?? e);
-        }
+
+        const res: any = await routeService.listByDate(userId, dateStr);
+        if (res && Array.isArray(res)) acc.push(...res);
       }
-      setOrders(acc);
+
+      // Compute distances immediately after fetching
+      try {
+        const loc = await getCurrentLocation();
+        const [currLng, currLat] = loc || [null, null];
+
+        const mapped = acc.map(o => {
+          const lat = o?.iat ?? o?.lat ?? null;
+          const lng = o?.ing ?? o?.lng ?? null;
+          if (
+            lat == null ||
+            lng == null ||
+            currLat == null ||
+            currLng == null
+          ) {
+            return { ...o, distanceMeters: 0, distanceText: '' };
+          }
+          const dist = calculateDistance(currLat, currLng, lat, lng);
+          const distanceText =
+            dist < 1000
+              ? `${Math.round(dist)} m`
+              : `${(dist / 1000).toFixed(1)} km`;
+          return { ...o, distanceMeters: dist, distanceText };
+        });
+
+        setOrdersWithDistance(mapped);
+      } catch (locError) {
+        console.warn('Failed to compute distances', locError);
+        // Set orders without distances
+        setOrdersWithDistance(
+          acc.map(o => ({ ...o, distanceMeters: 0, distanceText: '' })),
+        );
+      }
     } catch (e: any) {
       console.warn('Failed to load orders from API', e?.message ?? e);
-      setOrders([]);
+      setOrdersWithDistance([]);
     } finally {
       setIsLoading(false);
     }
@@ -92,16 +124,18 @@ export default function DeliveryListScreen() {
   useEffect(() => {
     let mounted = true;
     if (!mounted) return;
-    fetchOrdersForWeek(selectedDate);
+    if (userId) {
+      fetchOrdersForWeek(selectedDate, userId);
+    }
     return () => {
       mounted = false;
     };
-  }, [selectedDate]);
+  }, [selectedDate, userId]);
 
   // Filter orders by selected date and status (show only orders of the selected day)
   const selectedStart = new Date(selectedDate);
   selectedStart.setHours(0, 0, 0, 0);
-  let filteredOrders = orders.filter(order => {
+  let filteredOrders = ordersWithDistance.filter(order => {
     const orderDate = getOrderDate(order);
     if (!orderDate) return false;
     const d = new Date(orderDate);
@@ -112,7 +146,6 @@ export default function DeliveryListScreen() {
     return matchesDate && matchesStatus;
   });
 
-  // If viewing "all", move completed and failed orders to the bottom while preserving relative order
   if (selectedStatus === 'all') {
     const top: any[] = [];
     const middle: any[] = [];
@@ -125,9 +158,6 @@ export default function DeliveryListScreen() {
     });
     filteredOrders = [...top, ...middle, ...bottom];
   }
-
-  // Debug: log status changes to help diagnose UI issues
-  useEffect(() => {}, [selectedStatus, filteredOrders.length]);
 
   useEffect(() => {
     if (filteredOrders.length > 0) {
@@ -179,7 +209,7 @@ export default function DeliveryListScreen() {
             onPress={() => setShowWeekCalendar(true)}
             className="flex-row items-center px-2"
           >
-            <Icon name="calendar" size={18} color="#4169E1" />
+            <Icon name="calendar" size={18} color="#e85a4f" />
             <Text className="ml-2 text-sm font-semibold text-text-main">
               {formatWeekLabel(selectedDate)}
             </Text>
@@ -194,7 +224,6 @@ export default function DeliveryListScreen() {
         onSelect={d => setSelectedDate(d)}
       />
 
-      {/* Inline week selector under header */}
       <WeekStrip
         selectedDate={selectedDate}
         onSelectDate={d => setSelectedDate(d)}
@@ -202,20 +231,18 @@ export default function DeliveryListScreen() {
         onNextWeek={() => changeWeek(1)}
       />
 
-      {/* Status Tabs */}
-      <View className="px-4 py-1">
-        <StatusFilter
-          options={statusOptions}
-          selectedStatus={selectedStatus}
-          onStatusChange={setSelectedStatus}
-        />
-      </View>
-      <ScrollView className="flex-1">
+      <StatusFilter
+        options={statusOptions}
+        selectedStatus={selectedStatus}
+        onStatusChange={setSelectedStatus}
+      />
+
+      <ScrollView className="flex-1 bg-background-50">
         {/* Orders List */}
         <View className="px-4 pt-2">
           {isLoading ? (
             <View className="items-center justify-center py-12">
-              <ActivityIndicator size="large" color="#4169E1" />
+              <ActivityIndicator size="large" color="#e85a4f" />
               <Text className="text-text-muted mt-4 text-center">
                 Đang tải...
               </Text>

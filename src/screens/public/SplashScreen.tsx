@@ -60,7 +60,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
           width: 50,
           height: 50,
           borderRadius: 60,
-          backgroundColor: '#4169E1',
+          backgroundColor: '#e85a4f',
           transform: [{ scale: scaleCircle }],
         }}
       />

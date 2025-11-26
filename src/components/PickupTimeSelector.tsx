@@ -11,8 +11,14 @@ import { toggleSyncSlots, updateTimeSlot } from '../store/slices/timeSlotSlice';
 const PickupTimeSelector: React.FC = () => {
   const [sameTimeForAll, setSameTimeForAll] = useState(false);
   const [selectedDays, setSelectedDays] = useState<Day[]>([]);
-  const timeSlot = useAppSelector(state => state.timeSlots.list);
+  const timeSlotRaw = useAppSelector(state => state.timeSlots.list);
   const dispatch = useDispatch();
+
+  // Sort timeSlot by actual date (pickUpDate) chronologically
+  const timeSlot = [...timeSlotRaw].sort((a, b) => {
+    if (!a.pickUpDate || !b.pickUpDate) return 0;
+    return new Date(a.pickUpDate).getTime() - new Date(b.pickUpDate).getTime();
+  });
 
   const getTimeSlotLabel = (slot: { startTime: string; endTime: string }) => {
     if (!slot) return 'Chưa chọn';
@@ -64,14 +70,11 @@ const PickupTimeSelector: React.FC = () => {
   const applyPredefined = (dayName: string, times: string[]) => {
     const slots = { startTime: times[0] || '', endTime: times[1] || '' };
     dispatch(updateTimeSlot({ dayName, pickUpDate: '', slots } as TimeSlot));
-    setCustomStart(slots.startTime);
-    setCustomEnd(slots.endTime);
-    setSelectedPresetLabel(
-      predefinedTimeSlots.find(
-        p => p.times[0] === times[0] && p.times[1] === times[1],
-      )?.label || null,
-    );
     setOpenForDay(null);
+    // Clear shared state to prevent contamination
+    setCustomStart('');
+    setCustomEnd('');
+    setSelectedPresetLabel(null);
   };
 
   const openCustomModal = (
@@ -88,9 +91,6 @@ const PickupTimeSelector: React.FC = () => {
 
   const handleCustomSave = (fromTime: string, toTime: string) => {
     if (!editingDay) return;
-    setCustomStart(fromTime);
-    setCustomEnd(toTime);
-    setSelectedPresetLabel('Giờ tự chọn');
     dispatch(
       updateTimeSlot({
         dayName: editingDay,
@@ -101,6 +101,10 @@ const PickupTimeSelector: React.FC = () => {
     setCustomModalVisible(false);
     setOpenForDay(null);
     setEditingDay(null);
+    // Clear shared state to prevent contamination
+    setCustomStart('');
+    setCustomEnd('');
+    setSelectedPresetLabel(null);
   };
 
   const handleSyncSlots = () => {
@@ -121,7 +125,7 @@ const PickupTimeSelector: React.FC = () => {
         </Text>
         <TouchableOpacity
           className={`px-3 py-1 rounded-full ${
-            sameTimeForAll ? 'bg-primary-100' : 'bg-primary-50'
+            sameTimeForAll ? 'bg-primary-100' : 'bg-white border border-red-200'
           }`}
           onPress={handleSyncSlots}
         >
@@ -160,7 +164,7 @@ const PickupTimeSelector: React.FC = () => {
                     onPress={() =>
                       openCustomModal(timeSlot[0].dayName, timeSlot[0].slots)
                     }
-                    className="w-28 mr-2 border border-gray-300 rounded-md px-3 py-1 h-12"
+                    className="w-28 mr-2 border border-gray-300 bg-white rounded-md px-3 py-1 h-12"
                   >
                     <Text className="text-xs text-gray-500">Từ</Text>
                     <Text className="text-sm text-text-main ">
@@ -172,7 +176,7 @@ const PickupTimeSelector: React.FC = () => {
                     onPress={() =>
                       openCustomModal(timeSlot[0].dayName, timeSlot[0].slots)
                     }
-                    className="w-28 border border-gray-300 rounded-md px-3 py-1 h-12"
+                    className="w-28 border border-gray-300 bg-white rounded-md px-3 py-1 h-12"
                   >
                     <Text className="text-xs text-gray-500">Đến</Text>
                     <Text className="text-sm text-text-main">
@@ -245,21 +249,21 @@ const PickupTimeSelector: React.FC = () => {
                   <View className="flex-row items-start">
                     <TouchableOpacity
                       onPress={() => openCustomModal(day.dayName, day.slots)}
-                      className="w-24 mr-2 border border-gray-300 rounded-md px-3 py-1 h-12"
+                      className="w-24 mr-2 border border-gray-300 rounded-md px-3 py-1 h-12 bg-white"
                     >
                       <Text className="text-xs text-gray-500">Từ</Text>
                       <Text className="text-sm text-text-main ">
-                        {customStart || day.slots.startTime || 'Chưa'}
+                        {day.slots.startTime || 'Chưa'}
                       </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                       onPress={() => openCustomModal(day.dayName, day.slots)}
-                      className="w-24 border border-gray-300 rounded-md px-3 py-1 h-12"
+                      className="w-24 border border-gray-300 rounded-md px-3 py-1 h-12 bg-white"
                     >
                       <Text className="text-xs text-gray-500">Đến</Text>
                       <Text className="text-sm text-text-main ">
-                        {customEnd || day.slots.endTime || 'Chưa'}
+                        {day.slots.endTime || 'Chưa'}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -272,13 +276,13 @@ const PickupTimeSelector: React.FC = () => {
                         key={i}
                         className={`px-3 py-2 flex-row items-center rounded-md mb-1 ${
                           selectedPresetLabel === ps.label
-                            ? 'bg-primary-50 border-2 border-primary-100'
+                            ? 'bg-red-100 border border-primary-100'
                             : 'bg-white'
                         }`}
                         onPress={() => applyPredefined(day.dayName, ps.times)}
                       >
                         <View
-                          className="w-3 h-2 *:rounded-full"
+                          className="w-2  h-2 rounded-full mr-2"
                           style={{ backgroundColor: ps.color }}
                         />
                         <View>

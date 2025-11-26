@@ -11,9 +11,9 @@ export default function MyQrScreen() {
   const navigation = useNavigation<any>();
   return (
     <SubLayout title="Mã QR của tôi" onBackPress={() => navigation.goBack()}>
-      <View className="flex-1 items-center justify-center px-6">
-        <View className="bg-white p-6 rounded-lg items-center">
-          <QRCode value={String(phone)} size={200} />
+      <View className="flex-1 bg-background-50 items-center justify-center px-6">
+        <View className="bg-white p-6 rounded-lg items-center border-2 border-red-200">
+          <QRCode value={String(phone)} size={300} />
           <Text className="mt-4 text-sm text-gray-700">Mã QR của bạn</Text>
           <Text className="mt-1 text-xs text-gray-500">{String(phone)}</Text>
         </View>

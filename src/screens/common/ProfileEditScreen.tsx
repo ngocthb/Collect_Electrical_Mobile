@@ -6,14 +6,12 @@ import AppButton from '../../components/ui/AppButton';
 import AppInput from '../../components/ui/AppInput';
 import Icon from 'react-native-vector-icons/Feather';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { setUser } from '../../store/authSlice';
 import AppAvatar from '../../components/ui/AppAvatar';
 import ImagePickerModal from '../../components/ImagePickerModal';
 import type { Asset } from 'react-native-image-picker';
 
 const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
   const user = useAppSelector(s => s.auth.user);
-  const dispatch = useAppDispatch();
 
   const [name, setName] = useState(user?.name ?? '');
   const [email] = useState(user?.email ?? '');
@@ -72,10 +70,17 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
 
   return (
     <SubLayout title="Hồ sơ của tôi" onBackPress={() => navigation.goBack()}>
-      <ScrollView className="flex-1  bg-white px-6 pt-6">
+      <ScrollView className="flex-1  bg-background-50 px-6 pt-6">
         <View className="items-center mb-6">
           <View>
-            <AppAvatar name={name} uri={avatarUrl || undefined} size={120} />
+            <View className="relative bg-primary-100 rounded-full p-1">
+              <AppAvatar
+                name={name}
+                uri={avatarUrl}
+                size={120}
+                style={{ borderWidth: 4, borderColor: '#fff' }}
+              />
+            </View>
             <TouchableOpacity
               onPress={handleChangeAvatar}
               style={{ position: 'absolute', right: -6, bottom: -6 }}
@@ -85,7 +90,7 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
                   width: 40,
                   height: 40,
                   borderRadius: 20,
-                  backgroundColor: '#19CCA1',
+                  backgroundColor: '#e85a4f',
                   alignItems: 'center',
                   justifyContent: 'center',
                   shadowColor: '#000',
@@ -100,7 +105,7 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
           </View>
         </View>
 
-        <View className="bg-white rounded-2xl p-4 mb-4">
+        <View className="bg-white rounded-2xl p-4 mb-4 border-2 border-red-200">
           <AppInput
             label="Họ và tên"
             placeholder="Họ và tên"
@@ -116,14 +121,6 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
             value={phone}
             onChangeText={setPhone}
             isPhone
-          />
-
-          <AppInput
-            label="Địa chỉ"
-            placeholder="Địa chỉ"
-            value={address}
-            onChangeText={setAddress}
-            numberOfLines={2}
           />
 
           <AppButton

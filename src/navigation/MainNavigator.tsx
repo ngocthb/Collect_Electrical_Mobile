@@ -15,7 +15,7 @@ import NotificationDetailScreen from '../screens/user/NotificationDetailScreen';
 import ProfileEditScreen from '../screens/common/ProfileEditScreen';
 import DeliveryScanQrScreen from '../screens/delivery/DeliveryScanQrScreen';
 import DeliveryRouteScreen from '../screens/delivery/DeliveryRouteScreen';
-import CreateAddressScreen from '../screens/user/CreateAddressScreen';
+
 import DefaultAddressScreen from '../screens/user/DefaultAddressScreen';
 import DefaultScheduleScreen from '../screens/user/DefaultScheduleScreen';
 import ChangePasswordScreen from '../screens/common/ChangePasswordScreen';
@@ -27,7 +27,7 @@ import ShipmentDetailScreen from '../screens/user/ShipmentDetailScreen';
 import DeliveringScreen from '../screens/user/DeliveringScreen';
 import DeliveryDetailsScreen from '../screens/delivery/DeliveryDetailsScreen';
 import DeliveryStatsScreen from '../screens/delivery/DeliveryStatsClean';
-import MyQrScreen from '../screens/common/MyQrScreen';
+import MyQrScreen from '../screens/user/MyQrScreen';
 import CancelledProductScreen from '../screens/user/CancelledProductScreen';
 // @ts-ignore - no TypeScript declarations for this module
 const {
@@ -70,7 +70,7 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
         <>
           <Stack.Screen name="MainTabs" component={BottomTabs} />
           <Stack.Screen name="CreateRequest" component={CreateRequestScreen} />
-          <Stack.Screen name="CreateAddress" component={CreateAddressScreen} />
+
           <Stack.Screen
             name="DefaultAddress"
             component={DefaultAddressScreen}

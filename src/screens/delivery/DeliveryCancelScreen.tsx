@@ -155,17 +155,13 @@ const DeliveryCancelScreen = () => {
   };
 
   return (
-    <SubLayout title="Từ chối" onBackPress={() => navigation.goBack()}>
-      <ScrollView className="flex-1 bg-gray-50">
-        <View className="px-6 py-6">
-          <Text className="text-base text-gray-700 mb-2">
-            {getOrderName(request ?? fetchedRequest)}
-          </Text>
-          <Text className="text-sm text-gray-500 mb-4">
-            {getOrderAddress(request ?? fetchedRequest)}
-          </Text>
-
-          <View className="bg-white rounded-xl p-4 mb-4">
+    <SubLayout
+      title="Lấy hàng thất bại"
+      onBackPress={() => navigation.goBack()}
+    >
+      <ScrollView className="flex-1 bg-background-50">
+        <View className="px-6">
+          <View className="bg-white rounded-xl p-4 mb-4 border-2 border-red-200">
             <Text className="text-base font-bold text-gray-900 mb-2">
               Lí do hủy
             </Text>
@@ -193,7 +189,7 @@ const DeliveryCancelScreen = () => {
             })}
           </View>
 
-          <View className="bg-white rounded-xl p-4 mb-4">
+          <View className="bg-white rounded-xl p-4 mb-4  border-2 border-red-200">
             <Text className="text-base font-bold text-gray-900 mb-2">
               Mô tả chi tiết
             </Text>
@@ -202,9 +198,9 @@ const DeliveryCancelScreen = () => {
               onChangeText={setRejectMessage}
               placeholder="Viết mô tả hoặc lý do từ chối (tùy chọn)"
               multiline
-              numberOfLines={3}
+              numberOfLines={2}
               style={{
-                minHeight: 80,
+                minHeight: 60,
                 textAlignVertical: 'top',
                 padding: 8,
                 borderWidth: 1,
@@ -215,7 +211,7 @@ const DeliveryCancelScreen = () => {
             />
           </View>
 
-          <View className="bg-white rounded-xl p-4 mb-6">
+          <View className="bg-white rounded-xl p-4 mb-6  border-2 border-red-200">
             <AppImageGallery
               images={selectedImages as any as any[]}
               onRemove={handleRemoveImage}

@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, ScrollView, Image, RefreshControl } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/Feather';
 import AppButton from './ui/AppButton';
 import AppAvatar from './ui/AppAvatar';
-import { maskPhone } from '../utils/validations';
+import ImageGalleryViewer from './ui/ImageGalleryViewer';
 import DeliveryQrModal from '../components/DeliveryQrModal';
 // @ts-ignore
 import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import axiosClient from '../config/axios';
+
+const ARRIVAL_DISTANCE_THRESHOLD = 1000; // meters
 
 type Props = {
   normalizedRequest: any;
@@ -33,6 +35,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
   const [showActionButtons, setShowActionButtons] = useState(false);
   const hasShownQrModalRef = React.useRef(false);
   const hasNotifiedArrivalRef = React.useRef(false);
+  const hasReceivedSocketConfirmationRef = React.useRef(false);
 
   // Reset QR modal flag when resetQrTrigger changes (manual refresh only)
   useEffect(() => {
@@ -41,14 +44,14 @@ const DeliveryMapPanel: React.FC<Props> = ({
         '🔄 Resetting QR modal flag via manual refresh:',
         resetQrTrigger,
       );
-      // Reset flag trước khi check
+
       hasShownQrModalRef.current = false;
 
-      // Always check and show modal after manual refresh if distance is small
       if (
+        !hasReceivedSocketConfirmationRef.current &&
         typeof distanceInMeters === 'number' &&
         distanceInMeters > 0 &&
-        distanceInMeters < 1000
+        distanceInMeters < ARRIVAL_DISTANCE_THRESHOLD
       ) {
         console.log(
           '✅ Auto-showing QR modal after refresh, distance:',
@@ -74,6 +77,8 @@ const DeliveryMapPanel: React.FC<Props> = ({
             }
           })();
         }
+      } else if (hasReceivedSocketConfirmationRef.current) {
+        console.log('⏭️ Skipping QR modal - already confirmed via socket');
       }
     }
   }, [resetQrTrigger, distanceInMeters]);
@@ -83,9 +88,10 @@ const DeliveryMapPanel: React.FC<Props> = ({
     // Chỉ chạy khi không có resetQrTrigger (tức là lần đầu mount)
     if (
       !resetQrTrigger &&
+      !hasReceivedSocketConfirmationRef.current &&
       typeof distanceInMeters === 'number' &&
       distanceInMeters > 0 &&
-      distanceInMeters < 1000 &&
+      distanceInMeters < ARRIVAL_DISTANCE_THRESHOLD &&
       !hasShownQrModalRef.current
     ) {
       console.log(
@@ -102,7 +108,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
       if (
         typeof distanceInMeters === 'number' &&
         distanceInMeters > 0 &&
-        distanceInMeters < 1000 &&
+        distanceInMeters < ARRIVAL_DISTANCE_THRESHOLD &&
         !hasNotifiedArrivalRef.current &&
         normalizedRequest?.postId
       ) {
@@ -183,7 +189,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
   console.log(normalizedRequest);
   return (
     <ScrollView
-      className="flex-1"
+      className="flex-1 bg-background-50"
       showsVerticalScrollIndicator={false}
       scrollEnabled={isExpanded}
       refreshControl={
@@ -198,26 +204,29 @@ const DeliveryMapPanel: React.FC<Props> = ({
       <View className="px-5 pb-5">
         {isExpanded && (
           <>
-            <View className="mb-4">
-              <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-3">
-                Thông tin người gửi
-              </Text>
-              <View className=" bg-gray-50 rounded-2xl p-4">
+            <View>
+              <View className="bg-primary-100 border-2 border-red-200  rounded-2xl shadow-lg mb-3  p-4">
+                <Text className="text-text-main text-xs font-semibold uppercase tracking-wider mb-2 ">
+                  Thông tin người gửi
+                </Text>
                 <View className="flex-row items-center">
-                  <View className="relative bg-secondary-100 rounded-full p-1">
+                  <View className="relative bg-primary-100 rounded-full p-1">
                     <AppAvatar
                       name={normalizedRequest?.sender?.name}
                       uri={normalizedRequest?.sender?.avatar}
                       size={56}
+                      style={{
+                        borderWidth: 3,
+                        borderColor: '#fff',
+                      }}
                     />
                   </View>
-                  <View className="flex-1 ml-4">
-                    <Text className="text-base font-bold text-gray-900">
+                  <View className="flex-1 ml-2">
+                    <Text className="text-white font-semibold text-base mb-1">
                       {normalizedRequest?.sender?.name ?? 'Người gửi'}
                     </Text>
-
-                    <Text className="text-sm text-gray-500 mt-1">
-                      SĐT: {maskPhone(normalizedRequest?.sender?.phone) || '—'}
+                    <Text className="text-sm text-white">
+                      {normalizedRequest?.address || '—'}
                     </Text>
                   </View>
                   <ZegoSendCallInvitationButton
@@ -226,73 +235,54 @@ const DeliveryMapPanel: React.FC<Props> = ({
                     resourceID="thugom_data"
                   />
                 </View>
-                <Text className="text-sm text-gray-500 mt-2">
-                  {normalizedRequest?.sender?.address || '—'}
+              </View>
+            </View>
+
+            <View className="bg-white border-2 border-red-200  rounded-2xl shadow-lg mb-3 py-3 px-4 ">
+              <View className="mb-4">
+                <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-3">
+                  {normalizedRequest?.subCategoryName} •{' '}
+                  {normalizedRequest?.brandName}
                 </Text>
+                <ImageGalleryViewer
+                  images={normalizedRequest?.pickUpItemImages || []}
+                  imageSize={100}
+                  imageSpacing={8}
+                  borderRadius={8}
+                />
               </View>
-            </View>
 
-            {/* Order Details */}
-            <View className="mb-4"></View>
-            <View className="mb-4">
-              <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-3">
-                {normalizedRequest?.subCategoryName} •{' '}
-                {normalizedRequest?.brandName}
-              </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {normalizedRequest?.pickUpItemImages?.map(
-                  (image: string, index: number) => (
-                    <Image
-                      key={index}
-                      source={{ uri: image }}
-                      style={{
-                        width: 100,
-                        height: 100,
-                        borderRadius: 8,
-                        marginRight: 8,
-                      }}
-                      resizeMode="cover"
-                    />
-                  ),
-                )}
-              </ScrollView>
-            </View>
-
-            {/* Additional Data */}
-            <View className="mb-4">
-              <View className="gap-2">
-                <View className="flex-row justify-between py-2">
-                  <Text className="text-sm text-gray-500">Ngày thu gom</Text>
-                  <Text className="text-sm font-semibold text-gray-900">
-                    {normalizedRequest?.collectionDate || '—'}
-                  </Text>
-                </View>
-                <View className="flex-row justify-between py-2">
-                  <Text className="text-sm text-gray-500">
-                    Thời gian dự kiến
-                  </Text>
-                  <Text className="text-sm font-semibold text-gray-900">
-                    {normalizedRequest?.estimatedTime || '—'}
-                  </Text>
+              <View className="mb-4">
+                <View className="gap-2">
+                  <View className="flex-row justify-between py-2">
+                    <Text className="text-sm text-gray-500">Ngày thu gom</Text>
+                    <Text className="text-sm font-semibold text-gray-900">
+                      {normalizedRequest?.collectionDate || '—'}
+                    </Text>
+                  </View>
+                  <View className="flex-row justify-between py-2">
+                    <Text className="text-sm text-gray-500">
+                      Thời gian dự kiến
+                    </Text>
+                    <Text className="text-sm font-semibold text-gray-900">
+                      {normalizedRequest?.estimatedTime || '—'}
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
-
             {showActionButtons && (
               <>
                 <View className="flex-row justify-between ">
                   <View style={{ width: '48%' }}>
                     <AppButton
-                      title="Lấy hàng thất bại"
-                      onPress={onReject}
-                      color="#E53935"
+                      title="Lấy hàng thành công"
+                      onPress={onConfirm}
+                      color="#3366CC"
                     />
                   </View>
                   <View style={{ width: '48%' }}>
-                    <AppButton
-                      title="Lấy hàng thành công"
-                      onPress={onConfirm}
-                    />
+                    <AppButton title="Lấy hàng thất bại" onPress={onReject} />
                   </View>
                 </View>
                 <View className="h-5" />
@@ -309,10 +299,15 @@ const DeliveryMapPanel: React.FC<Props> = ({
         onAccept={() => {
           setShowQrModal(false);
           setShowActionButtons(true);
+          hasReceivedSocketConfirmationRef.current = true;
         }}
         onSkip={() => {
           setShowQrModal(false);
           setShowActionButtons(false);
+          hasReceivedSocketConfirmationRef.current = true;
+          console.log(
+            '✅ Socket confirmation received (skip) - modal will not show again',
+          );
         }}
       />
     </ScrollView>

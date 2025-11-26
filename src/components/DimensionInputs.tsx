@@ -48,7 +48,7 @@ const DimensionInputs: React.FC<Props> = ({
               compact
               showStepper
               min={0}
-              placeholder="D"
+              placeholder="Dài"
               required
               isNumeric
               value={values[lengthAttr.id] || ''}
@@ -65,7 +65,7 @@ const DimensionInputs: React.FC<Props> = ({
               compact
               showStepper
               min={0}
-              placeholder="R"
+              placeholder="Rộng"
               required
               isNumeric
               value={values[widthAttr.id] || ''}
@@ -82,7 +82,7 @@ const DimensionInputs: React.FC<Props> = ({
               compact
               showStepper
               min={0}
-              placeholder="C"
+              placeholder="Cao"
               required
               isNumeric
               value={values[heightAttr.id] || ''}

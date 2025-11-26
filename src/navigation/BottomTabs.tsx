@@ -26,7 +26,8 @@ export default function AppNavigator() {
 }
 
 function BottomTabs() {
-  const { role } = useAppSelector(s => s.auth);
+  const user = useAppSelector(s => s.auth);
+  const role = user?.user?.role.toLocaleLowerCase();
   const navigation = useNavigation<any>();
   const [catModalVisible, setCatModalVisible] = useState(false);
 
@@ -34,7 +35,7 @@ function BottomTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#19CCA1',
+        tabBarActiveTintColor: '#e85a4f',
         tabBarInactiveTintColor: '#818898',
         tabBarStyle: { backgroundColor: '#fff', height: 60 },
         tabBarIcon: ({ color, size }) => {
@@ -78,7 +79,7 @@ function BottomTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#19CCA1',
+        tabBarActiveTintColor: '#e85a4f',
         tabBarInactiveTintColor: '#818898',
         tabBarStyle: { height: 60, backgroundColor: '#fff' },
 

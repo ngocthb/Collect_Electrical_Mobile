@@ -28,6 +28,7 @@ import { clearTimeSlot } from '../../store/slices/timeSlotSlice';
 import { CreateRequestPayload } from '../../types/Request';
 import { TimeSlot } from '../../types/TimeSlot';
 import { useDispatch } from 'react-redux';
+import Icon from 'react-native-vector-icons/Feather';
 
 const CreateRequestScreen = () => {
   const router = useRoute<any>();
@@ -228,7 +229,6 @@ const CreateRequestScreen = () => {
           attributes: formattedAttributes || null,
         },
       };
-
       const data = await create.create(payload);
 
       toast.show({
@@ -252,7 +252,7 @@ const CreateRequestScreen = () => {
       onBackPress={goToPreviousStep}
       onRefresh={loadData}
     >
-      <ScrollView className="flex-1 bg-white">
+      <ScrollView className="flex-1 bg-background-50">
         <View className="px-6" style={{ flex: 1 }}>
           <View style={{ display: currentStep === 1 ? 'flex' : 'none' }}>
             <>
@@ -297,7 +297,7 @@ const CreateRequestScreen = () => {
               </View>
 
               {isLoadingAttributes ? (
-                <ActivityIndicator size="small" color="#4169E1" />
+                <ActivityIndicator size="small" color="#e85a4f" />
               ) : attributes.length > 0 ? (
                 <View>
                   <AttributeSizePanel
@@ -315,9 +315,10 @@ const CreateRequestScreen = () => {
                   />
                 </View>
               ) : (
-                <View className="mt-4 flex-row items-center justify-center">
+                <View className="mt-4 flex items-center justify-center">
+                  <Icon name="inbox" size={40} color="#E98074" />
                   <Text className="text-sm text-gray-600">
-                    Không có thuộc tính để tự điền
+                    Vui lòng chọn danh mục
                   </Text>
                 </View>
               )}
@@ -342,7 +343,7 @@ const CreateRequestScreen = () => {
         </View>
       </ScrollView>
 
-      <View className="px-6 py-4 bg-white p-4">
+      <View className="px-6 py-4 bg-background-50 p-4">
         {currentStep < 2 && (
           <AppButton
             title="Tiếp theo"
@@ -382,7 +383,7 @@ const CreateRequestScreen = () => {
             alignItems: 'center',
           }}
         >
-          <ActivityIndicator size="large" color="#4169E1" />
+          <ActivityIndicator size="large" color="#e85a4f" />
           <Text className="mt-4 text-gray-600 font-medium">Đang xử lý...</Text>
         </View>
       )}

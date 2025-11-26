@@ -59,7 +59,6 @@ const UserConfirmScreen = () => {
 
   const handleConfirm = async () => {
     if (code) {
-      console.log(code);
       await routeService.userConfirmRouter(code, true, false);
     }
     toast.show({
@@ -100,20 +99,20 @@ const UserConfirmScreen = () => {
       title="Xác nhận người giao hàng"
       onBackPress={() => navigation.goBack()}
     >
-      <ScrollView className="flex-1 bg-gray-50">
+      <ScrollView className="flex-1 bg-background-50">
         <View className="flex-1 px-6 pt-12 pb-8">
           {/* Header Icon - Only show when not scanned */}
           {!shipperId && !shipperInfo && (
             <View className="items-center mb-6">
-              <View className="w-20 h-20 bg-blue-100 rounded-full items-center justify-center">
-                <Icon name="user" size={40} color="#3B82F6" />
+              <View className="w-20 h-20 bg-red-50 rounded-full items-center justify-center">
+                <Icon name="user" size={40} color="#e85a4f" />
               </View>
             </View>
           )}
 
           {/* Success Card - Show after scanning */}
           {shipperId ? (
-            <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-green-100">
+            <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm border-2 border-red-200 ">
               <View className="items-center">
                 {/* Success Icon */}
                 <View className="w-16 h-16 bg-green-100 rounded-full items-center justify-center mb-4">
@@ -128,41 +127,34 @@ const UserConfirmScreen = () => {
                 </Text>
 
                 {/* Shipper Info Card */}
-                <View className="flex-row bg-gray-50 rounded-xl p-4 w-full mb-6">
+                <View className="flex-row bg-primary-100 rounded-xl p-4 w-full mb-6 border-2 border-red-200">
                   <View className="items-center mr-4">
-                    {shipperInfo?.avatar &&
-                    typeof shipperInfo.avatar === 'string' ? (
-                      <Image
-                        source={{ uri: shipperInfo.avatar }}
-                        className="w-20 h-20 rounded-full"
-                        style={{
-                          shadowColor: '#3B82F6',
-                          shadowOffset: { width: 0, height: 4 },
-                          shadowOpacity: 0.3,
-                          shadowRadius: 8,
-                        }}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <AppAvatar name={shipperInfo?.name} size={70} />
-                    )}
+                    <AppAvatar
+                      name={shipperInfo?.name}
+                      uri={shipperInfo.avatar}
+                      size={70}
+                      style={{
+                        borderWidth: 3,
+                        borderColor: '#fff',
+                      }}
+                    />
                   </View>
 
                   <View className="flex-1 justify-center">
-                    <Text className="text-sm text-gray-600 mb-1">
+                    <Text className="text-sm text-start text-white  mb-1">
                       Người giao hàng
                     </Text>
                     <Text className="text-base font-bold text-gray-900 mb-1">
                       {shipperInfo?.name || `Shipper ${shipperId}`}
                     </Text>
-                    <Text className="text-sm text-gray-600 mb-1">
+                    <Text className="text-sm text-start text-white  mb-1">
                       Biển số xe : {shipperInfo?.licensePlate}
                     </Text>
                   </View>
                 </View>
 
                 {/* Request/Product Info */}
-                <View className="bg-gray-50 rounded-xl p-4 w-full mb-6">
+                <View className="bg-gray-50 rounded-xl p-4 w-full mb-6 border-2 border-red-200">
                   <View className="flex-row justify-between">
                     <Text className="text-sm text-gray-500 font-semibold mb-3">
                       Thông tin đơn hàng
@@ -254,14 +246,14 @@ const UserConfirmScreen = () => {
           {/* Bottom Button */}
           <View className="flex-row flex-1 justify-between">
             <View style={{ width: '48%' }}>
-              <AppButton title="Xác nhận " onPress={handleConfirm} />
+              <AppButton
+                title="Xác nhận "
+                onPress={handleConfirm}
+                color="#3366CC"
+              />
             </View>
             <View style={{ width: '48%' }}>
-              <AppButton
-                title="Từ chối "
-                onPress={handleReject}
-                color="#ef4444"
-              />
+              <AppButton title="Từ chối " onPress={handleReject} />
             </View>
           </View>
 

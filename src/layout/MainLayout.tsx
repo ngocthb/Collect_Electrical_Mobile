@@ -1,24 +1,27 @@
 import React from 'react';
 import { View, ScrollView, RefreshControl } from 'react-native';
-import Sidebar from '../components/Sidebar';
+
 import Header from '../components/Header';
-import { useNavigation } from '@react-navigation/native';
+
 interface MainLayoutProps {
+  icon?: string;
   children: React.ReactNode;
   headerTitle?: string;
   headerSubtitle?: string;
+  hideHeader?: boolean;
   onRefresh?: () => Promise<void> | void;
   headerRightComponent?: React.ReactNode;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({
+  icon,
   children,
   headerTitle,
   headerSubtitle,
+  hideHeader,
   onRefresh,
   headerRightComponent,
 }) => {
-  const [isSidebarVisible, setSidebarVisible] = React.useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
 
   const onPullRefresh = async () => {
@@ -31,27 +34,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     }
   };
 
-  const toggleSidebar = () => {
-    setSidebarVisible(!isSidebarVisible);
-  };
-
   return (
     <View className="flex-1 bg-white">
-      <Sidebar visible={isSidebarVisible} onClose={toggleSidebar} />
-      <Header
-        onMenuPress={toggleSidebar}
-        title={headerTitle}
-        subtitle={headerSubtitle}
-        rightComponent={headerRightComponent}
-      />
+      {!hideHeader && (
+        <Header
+          icon={icon}
+          title={headerTitle}
+          subtitle={headerSubtitle}
+          rightComponent={headerRightComponent}
+        />
+      )}
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onPullRefresh}
-            tintColor="#19CCA1"
-            colors={['#19CCA1']}
+            tintColor="#e85a4f"
+            colors={['#e85a4f']}
           />
         }
       >

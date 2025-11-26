@@ -31,14 +31,14 @@ const onboardingData: OnboardingItem[] = [
     title: 'Đồ điện tử không dùng',
     description: 'Thu gom nhanh chóng, tiết kiệm thời gian',
     image: onboarding1,
-    backgroundColor: '#19CCA1',
+    backgroundColor: '#e85a4f',
   },
   {
     id: '2',
     title: 'Nhận xu đổi quà',
     description: 'Rất nhiều phần thưởng đang đợi bạn',
     image: onboarding2,
-    backgroundColor: '#4169E1',
+    backgroundColor: '#d8c3a5',
   },
   {
     id: '3',
@@ -83,7 +83,7 @@ export default function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
     <View style={{ width }} className="flex-1 items-center justify-center px-8">
       {/* Image */}
       <View className="items-center justify-center mb-12">
-        <Image source={item.image} className="w-64 h-64" resizeMode="contain" />
+        <Image source={item.image} className="w-72 h-72" resizeMode="contain" />
       </View>
 
       {/* Title */}

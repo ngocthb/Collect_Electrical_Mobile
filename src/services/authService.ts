@@ -2,6 +2,7 @@ import axiosClient from '../config/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import GoogleSignin from '../config/googleSignIn';
 import auth from '@react-native-firebase/auth';
+import { Profile } from '../types/Profile';
 
 export const signInWithGoogle = async (): Promise<any> => {
   try {
@@ -46,6 +47,29 @@ export const signInWithGoogle = async (): Promise<any> => {
   }
 };
 
+export const signIn = async (
+  username: string,
+  password: string,
+): Promise<any> => {
+  try {
+    const res = (await axiosClient.post('/auth/login', {
+      username,
+      password,
+    })) as any;
+    const token: string = res.token;
+    if (token) {
+      await AsyncStorage.setItem('token', token);
+
+      try {
+        axiosClient.defaults.headers.Authorization = `Bearer ${token}`;
+      } catch (e) {}
+    }
+    return token;
+  } catch (error) {
+    console.error('[signIn] Error:', error);
+    throw error;
+  }
+};
 // Hàm đăng xuất
 export const signOutGoogle = async (): Promise<void> => {
   try {
@@ -53,6 +77,16 @@ export const signOutGoogle = async (): Promise<void> => {
     await auth().signOut();
   } catch (error) {
     console.error('[signOutGoogle] Error:', error);
+    throw error;
+  }
+};
+
+// Sign out: remove token from storage and clear axios header, then sign out from firebase/google
+export const signOut = async (): Promise<void> => {
+  try {
+    await AsyncStorage.removeItem('token');
+  } catch (error) {
+    console.error('[signOut] Error:', error);
     throw error;
   }
 };
@@ -69,8 +103,8 @@ const getTokenByLoginGoogle = async (token: string) => {
 // Fetch user profile from backend
 export const fetchUserProfile = async (): Promise<any> => {
   try {
-    const profile = await axiosClient.get('/users/profile');
-    return profile;
+    const response = await axiosClient.get<Profile>('/users/profile');
+    return response;
   } catch (error) {
     console.error('[fetchUserProfile] Error:', error);
     throw error;
@@ -80,7 +114,7 @@ export const fetchUserProfile = async (): Promise<any> => {
 // Bootstrap auth: check token in AsyncStorage and fetch profile if exists
 export const bootstrapAuth = async (): Promise<{
   success: boolean;
-  profile?: any;
+  profile?: Profile;
   role?: string;
 }> => {
   try {
@@ -88,11 +122,10 @@ export const bootstrapAuth = async (): Promise<{
     if (!token) {
       return { success: false };
     }
-    console.log('fetch data by token in async storage');
-    const profileData: any = await fetchUserProfile();
-    const roleVal = (profileData?.role || profileData?.Role || '')
-      .toString()
-      .toLowerCase();
+    console.log('fetch data by token in async storage', token);
+    const profileData: Profile = await fetchUserProfile();
+    console.log('111111', profileData);
+    const roleVal = (profileData?.role || '').toString().toLowerCase();
     const role = roleVal === 'delivery' ? 'delivery' : 'user';
 
     return { success: true, profile: profileData, role };
@@ -110,4 +143,5 @@ export default {
   getTokenByLoginGoogle,
   fetchUserProfile,
   bootstrapAuth,
+  signOut,
 };

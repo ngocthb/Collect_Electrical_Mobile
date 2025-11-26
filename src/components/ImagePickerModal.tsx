@@ -6,6 +6,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { openCamera, openGallery } from '../services/imagePickerService';
 import { validateImageSize } from '../utils/validations';
 import type { Asset } from 'react-native-image-picker';
+import AppButton from './ui/AppButton';
 
 interface ImagePickerModalProps {
   visible: boolean;
@@ -223,15 +224,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
 
           {/* Cancel button */}
           <View className="px-4 pb-6 pt-2">
-            <TouchableOpacity
-              onPress={onClose}
-              className="bg-white border border-gray-200 rounded-xl py-4"
-              activeOpacity={0.7}
-            >
-              <Text className="text-center text-base font-semibold text-gray-700">
-                Hủy
-              </Text>
-            </TouchableOpacity>
+            <AppButton title="Đóng" onPress={onClose} />
           </View>
 
           {/* Safe area bottom padding */}

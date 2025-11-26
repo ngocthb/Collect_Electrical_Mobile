@@ -1,14 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  Modal,
-} from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import ImageModal from '../../components/ui/ImageModal';
+import ImageGalleryViewer from '../../components/ui/ImageGalleryViewer';
 import { getStatusBadgeClass } from '../../utils/status';
 import SubLayout from '../../layout/SubLayout';
 import { useNavigation } from '@react-navigation/core';
@@ -16,7 +9,6 @@ import { useRoute } from '@react-navigation/native';
 import axiosClient from '../../config/axios';
 import { Image } from 'react-native';
 import AppAvatar from '../../components/ui/AppAvatar';
-import { formatTimestamp } from '../../utils/dateUtils';
 import AppButton from '../../components/ui/AppButton';
 import routeService from '../../services/routeService';
 import {
@@ -33,8 +25,6 @@ const DeliveryInfoScreen = () => {
   const [request, setRequest] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [isRejected, setIsRejected] = useState(false);
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showVerifyButton, setShowVerifyButton] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
 
@@ -169,7 +159,7 @@ const DeliveryInfoScreen = () => {
     if (allDaysSameGroup) {
       const g = grouped[0];
       return (
-        <View className="bg-white border border-gray-200  rounded-2xl shadow-lg mb-3 py-2 px-4">
+        <View className="bg-white border-2 border-red-200  rounded-2xl shadow-lg mb-3 py-2 px-4">
           <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-2 ">
             Khung thời gian
           </Text>
@@ -184,7 +174,7 @@ const DeliveryInfoScreen = () => {
     }
 
     return (
-      <View className="bg-white border border-gray-200  rounded-2xl shadow-lg mb-3 py-2 px-4 ">
+      <View className="bg-white border-2 border-red-200  rounded-2xl shadow-lg mb-3 py-2 px-4 ">
         <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-2 ">
           Khung thời gian
         </Text>
@@ -241,7 +231,7 @@ const DeliveryInfoScreen = () => {
         '';
 
       return (
-        <View className="bg-white border border-gray-200  rounded-2xl shadow-lg mb-3 py-2 px-4 ">
+        <View className="bg-white border-2 border-red-200  rounded-2xl shadow-lg mb-3 py-2 px-4 ">
           <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-2 ">
             Thông số kỹ thuật
           </Text>
@@ -272,15 +262,6 @@ const DeliveryInfoScreen = () => {
     return null;
   };
 
-  const toggleModal = () => {
-    setModalVisible(!isModalVisible);
-  };
-
-  const handleImagePress = (imageUri: string) => {
-    setSelectedImage(imageUri);
-    toggleModal();
-  };
-
   const handleSkip = async () => {
     if (!request) return;
     const id = request.collectionRouterId;
@@ -303,21 +284,21 @@ const DeliveryInfoScreen = () => {
       onBackPress={() => navigation.goBack()}
     >
       {loading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#4169E1" />
+        <View className="flex-1 bg-background-50 items-center justify-center">
+          <ActivityIndicator size="large" color="#e85a4f" />
         </View>
       ) : (
-        <ScrollView className="flex-1 bg-gray-50">
+        <ScrollView className="flex-1 bg-background-50">
           <View className="px-5 py-4">
             {request?.collector && (
-              <View className="bg-white border border-gray-200  rounded-2xl shadow-lg mb-3 py-2 px-4 ">
+              <View className="bg-primary-100 border-2 border-red-200  rounded-2xl shadow-lg mb-3  p-4 ">
                 <View className="flex-row justify-between">
-                  <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-2 ">
+                  <Text className="text-text-main text-xs font-semibold uppercase tracking-wider mb-2 ">
                     Nhân viên thu gom
                   </Text>
                   <View className="flex-row items-center">
-                    <Icon name="calendar" size={14} color="#19CCA1" />
-                    <Text className="text-text-sub text-xs font-semibold uppercase tracking-wider ml-2">
+                    <Icon name="calendar" size={14} color="#fff" />
+                    <Text className="text-text-main text-xs font-semibold uppercase tracking-wider ml-2">
                       {request?.pickUpDate} • {request?.estimatedTime}
                     </Text>
                   </View>
@@ -327,17 +308,20 @@ const DeliveryInfoScreen = () => {
                     name={request.collector.name}
                     uri={request.collector.avatar}
                     size={56}
-                    style={{ marginRight: 12 }}
+                    style={{
+                      borderWidth: 3,
+                      borderColor: '#fff',
+                    }}
                   />
-                  <View className="flex-1">
-                    <Text className="text-gray-900 font-semibold text-base mb-1">
+                  <View className="flex-1 ml-2">
+                    <Text className="text-white font-semibold text-base mb-1">
                       {request.collector.name}
                     </Text>
 
                     {request.collector.email && (
                       <View className="flex-row items-center mt-1">
-                        <Icon name="mail" size={14} color="#6B7280" />
-                        <Text className="text-gray-600 text-sm ml-2">
+                        <Icon name="mail" size={14} color="#fff" />
+                        <Text className="text-text-main text-sm ml-2">
                           {request.collector.email}
                         </Text>
                       </View>
@@ -347,7 +331,7 @@ const DeliveryInfoScreen = () => {
               </View>
             )}
 
-            <View className="bg-white border border-gray-200  rounded-2xl shadow-lg mb-3 py-3 px-4 ">
+            <View className="bg-white border-2 border-red-200  rounded-2xl shadow-lg mb-3 py-3 px-4 ">
               <View className="flex-row justify-between items-center mb-2">
                 {request?.categoryName && (
                   <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider ">
@@ -365,37 +349,13 @@ const DeliveryInfoScreen = () => {
                 </View>
               </View>
               {/* request thumbnail */}
-              {request?.productImages && (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  className="space-x-3"
-                >
-                  {request.productImages.map((img: any, i: number) => (
-                    <TouchableOpacity
-                      key={i}
-                      onPress={() => handleImagePress(img)}
-                    >
-                      <Image
-                        source={img && { uri: img }}
-                        style={{
-                          width: 84,
-                          height: 84,
-                          borderRadius: 12,
-                          marginRight: 12,
-                        }}
-                        resizeMode="cover"
-                      />
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              )}
+              <ImageGalleryViewer images={request?.productImages || []} />
 
               <View className="space-y-4">
                 <View className="flex pt-3 ">
                   <View className="flex-row items-center">
-                    <View className="w-6 h-6 rounded-full bg-secondary-50 items-center justify-center">
-                      <Icon name="map-pin" size={12} color="#3B82F6" />
+                    <View className="w-6 h-6 rounded-full bg-primary-50 items-center justify-center">
+                      <Icon name="map-pin" size={12} color="#fff" />
                     </View>
                     <View
                       style={{
@@ -414,8 +374,8 @@ const DeliveryInfoScreen = () => {
                     </View>
                   </View>
                   <View className="flex-row items-center mt-2">
-                    <View className="w-6 h-6 rounded-full bg-secondary-50 items-center justify-center">
-                      <Icon name="layers" size={12} color="#19CCA1" />
+                    <View className="w-6 h-6 rounded-full bg-primary-50 items-center justify-center">
+                      <Icon name="layers" size={12} color="#fff" />
                     </View>
                     <View
                       style={{
@@ -461,6 +421,7 @@ const DeliveryInfoScreen = () => {
                   <View style={{ width: '48%', marginRight: '4%' }}>
                     <AppButton
                       title="Xác thực nhân viên"
+                      color="#3366CC"
                       onPress={() => {
                         navigation.navigate('UserConfirm');
                       }}
@@ -470,7 +431,6 @@ const DeliveryInfoScreen = () => {
                     <AppButton
                       title={'Bỏ qua xác thực'}
                       onPress={handleSkip}
-                      color="#ef4444"
                       disabled={isSkipping}
                       loading={isSkipping}
                     />
@@ -481,11 +441,6 @@ const DeliveryInfoScreen = () => {
           </View>
         </ScrollView>
       )}
-      <ImageModal
-        visible={isModalVisible}
-        imageUri={selectedImage}
-        onClose={toggleModal}
-      />
     </SubLayout>
   );
 };

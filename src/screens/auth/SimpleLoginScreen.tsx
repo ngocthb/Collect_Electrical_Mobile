@@ -9,16 +9,16 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { setError, setLoading } from '../../store/authSlice';
-import { setUser, setRole } from '../../store/authSlice';
+
+import { setUser, setLoading } from '../../store/slices/authSlice';
 import Toast from 'react-native-toast-message';
 import { signInWithGoogle, fetchUserProfile } from '../../services/authService';
 
 const simpleLogin = require('../../assets/images/simplelogin.png');
 const google = require('../../assets/images/google.jpg');
-
+const logo = require('../../assets/images/logo.png');
 export default function SimpleLoginScreen() {
   const dispatch = useAppDispatch();
   const auth = useAppSelector(s => s.auth);
@@ -32,11 +32,14 @@ export default function SimpleLoginScreen() {
 
       const profileData: any = await fetchUserProfile();
       dispatch(setUser(profileData));
-      const roleVal = (profileData?.role || profileData?.Role || '')
-        .toString()
-        .toLowerCase();
-      if (roleVal === 'delivery') dispatch(setRole('delivery'));
-      else dispatch(setRole('user'));
+
+      if (profileData.role === 'Collector') {
+        // @ts-ignore
+        globalThis.navigation?.replace('Dashboard');
+      } else {
+        // @ts-ignore
+        globalThis.navigation?.replace('MainTabs');
+      }
 
       Toast.show({
         type: 'success',
@@ -47,89 +50,76 @@ export default function SimpleLoginScreen() {
       Toast.show({
         type: 'error',
         text1: 'Đăng nhập thất bại',
-        text2: error || 'Vui lòng thử lại',
+        text2: 'Tên đăng nhập hoặc mật khẩu không đúng',
       });
     } finally {
       dispatch(setLoading(false));
     }
   };
 
-  useEffect(() => {
-    if (auth.user && auth.role) {
-      Toast.show({
-        type: 'success',
-        text1: 'Đăng nhập thành công!',
-        text2: `Chào mừng ${auth.user.name || auth.user.email}`,
-      });
-
-      if (auth.role === 'user') {
-        navigation?.replace('MainTabs');
-      } else {
-        navigation?.replace('Dashboard');
-      }
-    }
-  }, [auth.user, auth.role]);
-
-  useFocusEffect(
-    useCallback(() => {
-      dispatch(setError(null));
-      return () => dispatch(setError(null));
-    }, [dispatch]),
-  );
-
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View className="flex-1 bg-white">
-        {/* TOP SECTION */}
-        <View className="items-center justify-center mt-16 flex-1">
+        {/* TOP 70% */}
+        <View className="flex-1 items-center justify-center px-6">
           <Image
-            source={simpleLogin}
-            className="w-52 mb-6"
+            source={logo}
+            className="w-24 h-24 mb-12"
             resizeMode="contain"
           />
 
-          <Text className="text-3xl font-bold text-gray-800 mb-2">
+          {/* Banner lớn */}
+          <Image
+            source={simpleLogin}
+            className="w-72 h-72"
+            resizeMode="contain"
+          />
+
+          <Text className="text-3xl font-bold text-gray-800">
             Chào mừng <Text className="text-primary-100">bạn</Text>
           </Text>
 
-          <Text className="text-gray-500 text-sm font-medium">
-            Tham gia với chúng tôi ngay
+          <Text className="text-gray-500 text-sm mt-1">
+            Tham gia cùng chúng tôi ngay hôm nay!
           </Text>
         </View>
 
-        {/* BOTTOM CARD */}
+        {/* BOTTOM 30% */}
         <View
-          className="bg-primary-100 px-8 pt-12 pb-10"
-          style={{ borderTopLeftRadius: 48, borderTopRightRadius: 48 }}
+          className=" bg-primary-100 px-8 py-10 mt-10"
+          style={{ borderTopLeftRadius: 40, borderTopRightRadius: 40 }}
         >
           {/* GOOGLE LOGIN BUTTON */}
-          <TouchableOpacity
-            onPress={handleGoogleLogin}
-            disabled={auth.loading}
-            className={`flex-row items-center justify-center py-4 bg-white rounded-xl shadow-md ${
-              auth.loading ? 'opacity-60' : ''
-            }`}
-          >
-            {auth.loading ? (
-              <ActivityIndicator color="#4169E1" />
-            ) : (
-              <>
-                <Image source={google} className="w-5 h-5 mr-3" />
-                <Text className="text-primary-100 font-semibold text-base">
-                  Đăng nhập với Google
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
-
-          {/* Register */}
-          <View className="flex-row justify-center mt-6">
-            <Text className="text-white text-base">Là người thu gom? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text className="text-secondary-100 font-bold text-base">
-                Đăng nhập
-              </Text>
+          <View className="py-8 ">
+            <TouchableOpacity
+              onPress={handleGoogleLogin}
+              disabled={auth.isLoading}
+              className={`flex-row items-center justify-center  py-4 bg-white rounded-2xl shadow-lg mb-4 ${
+                auth.isLoading && 'opacity-60'
+              }`}
+            >
+              {auth.isLoading ? (
+                <ActivityIndicator color="#e85a4f" />
+              ) : (
+                <>
+                  <Image source={google} className="w-5 h-5 mr-3" />
+                  <Text className="text-primary-100 font-semibold text-base">
+                    Đăng nhập với Google
+                  </Text>
+                </>
+              )}
             </TouchableOpacity>
+
+            <View className="flex-row justify-center mt-6 ">
+              <Text className="text-gray-700 text-base">
+                Là người thu gom?{' '}
+              </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Text className="text-white font-bold text-base">
+                  Đăng nhập
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>

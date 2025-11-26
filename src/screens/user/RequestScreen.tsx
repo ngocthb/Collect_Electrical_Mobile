@@ -27,11 +27,7 @@ const RequestScreen = () => {
   const isMounted = useRef(true);
 
   const statusGroupMap: Record<string, string[]> = {
-    pending: ['Chờ duyệt'],
-    grouping: ['Chờ gom nhóm'],
-    collecting: ['Chờ thu gom'],
-    cancelled: ['Đã từ chối'],
-    recycle: [
+    completed: [
       'Tái chế',
       'Đã đóng gói',
       'Đã thu gom',
@@ -68,46 +64,44 @@ const RequestScreen = () => {
 
   const filteredProducts = selectedStatusGroup
     ? products.filter(p => {
-        const statuses = statusGroupMap[selectedStatusGroup] || [];
-        const normalized = statuses.map(s => String(s).trim().toLowerCase());
         const pStatus = String(p.status || '')
           .trim()
           .toLowerCase();
-        return normalized.includes(pStatus);
+
+        if (selectedStatusGroup === 'completed') {
+          return statusGroupMap.completed
+            .map(s => s.toLowerCase())
+            .includes(pStatus);
+        }
+
+        if (selectedStatusGroup === 'incomplete') {
+          return !statusGroupMap.completed
+            .map(s => s.toLowerCase())
+            .includes(pStatus);
+        }
+
+        return true; // Default case for 'Tất cả'
       })
     : products;
 
   const openProduct = (prod: any) => {
-    const status = String(prod.status || '')
+    const pStatus = String(prod.status || '')
       .trim()
       .toLowerCase();
-    let groupKey = '';
-    for (const k of Object.keys(statusGroupMap)) {
-      const candidates = (statusGroupMap[k] || []).map(s =>
-        String(s).trim().toLowerCase(),
-      );
-      if (candidates.includes(status)) {
-        groupKey = k;
-        break;
-      }
-    }
 
-    if (groupKey === 'recycle') {
+    if (!statusGroupMap.completed.map(s => s.toLowerCase()).includes(pStatus)) {
+      navigation.navigate('DeliveryInfo', { productId: prod.productId });
+    } else {
       navigation.navigate('UserNotificationDetail', {
         productId: prod.productId,
       });
-    } else {
-      navigation.navigate('DeliveryInfo', { productId: prod.productId });
     }
   };
 
   const statusGroupOptions = [
     { value: '', label: 'Tất cả', color: 'gray' },
-    { value: 'grouping', label: 'Chờ nhóm', color: 'blue' },
-    { value: 'pending', label: 'Chờ duyệt', color: 'purple' },
-    { value: 'collecting', label: 'Chờ thu gom', color: 'yellow' },
-    { value: 'cancelled', label: 'Từ chối', color: 'red' },
-    { value: 'recycle', label: 'Tái chế', color: 'green' },
+    { value: 'incomplete', label: 'Chưa hoàn thành', color: 'yellow' },
+    { value: 'completed', label: 'Đã hoàn thành', color: 'green' },
   ];
 
   const selectedOption = statusGroupOptions.find(
@@ -117,22 +111,12 @@ const RequestScreen = () => {
   const renderProductStatusBadge = (status: string | null | undefined) => {
     if (!status) return null;
     const s = String(status).trim().toLowerCase();
-    let label = String(status).trim();
-    let bgClass = 'bg-gray-400';
 
-    if (s === 'chờ gom nhóm') {
-      label = 'Chờ gom nhóm';
-      bgClass = 'bg-blue-600';
-    } else if (s === 'chờ duyệt') {
-      label = 'Chờ duyệt';
-      bgClass = 'bg-purple-600';
-    } else if (s === 'chờ thu gom') {
-      label = 'Chờ thu gom';
-      bgClass = 'bg-amber-500';
-    } else if (s === 'đã từ chối' || s === 'từ chối' || s === 'đã từ chối') {
-      label = 'Từ chối';
-      bgClass = 'bg-red-500';
-    } else if (
+    // Default to incomplete
+    let label = 'Chưa hoàn thành';
+    let bgClass = 'bg-amber-500';
+
+    if (
       [
         'tái chế',
         'đã đóng gói',
@@ -141,7 +125,7 @@ const RequestScreen = () => {
         'đã đóng thùng',
       ].includes(s)
     ) {
-      label = 'Tái chế';
+      label = 'Đã hoàn thành';
       bgClass = 'bg-green-600';
     }
 
@@ -168,7 +152,7 @@ const RequestScreen = () => {
     <View className="relative">
       <TouchableOpacity
         onPress={() => setFilterDropdownOpen(!filterDropdownOpen)}
-        className="flex-row items-center px-3 py-1.5 rounded-lg border border-gray-200 bg-secondary-100"
+        className="flex-row items-center px-3 py-1.5 rounded-lg border border-gray-200 bg-primary-100"
       >
         <View
           className={`w-2 h-2 rounded-full mr-1.5 ${
@@ -249,12 +233,11 @@ const RequestScreen = () => {
       onRefresh={loadProducts}
       headerRightComponent={filterDropdown}
     >
-      <View className="flex-1 bg-gray-50">
-        {/* Product List */}
+      <View className="flex-1 bg-background-50">
         <ScrollView className="flex-1 px-4 mt-2">
           {loading ? (
             <View className="items-center justify-center py-12">
-              <ActivityIndicator size="large" color="#4169E1" />
+              <ActivityIndicator size="large" color="#e85a4f" />
               <Text className="text-text-muted mt-4 text-center">
                 Đang tải...
               </Text>
@@ -270,7 +253,7 @@ const RequestScreen = () => {
             filteredProducts.map((prod: any) => (
               <TouchableOpacity
                 key={prod.productId}
-                className="flex-row items-center bg-white border border-gray-200 rounded-xl p-3 mb-3 shadow-sm"
+                className="flex-row items-center bg-white border-2 border-red-200 rounded-xl p-3 mb-3 shadow-sm"
                 onPress={() => openProduct(prod)}
               >
                 {/* Image */}

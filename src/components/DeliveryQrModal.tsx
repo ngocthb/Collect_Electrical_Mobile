@@ -94,7 +94,11 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
         return;
       }
 
+      console.log('[DeliveryQr] ✅ Received confirmation from socket:', status);
       setIsWaitingForConfirmation(false);
+
+      // Close modal immediately when receiving socket confirmation
+      onClose?.();
 
       const s = String(status ?? '').toLowerCase();
       try {
@@ -139,9 +143,6 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
       } catch (e) {
         console.warn('[DeliveryQr] handler error', e);
       }
-
-      // Close modal after handling
-      onClose?.();
     });
 
     newConnection.onreconnecting(error => {
@@ -240,7 +241,7 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
                   </>
                 ) : (
                   <View className="items-center p-6">
-                    <ActivityIndicator size="large" color="#3B82F6" />
+                    <ActivityIndicator size="large" color="#e85a4f" />
                     <Text className="mt-4 text-sm text-gray-500">
                       Đang tải thông tin đơn hàng...
                     </Text>
@@ -251,7 +252,7 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
               {isWaitingForConfirmation && product && (
                 <View className="w-full bg-blue-50 rounded-xl p-4 border border-blue-200 mb-4">
                   <View className="flex-row items-center justify-center">
-                    <Icon name="clock" size={18} color="#3B82F6" />
+                    <Icon name="clock" size={18} color="#e85a4f" />
                     <Text className="text-sm text-blue-800 text-center ml-2 font-medium">
                       Đang chờ khách hàng xác nhận...
                     </Text>

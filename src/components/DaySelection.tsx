@@ -8,6 +8,9 @@ import {
   clearTimeSlot,
 } from '../store/slices/timeSlotSlice';
 
+// Cutoff hour (24-hour format): if current time >= this hour, start calendar from next day
+const CUTOFF_HOUR = 20;
+
 interface DaySelectionProps {
   selectedDays: Day[];
   setSelectedDays: React.Dispatch<React.SetStateAction<Day[]>>;
@@ -30,7 +33,7 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     } else {
       setSelectedDays([]);
     }
-  }, [timeSlot]);
+  }, [timeSlot, setSelectedDays]);
 
   // Get today's day name
   const getTodayDayName = (): Day => {
@@ -41,10 +44,34 @@ const DaySelection: React.FC<DaySelectionProps> = ({
 
   const todayDayName = getTodayDayName();
 
-  // Reorder days starting from today
+  // Check if current time in Vietnam is after cutoff
+  const isAfterCutoff = (): boolean => {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      hour: 'numeric',
+      hour12: false,
+    });
+    const hourStr = formatter.format(now);
+    const currentHour = parseInt(hourStr, 10);
+    return currentHour >= CUTOFF_HOUR;
+  };
+
+  // Reorder days: before cutoff start from tomorrow, after cutoff start from day after tomorrow
+  const startDayName = (() => {
+    const todayIndex = days.indexOf(todayDayName);
+    if (!isAfterCutoff()) {
+      const nextIndex = (todayIndex + 1) % days.length;
+      return days[nextIndex];
+    } else {
+      const nextNextIndex = (todayIndex + 2) % days.length;
+      return days[nextNextIndex];
+    }
+  })();
+
   const reorderedDays = [
-    ...days.slice(days.indexOf(todayDayName)),
-    ...days.slice(0, days.indexOf(todayDayName)),
+    ...days.slice(days.indexOf(startDayName)),
+    ...days.slice(0, days.indexOf(startDayName)),
   ];
 
   // Safe function to get today's date in Vietnam timezone
@@ -70,7 +97,7 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     return new Date(year, month - 1, day);
   };
 
-  // Get next date for a specific day
+  // Get next date for a specific day (accounting for cutoff shift)
   const getNextDateForDay = (dayName: Day) => {
     const dayMap: Record<Day, number> = {
       T2: 1,
@@ -83,14 +110,19 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     };
 
     const today = getTodayInVietnam();
-    const targetDay = dayMap[dayName];
-    const currentDay = today.getDay();
+    const todayIndex = days.indexOf(todayDayName);
+    const targetIndex = days.indexOf(dayName);
+    const startIndex = days.indexOf(startDayName);
 
-    let daysToAdd = targetDay - currentDay;
-    if (daysToAdd <= 0) daysToAdd += 7;
+    // Calculate offset from the start of the displayed week
+    let offset = targetIndex - startIndex;
+    if (offset < 0) offset += 7;
+
+    // Calculate base shift: +1 day before cutoff, +2 days after cutoff
+    const baseShift = isAfterCutoff() ? 2 : 1;
 
     const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() + daysToAdd);
+    targetDate.setDate(today.getDate() + baseShift + offset);
 
     // Format as YYYY-MM-DD in Vietnam timezone
     const formatter = new Intl.DateTimeFormat('en-CA', {
@@ -98,6 +130,29 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     });
 
     return formatter.format(targetDate);
+  };
+
+  // Format date for display as DD/MM (include year if not current year)
+  const getDisplayDateForDay = (dayName: Day) => {
+    const today = getTodayInVietnam();
+    const targetIndex = days.indexOf(dayName);
+    const startIndex = days.indexOf(startDayName);
+
+    // Calculate offset from the start of the displayed week
+    let offset = targetIndex - startIndex;
+    if (offset < 0) offset += 7;
+
+    // Calculate base shift: +1 day before cutoff, +2 days after cutoff
+    const baseShift = isAfterCutoff() ? 2 : 1;
+
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + baseShift + offset);
+
+    const sameYear = targetDate.getFullYear() === today.getFullYear();
+    const dd = String(targetDate.getDate()).padStart(2, '0');
+    const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const yyyy = String(targetDate.getFullYear());
+    return sameYear ? `${dd}/${mm}` : `${dd}/${mm}/${yyyy}`;
   };
 
   // Toggle a single day selection
@@ -154,7 +209,9 @@ const DaySelection: React.FC<DaySelectionProps> = ({
         <View className="flex-row items-center">
           <TouchableOpacity
             className={`px-3 py-1 rounded-full mr-2 ${
-              isAllSelected ? 'bg-primary-100' : 'bg-primary-50'
+              isAllSelected
+                ? 'bg-primary-100'
+                : 'bg-white border border-red-200'
             }`}
             onPress={toggleAll}
           >
@@ -175,12 +232,12 @@ const DaySelection: React.FC<DaySelectionProps> = ({
             {reorderedDays.map(day => (
               <TouchableOpacity
                 key={day}
-                className={`px-3 py-2 rounded-full border ${
-                  selectedDays.includes(day) ? 'bg-secondary-100' : 'bg-white'
+                className={`px-2 py-2 rounded-xl border items-center ${
+                  selectedDays.includes(day) ? 'bg-primary-100' : 'bg-white'
                 }`}
                 style={{
                   borderColor: selectedDays.includes(day)
-                    ? '#19CCA1'
+                    ? '#e85a4f'
                     : '#E5E7EB',
                 }}
                 onPress={() => toggleDaySelection(day)}
@@ -189,10 +246,19 @@ const DaySelection: React.FC<DaySelectionProps> = ({
                   className={`text-sm font-semibold ${
                     selectedDays.includes(day)
                       ? 'text-white'
-                      : 'text-secondary-100'
+                      : 'text-primary-100'
                   }`}
                 >
                   {day}
+                </Text>
+                <Text
+                  className={`text-xs  ${
+                    selectedDays.includes(day)
+                      ? 'text-white'
+                      : 'text-primary-100'
+                  }`}
+                >
+                  {getDisplayDateForDay(day)}
                 </Text>
               </TouchableOpacity>
             ))}

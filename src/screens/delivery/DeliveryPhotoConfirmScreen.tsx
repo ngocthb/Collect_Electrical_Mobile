@@ -108,7 +108,7 @@ const DeliveryPhotoConfirmScreen = () => {
       title="Xác nhận ảnh giao hàng"
       onBackPress={() => navigation.goBack()}
     >
-      <ScrollView className="flex-1 bg-gray-50">
+      <ScrollView className="flex-1 bg-background-50">
         <View className="px-6 py-8 items-center">
           <Text className="text-base mb-6 text-center text-gray-700">
             Chụp ảnh để xác nhận tình trạng sản phẩm trước khi bàn giao cho
@@ -138,9 +138,9 @@ const DeliveryPhotoConfirmScreen = () => {
               {selectedImages.length < 5 && (
                 <TouchableOpacity
                   onPress={handleTakePhoto}
-                  className="w-28 h-28 border-2 border-dashed border-gray-400 rounded-lg items-center justify-center bg-gray-50"
+                  className="w-28 h-28 border-2 border-dashed border-red-200 rounded-lg items-center justify-center bg-gray-50"
                 >
-                  <Icon name="camera" size={32} color="#9CA3AF" />
+                  <Icon name="camera" size={32} color="#e85a4f" />
                   <Text className="text-gray-400 text-xs mt-1">Thêm ảnh</Text>
                 </TouchableOpacity>
               )}

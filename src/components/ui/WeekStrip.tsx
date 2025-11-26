@@ -39,57 +39,55 @@ const WeekStrip: React.FC<Props> = ({
   );
 
   return (
-    <View className="px-4">
-      <View className="flex-row items-center mb-2">
-        {/* <TouchableOpacity onPress={onPrevWeek} className="p-2">
-          <Icon name="chevron-left" size={20} color="#4169E1" />
+    <View className="flex-row items-center  bg-background-50">
+      {/* <TouchableOpacity onPress={onPrevWeek} className="p-2">
+          <Icon name="chevron-left" size={20} color="#e85a4f" />
         </TouchableOpacity> */}
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ alignItems: 'center', paddingHorizontal: 6 }}
-          style={{ flex: 1 }}
-        >
-          {days.map((d, idx) => {
-            const isSelected = d.toDateString() === selectedDate.toDateString();
-            const isToday = d.toDateString() === new Date().toDateString();
-            return (
-              <TouchableOpacity
-                key={idx}
-                onPress={() => onSelectDate(d)}
-                className={`items-center justify-center mx-1 p-2 rounded-md ${
-                  isSelected ? 'bg-blue-100' : ''
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ alignItems: 'center', paddingHorizontal: 6 }}
+        style={{ flex: 1 }}
+      >
+        {days.map((d, idx) => {
+          const isSelected = d.toDateString() === selectedDate.toDateString();
+          const isToday = d.toDateString() === new Date().toDateString();
+          return (
+            <TouchableOpacity
+              key={idx}
+              onPress={() => onSelectDate(d)}
+              className={`items-center justify-center mx-1 p-2 rounded-md ${
+                isSelected ? 'bg-red-50' : ''
+              }`}
+              style={{ minWidth: 44 }}
+            >
+              <Text
+                className={`text-xs ${
+                  isSelected ? 'text-primary-100 font-bold' : 'text-gray-600'
                 }`}
-                style={{ minWidth: 44 }}
               >
-                <Text
-                  className={`text-xs ${
-                    isSelected ? 'text-blue-600 font-bold' : 'text-gray-600'
-                  }`}
-                >
-                  {WEEKDAYS[idx]}
-                </Text>
-                <Text
-                  className={`text-sm ${
-                    isToday
-                      ? 'text-blue-600 font-bold'
-                      : isSelected
-                      ? 'text-blue-600 font-bold'
-                      : 'text-gray-700'
-                  }`}
-                >
-                  {d.getDate()}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+                {WEEKDAYS[idx]}
+              </Text>
+              <Text
+                className={`text-sm ${
+                  isToday
+                    ? 'text-primary-100 font-bold'
+                    : isSelected
+                    ? 'text-primary-100 font-bold'
+                    : 'text-gray-700'
+                }`}
+              >
+                {d.getDate()}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
 
-        {/* <TouchableOpacity onPress={onNextWeek} className="p-2">
-          <Icon name="chevron-right" size={20} color="#4169E1" />
+      {/* <TouchableOpacity onPress={onNextWeek} className="p-2">
+          <Icon name="chevron-right" size={20} color="#e85a4f" />
         </TouchableOpacity> */}
-      </View>
     </View>
   );
 };

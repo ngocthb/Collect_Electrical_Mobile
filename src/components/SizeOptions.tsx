@@ -29,18 +29,16 @@ const SizeOptions: React.FC<SizeOptionsProps> = ({
             <TouchableOpacity
               key={option}
               className={`px-4 py-2.5 rounded-full mr-2 mb-2 border-2 ${
-                selectedOptions.includes(option)
-                  ? 'bg-secondary-100'
-                  : 'bg-white'
+                selectedOptions.includes(option) ? 'bg-primary-100' : 'bg-white'
               }`}
-              style={{ borderColor: '#E0F7F4' }}
+              style={{ borderColor: '#F2B7AC' }}
               onPress={() => onToggle(option)}
             >
               <Text
                 className={`text-sm font-semibold ${
                   selectedOptions.includes(option)
                     ? 'text-white'
-                    : 'text-secondary-100'
+                    : 'text-primary-100'
                 }`}
               >
                 {option}

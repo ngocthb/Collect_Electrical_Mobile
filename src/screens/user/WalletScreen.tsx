@@ -91,15 +91,17 @@ export default function WalletScreen() {
       >
         <Image source={img} className="w-16 h-16 rounded-lg mr-3 bg-gray-100" />
         <View className="flex-1">
-          <Text className="text-base font-semibold text-gray-900">{desc}</Text>
+          <Text className="text-base font-semibold text-primary-100">
+            {desc}
+          </Text>
           <Text className="text-sm text-gray-500 mt-1">
             Bạn đã thu được{' '}
-            <Text className="text-green-600 font-semibold">
+            <Text className="text-primary-100 font-semibold">
               {(item.point ?? 0).toLocaleString()}
             </Text>{' '}
             <Text style={{ fontSize: 12 }}>🪙</Text>
           </Text>
-          <Text className="text-xs text-gray-400 mt-2">
+          <Text className="text-xs text-gray-400 mt-1">
             {formatTimestamp(item.createdAt)}
           </Text>
         </View>
@@ -109,16 +111,13 @@ export default function WalletScreen() {
 
   return (
     <SubLayout title="Ví của tôi" onBackPress={() => navigation.goBack()}>
-      <View className="flex-1 px-4 pt-4">
+      <View className="flex-1 bg-background-50 px-4 ">
         {/* Balance Card */}
-        <View
-          className="rounded-3xl  overflow-hidden mb-6 p-4"
-          style={{ backgroundColor: '#23D69A' }}
-        >
+        <View className="rounded-3xl  overflow-hidden mb-6 p-4 bg-primary-100 border-2 border-red-200">
           <View className="flex-row items-center justify-between">
             <Image
               source={wallet1}
-              className="w-14 h-20 mr-6 justify-start"
+              className="w-24 h-24 justify-start"
               resizeMode="contain"
             />
             <View className="flex-1 justify-between">
@@ -130,12 +129,12 @@ export default function WalletScreen() {
                   `${(balance ?? 0).toLocaleString()} 🪙`
                 )}
               </Text>
-              <View className="mt-4 w-2/3">
+              <View className="mt-2">
                 <AppButton
                   title="Đổi quà ngay"
                   onPress={() => navigation.navigate('Voucher')}
                   color="#FFFFFF"
-                  textColor="#10B981"
+                  textColor="#e85a4f"
                   size="small"
                 />
               </View>
@@ -143,7 +142,7 @@ export default function WalletScreen() {
 
             <Image
               source={wallet2}
-              className="w-28 h-20 justify-end"
+              className="w-32 h-32 justify-end"
               resizeMode="contain"
             />
           </View>
@@ -154,7 +153,7 @@ export default function WalletScreen() {
         <View>
           {loadingTransactions ? (
             <View className="py-8 items-center">
-              <ActivityIndicator size="large" color="#3B82F6" />
+              <ActivityIndicator size="large" color="#e85a4f" />
             </View>
           ) : (
             <>
@@ -162,7 +161,7 @@ export default function WalletScreen() {
                 transactions.map((item, idx) => (
                   <View
                     key={idx}
-                    className="bg-white border border-gray-200 rounded-xl p-3 mb-3 shadow-sm"
+                    className="bg-white border-2 border-red-200 rounded-xl p-3 mb-3 shadow-sm"
                   >
                     {renderHistory({ item })}
                   </View>
