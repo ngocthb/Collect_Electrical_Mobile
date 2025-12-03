@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import type { SubCategory } from '../../types/Category';
+import type { AttributeOption } from '../../types/Category';
 
 interface AppDropdownProps {
-  options: SubCategory[];
+  options: AttributeOption[];
   placeholder?: string;
-  onSelect: (option: SubCategory) => void;
+  onSelect: (option: AttributeOption) => void;
   title?: string;
   required?: boolean;
-  value?: SubCategory | null;
+  value?: AttributeOption | null;
   inlineLabel?: boolean;
   size?: 'normal' | 'sub';
   compact?: boolean;
@@ -17,7 +17,6 @@ interface AppDropdownProps {
 
 const AppDropdown: React.FC<AppDropdownProps> = ({
   options,
-  placeholder = 'Chọn một tùy chọn',
   onSelect,
   title,
   required = false,
@@ -27,20 +26,21 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
   compact = false,
 }) => {
   const [isDropdownVisible, setDropdownVisible] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<SubCategory | null>(
+  const [selectedOption, setSelectedOption] = useState<AttributeOption | null>(
     null,
   );
 
   useEffect(() => {
     if (value) {
       setSelectedOption(value);
-    } else if (options.length > 0) {
+    } else if (options.length > 0 && !selectedOption) {
       setSelectedOption(options[0]);
       onSelect(options[0]);
     }
-  }, [value, options, onSelect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, options]);
 
-  const handleSelect = (option: SubCategory) => {
+  const handleSelect = (option: AttributeOption) => {
     setSelectedOption(option);
     onSelect(option);
     setDropdownVisible(false);
@@ -56,14 +56,14 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
             marginBottom: 8,
           }}
         >
-          <View style={{ flex: 1, marginRight: 8 }}>
+          <View className="w-2/5">
             <Text className="text-sm font-medium text-text-sub items-center text-start">
               {title} {required && <Text style={{ color: 'red' }}>*</Text>}
             </Text>
           </View>
           <TouchableOpacity
             style={{
-              flex: 2,
+              flex: 1,
               borderWidth: 1,
               borderColor: '#D1D5DB',
               borderRadius: 8,
@@ -81,7 +81,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
                 color: selectedOption ? '#111827' : '#9CA3AF',
               }}
             >
-              {selectedOption?.name}
+              {selectedOption?.optionName}
             </Text>
             <Icon
               name={isDropdownVisible ? 'chevron-up' : 'chevron-down'}
@@ -117,7 +117,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
                 color: selectedOption ? '#111827' : '#9CA3AF',
               }}
             >
-              {selectedOption?.name}
+              {selectedOption?.optionName}
             </Text>
             <Icon
               name={isDropdownVisible ? 'chevron-up' : 'chevron-down'}
@@ -155,14 +155,16 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
           >
             {options.map(item => (
               <TouchableOpacity
-                key={String(item.id)}
+                key={String(item.attributeOptionId)}
                 style={{
                   padding: size === 'sub' ? 12 : 16,
                   borderBottomWidth:
                     item !== options[options.length - 1] ? 1 : 0,
                   borderBottomColor: '#F3F4F6',
                   backgroundColor:
-                    selectedOption?.id === item.id ? '#FEE2E2' : '#FFFFFF',
+                    selectedOption?.attributeOptionId === item.attributeOptionId
+                      ? '#FEE2E2'
+                      : '#FFFFFF',
                 }}
                 onPress={() => handleSelect(item)}
               >
@@ -170,11 +172,18 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
                   style={{
                     fontSize: size === 'sub' ? 12 : 16,
                     color:
-                      selectedOption?.id === item.id ? '#e85a4f' : '#374151',
-                    fontWeight: selectedOption?.id === item.id ? '600' : '400',
+                      selectedOption?.attributeOptionId ===
+                      item?.attributeOptionId
+                        ? '#e85a4f'
+                        : '#374151',
+                    fontWeight:
+                      selectedOption?.attributeOptionId ===
+                      item?.attributeOptionId
+                        ? '600'
+                        : '400',
                   }}
                 >
-                  {item.name}
+                  {item?.optionName}
                 </Text>
               </TouchableOpacity>
             ))}

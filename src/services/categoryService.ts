@@ -1,4 +1,10 @@
-import { SubCategory, Category, Attribute, SizeTier } from '../types/Category';
+import {
+  SubCategory,
+  Category,
+  Attribute,
+  SizeTier,
+  AttributeOption,
+} from '../types/Category';
 import axiosClient from '../config/axios';
 import axios from 'axios';
 export const getParentCategories = async (): Promise<Category[]> => {
@@ -40,6 +46,15 @@ export const searchSubCategories = async (
     `http://160.187.1.125:5000/subCategory?parentId=${parentId}&name=${encodedQuery}`,
   );
   return res.data || [];
+};
+
+export const getAttributeOptions = async (
+  attributeId: string,
+): Promise<AttributeOption[]> => {
+  const res = (await axiosClient.get(
+    `/attribute-option/by-attribute/${attributeId}`,
+  )) as AttributeOption[];
+  return res || [];
 };
 
 export const getBrandsBySubcategory = async (

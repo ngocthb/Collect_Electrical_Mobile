@@ -25,14 +25,20 @@ const DaySelection: React.FC<DaySelectionProps> = ({
 
   // Sync selectedDays with Redux store
   useEffect(() => {
-    if (timeSlot && timeSlot.length > 0) {
-      const updatedSelectedDays: Day[] = timeSlot.map(
-        slot => slot.dayName as Day,
-      );
-      setSelectedDays(updatedSelectedDays);
-    } else {
-      setSelectedDays([]);
-    }
+    const syncDays = () => {
+      if (timeSlot && timeSlot.length > 0) {
+        const updatedSelectedDays: Day[] = timeSlot.map(
+          slot => slot.dayName as Day,
+        );
+        setSelectedDays(updatedSelectedDays);
+      } else {
+        setSelectedDays([]);
+      }
+    };
+
+    // Defer state update to avoid updating parent during render
+    const timer = setTimeout(syncDays, 0);
+    return () => clearTimeout(timer);
   }, [timeSlot, setSelectedDays]);
 
   // Get today's day name

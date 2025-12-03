@@ -19,7 +19,7 @@ const StatusFilter: React.FC<StatusFilterProps> = ({
   onStatusChange,
 }) => {
   return (
-    <View className="flex-row bg-background-50 p-2">
+    <View className="flex-row bg-red-50 p-1">
       {options.map(status => {
         const selected = selectedStatus === status.value;
         return (

@@ -18,7 +18,7 @@ import 'react-native-url-polyfill/auto';
 import './src/config/googleSignIn';
 
 function AppContent() {
-  useZegoService();
+  // useZegoService();
 
   const dispatch = useAppDispatch();
 
@@ -28,7 +28,7 @@ function AppContent() {
 
   return (
     <>
-      <ZegoCallInvitationDialog />
+      {/* <ZegoCallInvitationDialog /> */}
       <RootNavigator />
     </>
   );

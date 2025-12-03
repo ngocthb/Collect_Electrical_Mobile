@@ -17,21 +17,11 @@ const cleanUserIdForZego = (userId: string) => {
 
 type Props = {
   order: any;
-  idx: number;
-  isLast?: boolean;
+
   isSelectedDateToday: boolean;
-  onOpenMap: (order: any) => void;
-  onReject: (order: any) => void;
-  onConfirm: (order: any) => void;
 };
 
-const DeliveryOrderCard = ({
-  order,
-  isSelectedDateToday,
-  onOpenMap,
-  onReject,
-  onConfirm,
-}: Props) => {
+const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
   const navigation = useNavigation<any>();
   const status = resolveStatus(order);
   const actionsDisabled = status === 'failed' || status === 'completed';
@@ -180,7 +170,7 @@ const DeliveryOrderCard = ({
 
           <View className="bg-red-50 px-3 py-1 rounded-lg ">
             <Text className="text-primary-100 font-bold text-lg">
-              {order?.distanceText || '---'}
+              {order?.distanceKm || '---'} km
             </Text>
           </View>
         </View>

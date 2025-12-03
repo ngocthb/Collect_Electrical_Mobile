@@ -1,4 +1,5 @@
 import axiosClient from '../config/axios';
+import { ProductDetail } from '../types/Product';
 
 export async function getProductsByUser(userId: string) {
   if (!userId) return [];
@@ -6,4 +7,13 @@ export async function getProductsByUser(userId: string) {
   return Array.isArray(resp) ? resp : resp?.data ?? [];
 }
 
-export default { getProductsByUser };
+export async function getProductById(
+  productId: string,
+): Promise<ProductDetail> {
+  const resp = (await axiosClient.get(
+    `/products/${productId}`,
+  )) as ProductDetail;
+  return resp || null;
+}
+
+export default { getProductsByUser, getProductById };

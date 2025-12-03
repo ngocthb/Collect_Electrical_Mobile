@@ -6,27 +6,28 @@ import { getStatusBadgeClass } from '../../utils/status';
 import SubLayout from '../../layout/SubLayout';
 import { useNavigation } from '@react-navigation/core';
 import { useRoute } from '@react-navigation/native';
-import axiosClient from '../../config/axios';
-import { Image } from 'react-native';
+
 import AppAvatar from '../../components/ui/AppAvatar';
 import AppButton from '../../components/ui/AppButton';
 import routeService from '../../services/routeService';
+import { getProductById } from '../../services/productService';
 import {
   connectShippingHub,
   joinRouteGroup,
   disconnect,
 } from '../../services/signalrService';
+import { ProductDetail } from '../../types/Product';
 
 const DeliveryInfoScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const productId: string | undefined = route.params?.productId;
 
-  const [request, setRequest] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [isRejected, setIsRejected] = useState(false);
   const [showVerifyButton, setShowVerifyButton] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
+  const [product, setProduct] = useState<ProductDetail>();
 
   useEffect(() => {
     if (!productId) return;
@@ -64,45 +65,11 @@ const DeliveryInfoScreen = () => {
       if (!productId) return;
       setLoading(true);
       try {
-        const r = await axiosClient.get(`/products/${productId}`);
-        console.log(r);
-        setIsRejected((r as any).status === 'Đã Từ Chối');
-        const data = r as any;
-        const normalized: any = { ...data };
-
-        // Map imageUrls to images format
-        if (Array.isArray(data.imageUrls)) {
-          normalized.images = data.imageUrls.map((u: string) => ({ uri: u }));
-          normalized.image = normalized.images[0] || null;
+        const data = await getProductById(productId);
+        if (mounted) {
+          setProduct(data);
+          setIsRejected(data.status === 'Đã Từ Chối');
         }
-
-        // Map product description to description
-        if (data.product?.description) {
-          normalized.description = data.product.description;
-        }
-
-        // Map category fields
-        if (data.parentCategory) {
-          normalized.category = data.parentCategory;
-          if (data.subCategory) {
-            normalized.category += ` - ${data.subCategory}`;
-          }
-        }
-
-        // Map schedule to timeSlots format
-        if (Array.isArray(data.schedule)) {
-          const slotsObj: Record<string, string[]> = {};
-          data.schedule.forEach((item: any) => {
-            if (item && item.dayName && item.slots) {
-              const start = item.slots.startTime || '';
-              const end = item.slots.endTime || '';
-              slotsObj[item.dayName] = [start, end];
-            }
-          });
-          normalized.timeSlots = slotsObj;
-        }
-
-        if (mounted) setRequest(normalized ?? null);
       } catch (e) {
         console.warn('Failed to load request', e);
       } finally {
@@ -121,7 +88,7 @@ const DeliveryInfoScreen = () => {
       ([, v]) => Array.isArray(v) && v.length > 0,
     );
     if (entries.length === 0) return null;
-    // Group days that share identical time ranges to display them on one row
+
     const groups = new Map<string, { times: string[]; days: string[] }>();
 
     entries.forEach(([day, times]) => {
@@ -198,8 +165,8 @@ const DeliveryInfoScreen = () => {
   };
 
   const renderAttributesOrCondition = () => {
-    if (request?.attributes && request.attributes.length > 0) {
-      const attrs: any[] = request.attributes;
+    if (product?.attributes && product.attributes.length > 0) {
+      const attrs: any[] = product.attributes;
       const normalize = (s: string) => (s || '').toLowerCase();
       const findByName = (keywords: string[]) =>
         attrs.find(a =>
@@ -252,7 +219,7 @@ const DeliveryInfoScreen = () => {
                 {attr.attributeName}
               </Text>
               <Text className="text-gray-900 font-medium">
-                {attr.value} {attr.unit || ''}
+                {attr.optionName} {attr.unit || ''}
               </Text>
             </View>
           ))}
@@ -263,8 +230,8 @@ const DeliveryInfoScreen = () => {
   };
 
   const handleSkip = async () => {
-    if (!request) return;
-    const id = request.collectionRouterId;
+    if (!product) return;
+    const id = product.collectionRouterId;
     if (!id) return;
     setIsSkipping(true);
     try {
@@ -290,7 +257,7 @@ const DeliveryInfoScreen = () => {
       ) : (
         <ScrollView className="flex-1 bg-background-50">
           <View className="px-5 py-4">
-            {request?.collector && (
+            {product?.collector && (
               <View className="bg-primary-100 border-2 border-red-200  rounded-2xl shadow-lg mb-3  p-4 ">
                 <View className="flex-row justify-between">
                   <Text className="text-text-main text-xs font-semibold uppercase tracking-wider mb-2 ">
@@ -299,14 +266,14 @@ const DeliveryInfoScreen = () => {
                   <View className="flex-row items-center">
                     <Icon name="calendar" size={14} color="#fff" />
                     <Text className="text-text-main text-xs font-semibold uppercase tracking-wider ml-2">
-                      {request?.pickUpDate} • {request?.estimatedTime}
+                      {product?.pickUpDate} • {product?.estimatedTime}
                     </Text>
                   </View>
                 </View>
                 <View className="flex-row items-center">
                   <AppAvatar
-                    name={request.collector.name}
-                    uri={request.collector.avatar}
+                    name={product.collector.name}
+                    uri={product.collector.avatar}
                     size={56}
                     style={{
                       borderWidth: 3,
@@ -315,14 +282,14 @@ const DeliveryInfoScreen = () => {
                   />
                   <View className="flex-1 ml-2">
                     <Text className="text-white font-semibold text-base mb-1">
-                      {request.collector.name}
+                      {product.collector.name}
                     </Text>
 
-                    {request.collector.email && (
+                    {product.collector.email && (
                       <View className="flex-row items-center mt-1">
                         <Icon name="mail" size={14} color="#fff" />
                         <Text className="text-text-main text-sm ml-2">
-                          {request.collector.email}
+                          {product.collector.email}
                         </Text>
                       </View>
                     )}
@@ -333,23 +300,23 @@ const DeliveryInfoScreen = () => {
 
             <View className="bg-white border-2 border-red-200  rounded-2xl shadow-lg mb-3 py-3 px-4 ">
               <View className="flex-row justify-between items-center mb-2">
-                {request?.categoryName && (
+                {product?.categoryName && (
                   <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider ">
-                    {request.categoryName} • {request.brandName}
+                    {product.categoryName} • {product.brandName}
                   </Text>
                 )}
                 <View
                   className={`${getStatusBadgeClass(
-                    request?.status,
+                    product?.status ?? '',
                   )} px-3 py-1 rounded-lg `}
                 >
                   <Text className="text-xs font-medium text-white">
-                    {request?.status ?? 'Đang xử lý'}
+                    {product?.status ?? 'Đang xử lý'}
                   </Text>
                 </View>
               </View>
               {/* request thumbnail */}
-              <ImageGalleryViewer images={request?.productImages || []} />
+              <ImageGalleryViewer images={product?.productImages || []} />
 
               <View className="space-y-4">
                 <View className="flex pt-3 ">
@@ -369,7 +336,7 @@ const DeliveryInfoScreen = () => {
                         style={{ textAlign: 'left' }}
                         className="text-text-sub text-sm"
                       >
-                        {request?.address ?? '—'}
+                        {product?.address ?? '—'}
                       </Text>
                     </View>
                   </View>
@@ -388,7 +355,7 @@ const DeliveryInfoScreen = () => {
                         style={{ textAlign: 'left' }}
                         className="text-text-sub text-sm"
                       >
-                        {request?.description ?? '—'}
+                        {product?.description ?? '—'}
                       </Text>
                     </View>
                   </View>
@@ -398,7 +365,7 @@ const DeliveryInfoScreen = () => {
                         Lí do từ chối
                       </Text>
                       <Text className="text-gray-900">
-                        {request.rejectMessage}
+                        {product?.rejectMessage}
                       </Text>
                     </View>
                   )}
@@ -407,7 +374,18 @@ const DeliveryInfoScreen = () => {
             </View>
 
             {/* time slots */}
-            {renderTimeSlots(request?.timeSlots)}
+            {product?.schedule &&
+              renderTimeSlots(
+                product.schedule.reduce((acc, item) => {
+                  if (item.dayName && item.slots) {
+                    acc[item.dayName] = [
+                      item.slots.startTime || '',
+                      item.slots.endTime || '',
+                    ];
+                  }
+                  return acc;
+                }, {} as Record<string, string[]>),
+              )}
 
             {renderAttributesOrCondition()}
 

@@ -36,12 +36,19 @@ const ImageGalleryViewer: React.FC<ImageGalleryViewerProps> = ({
 
   if (!images || images.length === 0) return null;
 
+  const shouldCenter = images.length <= 2;
+  const scrollEnabled = images.length > 2;
+
   return (
     <View>
       <ScrollView
         horizontal
+        scrollEnabled={scrollEnabled}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={[
+          styles.scrollContainer,
+          shouldCenter && styles.centerContainer,
+        ]}
       >
         {images.map((img: string, i: number) => (
           <TouchableOpacity key={i} onPress={() => handleImagePress(img)}>
@@ -71,6 +78,10 @@ const ImageGalleryViewer: React.FC<ImageGalleryViewerProps> = ({
 const styles = StyleSheet.create({
   scrollContainer: {
     paddingVertical: 4,
+  },
+  centerContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
 });
 

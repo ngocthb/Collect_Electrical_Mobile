@@ -1,4 +1,5 @@
 import { TimeSlot } from '../types/TimeSlot';
+import { AttributeOptionData } from './Category';
 
 export type CreateRequestPayload = {
   senderId?: string;
@@ -12,10 +13,7 @@ export type CreateRequestPayload = {
     subCategoryId?: string;
     sizeTierId?: string | null;
     brandId?: string;
-    attributes?: Array<{
-      attributeId: string;
-      value: string;
-    }>;
+    attributes?: AttributeOptionData[];
   };
 };
 

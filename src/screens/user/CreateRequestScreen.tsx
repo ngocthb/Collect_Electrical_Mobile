@@ -5,8 +5,6 @@ import toast from 'react-native-toast-message';
 import type { Asset } from 'react-native-image-picker';
 import { useRoute } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-
-import { getAttributes } from '../../services/categoryService';
 import SubLayout from '../../layout/SubLayout';
 import AppSearchableDropdown from '../../components/ui/AppSearchableDropdown';
 import AttributeSizePanel from '../../components/AttributeSizePanel';
@@ -18,16 +16,15 @@ import SizeOptions from '../../components/SizeOptions';
 import AddressSelector from '../../components/AddressSelector';
 
 import tags from '../../data/tags';
-import type { Attribute, SubCategory } from '../../types/Category';
+import type { AttributeOptionData, SubCategory } from '../../types/Category';
 import type { Address } from '../../types/Address';
-
+import type { CreateRequestPayload } from '../../types/Request';
 import { useAppSelector } from '../../store/hooks';
 import { uploadImageToCloudinary } from '../../config/cloudinary';
-import create from '../../services/requestService';
-import { clearTimeSlot } from '../../store/slices/timeSlotSlice';
-import { CreateRequestPayload } from '../../types/Request';
 import { TimeSlot } from '../../types/TimeSlot';
-import { useDispatch } from 'react-redux';
+import create from '../../services/requestService';
+import { useAppDispatch } from '../../store/hooks';
+import { clearTimeSlot } from '../../store/slices/timeSlotSlice';
 import Icon from 'react-native-vector-icons/Feather';
 
 const CreateRequestScreen = () => {
@@ -40,24 +37,21 @@ const CreateRequestScreen = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
-  const dispatch = useDispatch();
-  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
 
-  const [attributes, setAttributes] = useState<Attribute[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
 
   const [selectedCategory, setSelectedCategory] = useState<SubCategory | null>(
     null,
   );
-  // Default to custom input (no preset size tiers)
-  const [customInputEnabled, setCustomInputEnabled] = useState(true);
-  const [attributeValues, setAttributeValues] = useState<
-    Record<string, string>
-  >({});
+
+  const [attributeValues, setAttributeValues] = useState<AttributeOptionData[]>(
+    [],
+  );
   const [isLoadingAttributes, setIsLoadingAttributes] = useState(false);
   const [selectedImages, setSelectedImages] = useState<Asset[]>([]);
   const [isImagePickerVisible, setIsImagePickerVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const dispatch = useAppDispatch();
   const goToNextStep = () => {
     if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
@@ -72,73 +66,14 @@ const CreateRequestScreen = () => {
     }
   };
 
-  const allAttributesFilled =
-    attributes.length > 0 &&
-    attributes.every(attr => {
-      const val = attributeValues[attr.id];
-      return typeof val === 'string' && val.trim() !== '';
-    });
-
   const isStep1Valid =
     selectedBrandId !== null &&
     selectedCategory !== null &&
-    selectedImages.length > 0 &&
-    // attributes (if any) must be filled by selection
-    (attributes.length === 0 || allAttributesFilled);
+    selectedImages.length > 0;
+  // &&
+  // attributeValues.length > 0;
 
   const isStep2Valid = address !== null && timeSlots.length > 0;
-
-  const isMounted = useRef(true);
-
-  const loadData = async () => {
-    if (!categoryId) return;
-    try {
-      if (!isMounted.current) return;
-
-      if (selectedCategory) {
-        // Fetch attributes for custom input by default
-        setIsLoadingAttributes(true);
-        try {
-          const fetchedAttributes = await getAttributes(selectedCategory.id);
-          if (isMounted.current) setAttributes(fetchedAttributes);
-        } catch (e) {
-          console.error('Failed to fetch attributes on refresh', e);
-        } finally {
-          if (isMounted.current) setIsLoadingAttributes(false);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to fetch sub-categories', error);
-    }
-  };
-
-  useEffect(() => {
-    const fetchAttributes = async () => {
-      if (selectedCategory) {
-        setIsLoadingAttributes(true);
-        try {
-          const fetchedAttributes = await getAttributes(selectedCategory.id);
-          setAttributes(fetchedAttributes);
-        } catch (error) {
-          console.error('Failed to fetch attributes:', error);
-        } finally {
-          setIsLoadingAttributes(false);
-        }
-      } else {
-        setAttributes([]);
-      }
-    };
-
-    // Reset attribute inputs when category changes
-    setCustomInputEnabled(true);
-    setAttributes([]);
-    setAttributeValues({});
-    fetchAttributes();
-  }, [selectedCategory]);
-
-  // no-op: custom input is enabled by default; attributes are fetched on category change
-
-  // attributes selections handled per-attribute below
 
   const handleAddImage = (assets: Asset[]) => {
     setSelectedImages(prev => [...prev, ...assets]);
@@ -173,47 +108,6 @@ const CreateRequestScreen = () => {
       setLoading(true);
 
       const urls = await handleUploadImages(selectedImages);
-      const formattedAttributes =
-        Object.entries(attributeValues)
-          .map(([key, value]) => {
-            const raw = value;
-
-            const rawStr = String(raw).trim();
-            if (rawStr === '' || rawStr === 'undefined') {
-              console.log('  -> skipped (empty/undefined string)');
-              return null;
-            }
-
-            try {
-              const parsed = JSON.parse(rawStr);
-
-              if (typeof parsed === 'number' || typeof parsed === 'string') {
-                return {
-                  attributeId: key,
-                  value: String(parsed),
-                };
-              }
-
-              // Check if parsed is an object with .value property (dropdown selections)
-              const numeric = parsed?.value;
-              if (typeof numeric !== 'undefined' && numeric !== null) {
-                return {
-                  attributeId: key,
-                  value: String(numeric),
-                };
-              }
-
-              return null;
-            } catch (e) {
-              return {
-                attributeId: key,
-                value: rawStr,
-              };
-            }
-          })
-          .filter(
-            (it): it is { attributeId: string; value: string } => it !== null,
-          ) || null;
 
       const payload: CreateRequestPayload = {
         senderId: user?.userId || '',
@@ -224,9 +118,8 @@ const CreateRequestScreen = () => {
         product: {
           parentCategoryId: categoryId,
           subCategoryId: selectedCategory?.id || '',
-          sizeTierId: null,
           brandId: selectedBrandId || '',
-          attributes: formattedAttributes || null,
+          attributes: attributeValues || null,
         },
       };
       const data = await create.create(payload);
@@ -247,11 +140,7 @@ const CreateRequestScreen = () => {
   };
 
   return (
-    <SubLayout
-      title="Tạo yêu cầu"
-      onBackPress={goToPreviousStep}
-      onRefresh={loadData}
-    >
+    <SubLayout title="Tạo yêu cầu" onBackPress={goToPreviousStep}>
       <ScrollView className="flex-1 bg-background-50">
         <View className="px-6" style={{ flex: 1 }}>
           <View style={{ display: currentStep === 1 ? 'flex' : 'none' }}>
@@ -269,7 +158,7 @@ const CreateRequestScreen = () => {
               {selectedCategory && (
                 <AppSearchableDropdown
                   type="brand"
-                  subCategoryId={selectedCategory.id}
+                  subCategoryId={selectedCategory?.id ?? ''}
                   onChange={(selectedItem: any | null) => {
                     const brand = (selectedItem as any) || null;
                     if (brand) {
@@ -298,20 +187,24 @@ const CreateRequestScreen = () => {
 
               {isLoadingAttributes ? (
                 <ActivityIndicator size="small" color="#e85a4f" />
-              ) : attributes.length > 0 ? (
+              ) : selectedCategory ? (
                 <View>
                   <AttributeSizePanel
-                    attributes={attributes}
-                    values={attributeValues}
-                    onChange={(id: string, text: string) => {
-                      console.log('handleAttributeChange called', id, text);
+                    subCategoryId={selectedCategory.id}
+                    onChange={(data: AttributeOptionData) => {
                       setAttributeValues(prev => {
-                        const next = { ...prev, [id]: String(text) };
-                        console.log('attributeValues next:', next);
-                        return next;
+                        const index = prev.findIndex(
+                          item => item.attributeId === data.attributeId,
+                        );
+                        if (index >= 0) {
+                          const updated = [...prev];
+                          updated[index] = { ...updated[index], ...data };
+                          return updated;
+                        } else {
+                          return [...prev, data];
+                        }
                       });
                     }}
-                    isLoading={isLoadingAttributes}
                   />
                 </View>
               ) : (

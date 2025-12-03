@@ -268,24 +268,7 @@ export default function DeliveryListScreen() {
                   <DeliveryOrderCard
                     key={getOrderId(order)}
                     order={order}
-                    idx={idx}
-                    isLast={idx === filteredOrders.length - 1}
                     isSelectedDateToday={isSelectedDateToday}
-                    onOpenMap={() =>
-                      isSelectedDateToday &&
-                      navigation.navigate('DeliveryMapOrder', {
-                        request: order,
-                      })
-                    }
-                    onReject={o => {
-                      navigation.navigate('DeliveryCancel', { request: o });
-                    }}
-                    onConfirm={o =>
-                      isSelectedDateToday &&
-                      navigation.navigate('DeliveryConfirm', {
-                        requestId: getOrderId(o),
-                      })
-                    }
                   />
                 ))}
               </View>

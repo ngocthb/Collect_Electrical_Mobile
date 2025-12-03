@@ -39,7 +39,7 @@ const WeekStrip: React.FC<Props> = ({
   );
 
   return (
-    <View className="flex-row items-center  bg-background-50">
+    <View className="flex-row items-center p-1 bg-red-50">
       {/* <TouchableOpacity onPress={onPrevWeek} className="p-2">
           <Icon name="chevron-left" size={20} color="#e85a4f" />
         </TouchableOpacity> */}
@@ -58,7 +58,7 @@ const WeekStrip: React.FC<Props> = ({
               key={idx}
               onPress={() => onSelectDate(d)}
               className={`items-center justify-center mx-1 p-2 rounded-md ${
-                isSelected ? 'bg-red-50' : ''
+                isSelected ? 'bg-white' : ''
               }`}
               style={{ minWidth: 44 }}
             >

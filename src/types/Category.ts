@@ -20,4 +20,15 @@ export type Category = {
   parentCategoryId: string | null;
 };
 
+export type AttributeOptionData = {
+  attributeId: string;
+  optionId: string | null;
+  value: number | null;
+};
+
+export type AttributeOption = {
+  attributeOptionId: string;
+  optionName: string;
+};
+
 export * from './Category';
