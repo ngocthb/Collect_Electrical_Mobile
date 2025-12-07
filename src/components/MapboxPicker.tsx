@@ -4,9 +4,9 @@ import {
   TextInput,
   TouchableOpacity,
   Text,
-  FlatList,
   ActivityIndicator,
   Keyboard,
+  Platform,
 } from 'react-native';
 import toast from 'react-native-toast-message';
 import MapboxGL from '@rnmapbox/maps';
@@ -20,6 +20,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import type { LocationData, MapboxFeature } from '../types/MapboxPicker';
 import type { Feature } from 'geojson';
 import Config from '../config/env';
+import { ScrollView } from 'react-native-gesture-handler';
 MapboxGL.setAccessToken(Config.MAPBOX_ACCESS_TOKEN);
 
 interface MapboxPickerProps {
@@ -60,6 +61,7 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
 
   const mapRef = useRef<MapboxGL.MapView>(null);
   const cameraRef = useRef<MapboxGL.Camera>(null);
+  const searchTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -108,13 +110,6 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
         currentLocation ?? undefined,
       );
       setSearchResults(results.features || []);
-      if (!results.features || results.features.length === 0) {
-        toast.show({
-          type: 'info',
-          text1: 'Thông báo',
-          text2: 'Không tìm thấy địa điểm nào ở Việt Nam',
-        });
-      }
     } catch (error) {
       setSearchResults([]);
       toast.show({
@@ -229,7 +224,21 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
             value={searchQuery}
             onChangeText={text => {
               setSearchQuery(text);
-              searchLocation(text);
+
+              // Clear previous timeout
+              if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+              }
+
+              // Clear results if input is empty
+              if (text.trim().length === 0) {
+                setSearchResults([]);
+                return;
+              }
+
+              searchTimeoutRef.current = setTimeout(() => {
+                searchLocation(text);
+              }, 500);
             }}
             onSubmitEditing={() => Keyboard.dismiss()}
           />
@@ -241,6 +250,9 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
               onPress={() => {
                 setSearchQuery('');
                 setSearchResults([]);
+                if (searchTimeoutRef.current) {
+                  clearTimeout(searchTimeoutRef.current);
+                }
               }}
               className="ml-2"
             >
@@ -251,26 +263,57 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
       )}
 
       {/* Search Results */}
-      {searchResults.length > 0 && (
-        <View className="absolute top-16 left-2 right-2 max-h-72 bg-white rounded-xl shadow-lg z-30">
-          <View>
-            {searchResults.map(item => (
-              <TouchableOpacity
-                key={item.id}
-                className="flex-row items-center px-4 py-3 border-b border-gray-100"
-                onPress={() => handleSelectLocation(item)}
-              >
-                <Icon name="place" size={20} color="#e85a4f" className="mr-3" />
-                <Text
-                  className="flex-1 text-sm text-gray-800"
-                  numberOfLines={2}
+      {searchQuery.length > 0 && !loading && (
+        <ScrollView
+          style={{
+            maxHeight: 230,
+            backgroundColor: 'white',
+            zIndex: 10,
+            position: 'absolute',
+            top: showSearchBar ? 60 : 0,
+            left: 0,
+            right: 0,
+            borderBottomWidth: 1,
+            borderBottomColor: '#e5e7eb',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+            elevation: 5,
+          }}
+        >
+          {searchResults.length > 0 ? (
+            <View>
+              {searchResults.map(item => (
+                <TouchableOpacity
+                  key={item.id}
+                  className="flex-row items-center px-4 py-3 border-b border-gray-100"
+                  onPress={() => handleSelectLocation(item)}
                 >
-                  {item.place_name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+                  <Icon
+                    name="place"
+                    size={20}
+                    color="#e85a4f"
+                    className="mr-3"
+                  />
+                  <Text
+                    className="flex-1 text-sm text-gray-800"
+                    numberOfLines={2}
+                  >
+                    {item.place_name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <View className="px-4 py-6 items-center">
+              <Icon name="search-off" size={40} color="#e85a4f" />
+              <Text className="text-sm text-gray-500 mt-2 text-center">
+                Không tìm thấy địa điểm nào ở Việt Nam
+              </Text>
+            </View>
+          )}
+        </ScrollView>
       )}
 
       {/* Map */}
@@ -337,7 +380,16 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
       {/* My Location Button */}
       {showMyLocationButton && (
         <TouchableOpacity
-          className="absolute right-4 bottom-56 w-14 h-14 rounded-full bg-white items-center justify-center shadow-lg"
+          style={{
+            position: 'absolute',
+            bottom: 230,
+            right: 10,
+            backgroundColor: 'white',
+            padding: 12,
+            borderRadius: 28,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+          }}
           onPress={handleMyLocation}
           activeOpacity={0.7}
         >
@@ -347,18 +399,38 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
 
       {/* Selected Location Info */}
       {selectedLocation && (
-        <View className="absolute bottom-0 left-0 right-0 bg-white p-5 rounded-t-3xl shadow-lg">
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: 'white',
+            paddingTop: 20,
+            paddingHorizontal: 20,
+            paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 12,
+            elevation: 10,
+          }}
+        >
           <View className="flex-row items-center mb-3">
-            <Icon name="place" size={24} color="#ef4444" />
-            <Text className="text-lg font-bold ml-2 text-gray-800">
+            <View className="w-10 h-10 rounded-full bg-red-50 items-center justify-center">
+              <Icon name="place" size={22} color="#ef4444" />
+            </View>
+            <Text className="text-lg font-bold ml-3 text-gray-800 flex-1">
               Vị trí đã chọn
             </Text>
           </View>
-          <Text className="text-base text-gray-700 mb-1">
+          <Text className="text-base text-gray-900 font-medium mb-2">
             {selectedLocation.name}
           </Text>
-          <View className="flex-row items-center mb-4">
-            <Icon name="gps-fixed" size={14} color="#999" />
+          <View className="flex-row items-center mb-5">
+            <Icon name="gps-fixed" size={14} color="#9ca3af" />
             <Text className="text-xs text-gray-400 ml-1">
               {selectedLocation.latitude.toFixed(6)},{' '}
               {selectedLocation.longitude.toFixed(6)}
@@ -371,6 +443,13 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
             }}
             activeOpacity={0.8}
             disabled={confirmLoading}
+            style={{
+              shadowColor: '#e85a4f',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 6,
+            }}
           >
             {confirmLoading ? (
               <ActivityIndicator size="small" color="#fff" className="mr-2" />

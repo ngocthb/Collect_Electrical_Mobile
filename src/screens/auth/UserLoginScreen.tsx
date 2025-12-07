@@ -19,7 +19,7 @@ import { signInWithGoogle, fetchUserProfile } from '../../services/authService';
 const simpleLogin = require('../../assets/images/simplelogin.png');
 const google = require('../../assets/images/google.jpg');
 const logo = require('../../assets/images/logo.png');
-export default function SimpleLoginScreen() {
+export default function UserLoginScreen() {
   const dispatch = useAppDispatch();
   const auth = useAppSelector(s => s.auth);
 
@@ -114,7 +114,9 @@ export default function SimpleLoginScreen() {
               <Text className="text-gray-700 text-base">
                 Là người thu gom?{' '}
               </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('DeliveryLogin')}
+              >
                 <Text className="text-white font-bold text-base">
                   Đăng nhập
                 </Text>

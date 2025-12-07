@@ -13,9 +13,9 @@ import WeeklyCalendar from '../../components/ui/WeeklyCalendar';
 import WeekStrip from '../../components/ui/WeekStrip';
 import DeliveryOrderCard from '../../components/DeliveryOrderCard';
 import {
-  getOrderId,
   getOrderDate,
   resolveStatus,
+  statusOptions,
 } from '../../utils/deliveryHelpers';
 import SubLayout from '../../layout/SubLayout';
 import StatusFilter from '../../components/ui/StatusFilter';
@@ -24,12 +24,6 @@ import {
   getCurrentLocation,
   calculateDistance,
 } from '../../services/mapboxService';
-const statusOptions = [
-  { value: 'all', label: 'Tất cả', color: '#666' },
-  { value: 'pending', label: 'Chờ giao', color: '#FF9800' },
-  { value: 'failed', label: 'Thất bại', color: '#E53935' },
-  { value: 'completed', label: 'Hoàn thành', color: '#4CAF50' },
-];
 
 export default function DeliveryListScreen() {
   const navigation = useNavigation<any>();
@@ -266,7 +260,7 @@ export default function DeliveryListScreen() {
               <View className="flex-1">
                 {filteredOrders.map((order, idx) => (
                   <DeliveryOrderCard
-                    key={getOrderId(order)}
+                    key={idx}
                     order={order}
                     isSelectedDateToday={isSelectedDateToday}
                   />

@@ -122,16 +122,14 @@ export const bootstrapAuth = async (): Promise<{
     if (!token) {
       return { success: false };
     }
-    console.log('fetch data by token in async storage', token);
+
     const profileData: Profile = await fetchUserProfile();
-    console.log('111111', profileData);
+
     const roleVal = (profileData?.role || '').toString().toLowerCase();
     const role = roleVal === 'delivery' ? 'delivery' : 'user';
 
     return { success: true, profile: profileData, role };
   } catch (error) {
-    console.warn('[bootstrapAuth] failed to auto-login', error);
-    // Clear invalid token
     await AsyncStorage.removeItem('token');
     return { success: false };
   }

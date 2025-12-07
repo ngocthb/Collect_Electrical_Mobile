@@ -5,7 +5,6 @@ import { useAppSelector } from '../../store/hooks';
 import MainLayout from '../../layout/MainLayout';
 import AppAvatar from '../../components/ui/AppAvatar';
 const homepage5 = require('../../assets/images/homepage5.png');
-const homepage6 = require('../../assets/images/homepage6.png');
 
 export default function DeliveryHomeScreen() {
   const navigation = useNavigation<any>();
@@ -17,20 +16,12 @@ export default function DeliveryHomeScreen() {
       title: 'Đơn hàng',
       image: homepage5,
     },
-    // {
-    //   id: 2,
-    //   title: 'Lộ trình',
-    //   image: homepage6,
-    // },
   ];
 
   const handleMenuPress = (id: number) => {
     switch (id) {
       case 1:
-        navigation.navigate('DeliveryOrder');
-        break;
-      case 2:
-        navigation.navigate('DeliveryRoute');
+        navigation.navigate('DeliveryList');
         break;
       default:
         break;

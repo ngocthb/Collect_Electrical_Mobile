@@ -11,13 +11,9 @@ import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 
 import type { Address } from '../types/Address';
-import addressService from '../services/addressService';
+import { deleteAddress } from '../services/addressService';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import {
-  saveAddress,
-  setAddressList,
-  clearLastAddedId,
-} from '../store/slices/addressSlice';
+import { saveAddress, setAddressList } from '../store/slices/addressSlice';
 
 interface AddressSelectorProps {
   selectedAddress: Address | null;
@@ -50,7 +46,7 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
   const handleEditAddress = async (address: Address) => {
     dispatch(saveAddress(address));
     await new Promise<void>(resolve => setTimeout(resolve, 200));
-    navigation.navigate('MapboxLocationScreen', {
+    navigation.navigate('AddressMap', {
       mode: 'edit',
       address: address,
     });
@@ -60,7 +56,7 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
     onSelectAddress(null);
     setIsCreatingNew(true);
 
-    navigation.navigate('MapboxLocationScreen', {
+    navigation.navigate('AddressMap', {
       mode: 'create',
     });
     setIsCreatingNew(false);
@@ -88,7 +84,7 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
         },
         onConfirm: async () => {
           try {
-            await addressService.deleteAddress(addr.userAddressId);
+            await deleteAddress(addr.userAddressId);
             const updated = addresses.filter(
               a => a.userAddressId !== addr.userAddressId,
             );

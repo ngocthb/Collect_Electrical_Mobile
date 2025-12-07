@@ -8,7 +8,8 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { setUser } from '../../store/slices/authSlice';
 import type { Address } from '../../types/Address';
 import { useNavigation } from '@react-navigation/native';
-import addressService from '../../services/addressService';
+import { getUserAddresses, updateAddress } from '../../services/addressService';
+
 import { setAddressList } from '../../store/slices/addressSlice';
 
 const DefaultAddressScreen: React.FC = () => {
@@ -40,7 +41,7 @@ const DefaultAddressScreen: React.FC = () => {
 
       try {
         // Set selected address as default on server
-        await addressService.updateAddress(
+        await updateAddress(
           selectedAddress.userAddressId,
           user.userId,
           selectedAddress.address,
@@ -50,7 +51,7 @@ const DefaultAddressScreen: React.FC = () => {
         );
 
         // Refresh address list from server
-        const updatedList = await addressService.getUserAddresses(user.userId);
+        const updatedList = await getUserAddresses(user.userId);
         dispatch(setAddressList(updatedList));
 
         // Find and set the newly default address
@@ -94,7 +95,7 @@ const DefaultAddressScreen: React.FC = () => {
   const handleRefresh = async () => {
     if (!user?.userId) return;
     try {
-      const updatedList = await addressService.getUserAddresses(user.userId);
+      const updatedList = await getUserAddresses(user.userId);
       dispatch(setAddressList(updatedList));
       const defaultAddr = updatedList.find(addr => addr.isDefault);
       if (defaultAddr) {

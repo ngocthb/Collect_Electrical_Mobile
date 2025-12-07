@@ -1,5 +1,5 @@
 import { bootstrapAuth } from './authService';
-import addressService from './addressService';
+import { getUserAddresses } from '../services/addressService';
 import { setUser, setLoading } from '../store/slices/authSlice';
 import { setAddressList } from '../store/slices/addressSlice';
 import type { AppDispatch } from '../store';
@@ -14,9 +14,7 @@ export const bootstrapApp = async (dispatch: AppDispatch) => {
 
       // Fetch addresses after successful login
       try {
-        const addresses = await addressService.getUserAddresses(
-          result.profile.userId,
-        );
+        const addresses = await getUserAddresses(result.profile.userId);
         dispatch(setAddressList(addresses || []));
         console.log('[Bootstrap] Loaded addresses:', addresses?.length || 0);
       } catch (err) {

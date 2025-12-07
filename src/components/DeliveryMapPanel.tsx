@@ -9,7 +9,7 @@ import DeliveryQrModal from '../components/DeliveryQrModal';
 import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import axiosClient from '../config/axios';
 
-const ARRIVAL_DISTANCE_THRESHOLD = 1000; // meters
+const ARRIVAL_DISTANCE_THRESHOLD = 1500; // meters
 
 type Props = {
   normalizedRequest: any;

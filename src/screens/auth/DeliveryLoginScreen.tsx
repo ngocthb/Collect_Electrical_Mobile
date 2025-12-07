@@ -18,7 +18,7 @@ import { fetchUserProfile } from '../../services/authService';
 import { signIn } from '../../services/authService';
 const logo = require('../../assets/images/logo.png');
 
-export default function LoginScreen() {
+export default function DeliveryLoginScreen() {
   const dispatch = useAppDispatch();
   const auth = useAppSelector(s => s.auth);
   const emailRef = useRef<TextInput | null>(null);
@@ -131,7 +131,7 @@ export default function LoginScreen() {
           </Text>
           <TouchableOpacity
             onPress={() => {
-              navigation.navigate('SimpleLogin');
+              navigation.navigate('UserLogin');
             }}
           >
             <Text className="text-primary-100 text-base font-bold ml-2 ">

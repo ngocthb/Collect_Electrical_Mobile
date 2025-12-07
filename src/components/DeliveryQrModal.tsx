@@ -145,13 +145,14 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
       }
     });
 
-    newConnection.onreconnecting(error => {
-      console.log('[DeliveryQr] 🔄 SignalR reconnecting...', error);
-    });
-
     newConnection.onreconnected(connectionId => {
       newConnection
-        .invoke('JoinShipperGroup', product.collectionRouteId)
+        .invoke('JoinShipperGroup', user?.userId)
+        .then(() => {
+          console.log(
+            `[DeliveryQr] Successfully rejoined group: ${user?.userId}`,
+          );
+        })
         .catch(err =>
           console.error('[DeliveryQr] Error rejoining group:', err),
         );

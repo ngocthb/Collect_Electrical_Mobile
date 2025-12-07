@@ -17,11 +17,7 @@ import { openCamera } from '../../services/imagePickerService';
 import { uploadImageToCloudinary } from '../../config/cloudinary';
 import { validateImageSize } from '../../utils/validations';
 import routeService from '../../services/routeService';
-import {
-  getOrderAddress,
-  getOrderName,
-  getOrderId,
-} from '../../utils/deliveryHelpers';
+
 import { DEFAULT_BADGES } from '../../components/BadgeModal';
 
 // badge list imported from BadgeModal (we send labels to API)
@@ -31,12 +27,10 @@ const DeliveryCancelScreen = () => {
   const route = useRoute<any>();
   const request = route.params?.request;
   const requestId = String(
-    getOrderId(request) ?? route.params?.requestId ?? '',
+request ?? route.params?.requestId ?? '',
   );
 
-  const [fetchedRequest, setFetchedRequest] = useState<any | null>(null);
 
-  // If the screen was navigated to with only requestId, fetch the full detail
   React.useEffect(() => {
     let mounted = true;
     const id = requestId || route.params?.requestId || route.params?.id;
@@ -48,8 +42,7 @@ const DeliveryCancelScreen = () => {
     (async () => {
       try {
         const res = await routeService.getDetail(String(id));
-        if (!mounted) return;
-        setFetchedRequest(res ?? null);
+      
       } catch (e) {
         console.warn('Failed to fetch route detail for cancel screen', e);
       }
@@ -140,7 +133,7 @@ const DeliveryCancelScreen = () => {
       });
       navigation.reset({
         index: 0,
-        routes: [{ name: 'DeliveryOrder' }],
+        routes: [{ name: 'DeliveryList' }],
       });
     } catch (e) {
       console.warn('Failed to cancel route', e);

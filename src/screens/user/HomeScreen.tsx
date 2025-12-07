@@ -50,9 +50,7 @@ export default function HomeScreen() {
       case 2:
         navigation.navigate('WarehouseLocation');
         break;
-      case 3:
-        navigation.navigate('UserConfirm');
-        break;
+
       default:
         break;
     }

@@ -9,6 +9,7 @@ import SubLayout from '../../layout/SubLayout';
 import { useNavigation } from '@react-navigation/core';
 import routeService from '../../services/routeService';
 import ImageModal from '../../components/ui/ImageModal';
+import ImageGalleryViewer from '../../components/ui/ImageGalleryViewer';
 
 const UserConfirmScreen = () => {
   const [shipperId, setShipperId] = useState<string | null>(null);
@@ -175,31 +176,14 @@ const UserConfirmScreen = () => {
                       {/* Product Images */}
                       {request.pickUpItemImages &&
                         request.pickUpItemImages.length > 0 && (
-                          <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            className="mb-3"
-                          >
-                            {request.pickUpItemImages.map(
-                              (img: any, i: number) => (
-                                <TouchableOpacity
-                                  key={i}
-                                  onPress={() => handleImagePress(img)}
-                                >
-                                  <Image
-                                    source={img && { uri: img }}
-                                    style={{
-                                      width: 84,
-                                      height: 84,
-                                      borderRadius: 12,
-                                      marginRight: 12,
-                                    }}
-                                    resizeMode="cover"
-                                  />
-                                </TouchableOpacity>
-                              ),
-                            )}
-                          </ScrollView>
+                          <View className="mb-3">
+                            <ImageGalleryViewer
+                              images={request.pickUpItemImages}
+                              imageSize={84}
+                              imageSpacing={12}
+                              borderRadius={12}
+                            />
+                          </View>
                         )}
 
                       {/* Description */}

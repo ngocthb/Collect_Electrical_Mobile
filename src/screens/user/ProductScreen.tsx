@@ -14,8 +14,16 @@ import { getProductsByUser } from '../../services/productService';
 import { useIsFocused } from '@react-navigation/native';
 import { useAppSelector } from '../../store/hooks';
 import MainLayout from '../../layout/MainLayout';
+import {
+  isCompletedStatus,
+  getStatusLabel,
+  getStatusBgClass,
+  statusGroupOptions,
+  getColorClass,
+  filterProductsByStatusGroup,
+} from '../../utils/productHelper';
 
-const RequestScreen = () => {
+const ProductScreen = () => {
   const navigation = useNavigation<any>();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -25,16 +33,6 @@ const RequestScreen = () => {
   const isFocused = useIsFocused();
 
   const isMounted = useRef(true);
-
-  const statusGroupMap: Record<string, string[]> = {
-    completed: [
-      'Tái chế',
-      'Đã đóng gói',
-      'Đã thu gom',
-      'Nhập kho',
-      'Đã đóng thùng',
-    ],
-  };
 
   const loadProducts = async () => {
     setLoading(true);
@@ -62,47 +60,20 @@ const RequestScreen = () => {
     };
   }, [isFocused]);
 
-  const filteredProducts = selectedStatusGroup
-    ? products.filter(p => {
-        const pStatus = String(p.status || '')
-          .trim()
-          .toLowerCase();
-
-        if (selectedStatusGroup === 'completed') {
-          return statusGroupMap.completed
-            .map(s => s.toLowerCase())
-            .includes(pStatus);
-        }
-
-        if (selectedStatusGroup === 'incomplete') {
-          return !statusGroupMap.completed
-            .map(s => s.toLowerCase())
-            .includes(pStatus);
-        }
-
-        return true; // Default case for 'Tất cả'
-      })
-    : products;
+  const filteredProducts = filterProductsByStatusGroup(
+    products,
+    selectedStatusGroup,
+  );
 
   const openProduct = (prod: any) => {
-    const pStatus = String(prod.status || '')
-      .trim()
-      .toLowerCase();
-
-    if (!statusGroupMap.completed.map(s => s.toLowerCase()).includes(pStatus)) {
-      navigation.navigate('DeliveryInfo', { productId: prod.productId });
+    if (!isCompletedStatus(prod.status)) {
+      navigation.navigate('ProductDetails', { productId: prod.productId });
     } else {
-      navigation.navigate('UserNotificationDetail', {
+      navigation.navigate('Timeline', {
         productId: prod.productId,
       });
     }
   };
-
-  const statusGroupOptions = [
-    { value: '', label: 'Tất cả', color: 'gray' },
-    { value: 'incomplete', label: 'Chưa hoàn thành', color: 'yellow' },
-    { value: 'completed', label: 'Đã hoàn thành', color: 'green' },
-  ];
 
   const selectedOption = statusGroupOptions.find(
     opt => opt.value === selectedStatusGroup,
@@ -110,42 +81,16 @@ const RequestScreen = () => {
 
   const renderProductStatusBadge = (status: string | null | undefined) => {
     if (!status) return null;
-    const s = String(status).trim().toLowerCase();
-
-    // Default to incomplete
-    let label = 'Chưa hoàn thành';
-    let bgClass = 'bg-amber-500';
-
-    if (
-      [
-        'tái chế',
-        'đã đóng gói',
-        'đã thu gom',
-        'nhập kho',
-        'đã đóng thùng',
-      ].includes(s)
-    ) {
-      label = 'Đã hoàn thành';
-      bgClass = 'bg-green-600';
-    }
+    const label = getStatusLabel(status);
+    const bgClass = getStatusBgClass(status);
 
     return (
       <View className={`${bgClass} px-2 py-1 rounded-lg`}>
-        <Text className="text-white text-[10px] font-semibold">{label}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text className="text-white text-[10px] font-semibold">{label}</Text>
+        </View>
       </View>
     );
-  };
-
-  const getColorClass = (color: string) => {
-    const colorMap: Record<string, string> = {
-      gray: 'bg-gray-400',
-      blue: 'bg-blue-500',
-      yellow: 'bg-amber-500',
-      red: 'bg-red-500',
-      green: 'bg-green-500',
-      purple: 'bg-purple-500',
-    };
-    return colorMap[color] || 'bg-gray-400';
   };
 
   const filterDropdown = (
@@ -294,4 +239,4 @@ const RequestScreen = () => {
   );
 };
 
-export default RequestScreen;
+export default ProductScreen;

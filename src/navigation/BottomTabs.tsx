@@ -5,13 +5,13 @@ import { useNavigation } from '@react-navigation/native';
 import IconOcticons from 'react-native-vector-icons/Octicons';
 import IconFeature from 'react-native-vector-icons/Feather';
 import HomeScreen from '../screens/user/HomeScreen';
-import RequestScreen from '../screens/user/RequestScreen';
+import ProductScreen from '../screens/user/ProductScreen';
 import DeliveryNotificationsScreen from '../screens/delivery/DeliveryNotificationsScreen';
 import ProfileScreen from '../screens/common/ProfileScreen';
 import { useAppSelector } from '../store/hooks';
 import { createStackNavigator } from '@react-navigation/stack';
 import DeliveryHomeScreen from '../screens/delivery/DeliveryHomeScreen';
-import NotificationListScreen from '../screens/user/NotificationListScreen';
+import NotificationScreen from '../screens/user/NotificationScreen';
 import CategoryPickerModal from '../components/CategoryPickerModal';
 
 const Tab = createBottomTabNavigator();
@@ -56,7 +56,7 @@ function BottomTabs() {
       })}
     >
       <Tab.Screen name="Trang chủ" component={HomeScreen} />
-      <Tab.Screen name="Yêu cầu" component={RequestScreen} />
+      <Tab.Screen name="Yêu cầu" component={ProductScreen} />
       <Tab.Screen
         name="TaoYeuCau"
         component={HomeScreen}
@@ -70,7 +70,7 @@ function BottomTabs() {
           ),
         }}
       />
-      <Tab.Screen name="Thông báo" component={NotificationListScreen} />
+      <Tab.Screen name="Thông báo" component={NotificationScreen} />
       <Tab.Screen name="Tài khoản" component={ProfileScreen} />
     </Tab.Navigator>
   );

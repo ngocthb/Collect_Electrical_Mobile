@@ -10,20 +10,23 @@ import {
   addAddress,
   updateAddress,
 } from '../../store/slices/addressSlice';
-import addressService from '../../services/addressService';
+
 import toast from 'react-native-toast-message';
 import type { Address } from '../../types/Address';
-
+import {
+  createAddress,
+  updateAddress as updateAddressService,
+} from '../../services/addressService';
 type RouteParams = {
-  MapboxLocationScreen: {
+  AddressMap: {
     mode?: 'create' | 'edit';
     address?: Address;
   };
 };
 
-const MapboxLocationPicker: React.FC = () => {
+const AddressMap: React.FC = () => {
   const navigation = useNavigation<any>();
-  const route = useRoute<RouteProp<RouteParams, 'MapboxLocationScreen'>>();
+  const route = useRoute<RouteProp<RouteParams, 'AddressMap'>>();
   const dispatch = useAppDispatch();
   const address = useAppSelector(s => s.address.current);
   const user = useAppSelector(s => s.auth.user);
@@ -48,7 +51,7 @@ const MapboxLocationPicker: React.FC = () => {
     // CASE 1: Edit existing address
     if (mode === 'edit' && addressData) {
       try {
-        const updated = await addressService.updateAddress(
+        const updated = await updateAddressService(
           addressData?.userAddressId,
           user.userId,
           location.name,
@@ -98,7 +101,7 @@ const MapboxLocationPicker: React.FC = () => {
 
     // CASE 2: Create new address
     try {
-      const created = await addressService.createAddress(
+      const created = await createAddress(
         user.userId,
         location.name,
         location.latitude,
@@ -177,4 +180,4 @@ const MapboxLocationPicker: React.FC = () => {
   );
 };
 
-export default MapboxLocationPicker;
+export default AddressMap;

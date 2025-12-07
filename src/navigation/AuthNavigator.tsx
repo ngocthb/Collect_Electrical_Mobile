@@ -1,13 +1,12 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import LoginScreen from '../screens/auth/LoginScreen';
-import SimpleLoginScreen from '../screens/auth/SimpleLoginScreen';
+import LoginScreen from '../screens/auth/DeliveryLoginScreen';
+import UserLoginScreen from '../screens/auth/UserLoginScreen';
+import DeliveryLoginScreen from '../screens/auth/DeliveryLoginScreen';
 
 export type AuthStackParamList = {
-  SimpleLogin: undefined;
-  Login: undefined;
-  Register: undefined;
-  Verify: { email: string };
+  UserLogin: undefined;
+  DeliveryLogin: undefined;
 };
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -15,8 +14,8 @@ const Stack = createNativeStackNavigator<AuthStackParamList>();
 export default function AuthNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="SimpleLogin" component={SimpleLoginScreen} />
-      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="UserLogin" component={UserLoginScreen} />
+      <Stack.Screen name="DeliveryLogin" component={DeliveryLoginScreen} />
     </Stack.Navigator>
   );
 }

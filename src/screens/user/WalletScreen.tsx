@@ -85,7 +85,7 @@ export default function WalletScreen() {
     return (
       <TouchableOpacity
         onPress={() =>
-          productId && navigation.navigate('DeliveryInfo', { productId })
+          productId && navigation.navigate('ProductDetails', { productId })
         }
         className="flex-row items-start "
       >

@@ -3,11 +3,11 @@ import { View } from 'react-native';
 
 import MainLayout from '../../layout/MainLayout';
 
-interface NotificationListScreenProps {
+interface NotificationScreenProps {
   navigation: any;
 }
 
-const NotificationListScreen: React.FC<NotificationListScreenProps> = ({
+const NotificationScreen: React.FC<NotificationScreenProps> = ({
   navigation,
 }) => {
   return (
@@ -17,4 +17,4 @@ const NotificationListScreen: React.FC<NotificationListScreenProps> = ({
   );
 };
 
-export default NotificationListScreen;
+export default NotificationScreen;

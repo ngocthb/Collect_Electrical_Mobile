@@ -133,7 +133,7 @@ const DeliveryScanQrScreen = ({
     });
     navigation.reset({
       index: 0,
-      routes: [{ name: 'DeliveryOrder' }],
+      routes: [{ name: 'DeliveryList' }],
     });
   };
 
