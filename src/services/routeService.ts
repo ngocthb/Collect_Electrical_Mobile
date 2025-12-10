@@ -1,4 +1,5 @@
 import axiosClient from '../config/axios';
+import { checkImageResponse } from '../types/Routers';
 
 const listByDate = async (userId: string, dateStr: string) => {
   try {
@@ -72,10 +73,30 @@ const userConfirmRouter = async (
   }
 };
 
+const checkImage = async (
+  productImages: string[],
+  confirmImages: string[],
+): Promise<checkImageResponse | null> => {
+  try {
+    const data = await axiosClient.post<checkImageResponse>(
+      `/image/compare-confirm`,
+      {
+        productImages,
+        confirmImages,
+      },
+    );
+
+    return data as any;
+  } catch (e) {
+    throw e;
+  }
+};
+
 export default {
   listByDate,
   getDetail,
   cancelRoute,
   confirmRoute,
   userConfirmRouter,
+  checkImage,
 };

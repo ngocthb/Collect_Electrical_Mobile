@@ -17,59 +17,8 @@ import {
   calculateDistance,
 } from '../../services/mapboxService';
 import SubLayout from '../../layout/SubLayout';
-
-const warehouses = [
-  {
-    id: 'wh-1',
-    name: 'Kho Thu Gom Trung Tâm',
-    address: 'Số 1, Đường A, Khu vực Vinhomes Grand Park, Thủ Đức, TP.HCM',
-    open: '08:00',
-    close: '17:00',
-    rating: 4.5,
-    lat: 10.8411,
-    lng: 106.8283,
-  },
-  {
-    id: 'wh-2',
-    name: 'Kho Thu Gom Đông Nam',
-    address: 'Số 27, Đường B, Phường Long Thạnh Mỹ, Thủ Đức, TP.HCM',
-    open: '09:00',
-    close: '18:00',
-    rating: 4.8,
-    lat: 10.8465,
-    lng: 106.834,
-  },
-  {
-    id: 'wh-3',
-    name: 'Kho Thu Gom Tây',
-    address: 'Số 99, Đường C, Quận 9, TP.HCM',
-    open: '07:30',
-    close: '16:30',
-    rating: 4.2,
-    lat: 10.835,
-    lng: 106.82,
-  },
-  {
-    id: 'wh-4',
-    name: 'Kho Thu Gom Bắc',
-    address: 'Số 45, Đường D, Quận Thủ Đức, TP.HCM',
-    open: '08:30',
-    close: '17:30',
-    rating: 3.9,
-    lat: 10.85,
-    lng: 106.84,
-  },
-  {
-    id: 'wh-5',
-    name: 'Kho Thu Gom Nam',
-    address: 'Số 88, Đường E, Phường Trường Thạnh, Thủ Đức, TP.HCM',
-    open: '07:00',
-    close: '16:00',
-    rating: 4.6,
-    lat: 10.83,
-    lng: 106.825,
-  },
-];
+import { Warehouse } from '../../types/warehouse';
+import { getWarehouses } from '../../services/warehouseService';
 
 const WarehouseLocationScreen = () => {
   const [loading, setLoading] = useState(false);
@@ -79,6 +28,7 @@ const WarehouseLocationScreen = () => {
     'none',
   );
   const navigation = useNavigation<any>();
+  const [warehouse, setWarehouse] = useState<Warehouse[]>([]);
   const ratingFilterOptions = [
     { value: '', label: 'Tất cả', color: 'gray' },
     { value: '4.5', label: '4.5+ sao', color: 'green' },
@@ -87,7 +37,7 @@ const WarehouseLocationScreen = () => {
   ];
 
   const [warehousesWithDistance, setWarehousesWithDistance] = useState(
-    warehouses.map(w => ({
+    warehouse.map(w => ({
       ...w,
       distanceMeters: 0 as number,
       distanceText: '',
@@ -129,20 +79,34 @@ const WarehouseLocationScreen = () => {
     const computeDistances = async () => {
       try {
         setLoading(true);
+        const warehouse = await getWarehouses();
+        if (!mounted) return;
+        setWarehouse(warehouse);
+
         const loc = await getCurrentLocation();
-        // getCurrentLocation returns [longitude, latitude]
+
         const [currLng, currLat] = loc || [null, null];
 
-        const updated = warehouses.map(w => {
+        const updated = warehouse.map(w => {
           if (currLat == null || currLng == null) {
             return { ...w, distanceMeters: 0, distanceText: '' };
           }
-          const dist = calculateDistance(currLat, currLng, w.lat, w.lng);
+          const dist = calculateDistance(
+            currLat,
+            currLng,
+            w.latitude,
+            w.longitude,
+          );
           const text =
             dist < 1000
               ? `${Math.round(dist)} m`
               : `${(dist / 1000).toFixed(1)} km`;
-          return { ...w, distanceMeters: dist, distanceText: text };
+          return {
+            ...w,
+            distanceMeters: dist,
+            distanceText: text,
+            rating: 5,
+          };
         });
 
         if (mounted) setWarehousesWithDistance(updated);
@@ -330,36 +294,38 @@ const WarehouseLocationScreen = () => {
                 key={wh.id}
                 className="bg-white border-2 border-red-200 rounded-xl p-4 mb-3 shadow-sm"
               >
-                {/* Header */}
                 <View className="flex-row items-start mb-3">
                   <View className="w-12 h-12 rounded-full bg-red-100 items-center justify-center mr-3">
-                    <Icon name="package" size={22} color="#e85a4f" />
+                    <Icon name="compass" size={22} color="#e85a4f" />
                   </View>
                   <View className="flex-1">
                     <Text className="text-base font-bold text-primary-100 mb-1">
                       {wh.name}
                     </Text>
-                    <View className="flex-row items-center">
-                      {renderStars(wh.rating)}
-                      <Text className="text-sm text-gray-600 ml-2">
-                        {wh.rating.toFixed(1)}
-                      </Text>
+                    <View className="flex flex-row justify-between">
+                      <View className="flex-row items-center">
+                        {renderStars(wh.rating)}
+                        <Text className="text-sm text-gray-600 ml-2">
+                          {wh.rating.toFixed(1)}
+                        </Text>
+                      </View>
+                      {wh.distanceText ? (
+                        <Text className="text-sm text-gray-500 ">
+                          Khoảng cách:{' '}
+                          <Text className="font-semibold">
+                            {wh.distanceText}
+                          </Text>
+                        </Text>
+                      ) : null}
                     </View>
-                    {wh.distanceText ? (
-                      <Text className="text-sm text-gray-500 mt-1">
-                        Khoảng cách:{' '}
-                        <Text className="font-semibold">{wh.distanceText}</Text>
-                      </Text>
-                    ) : null}
                   </View>
                   <View className=" ">
                     <TouchableOpacity
                       onPress={async () => {
                         try {
                           let url = '';
-                          if (wh.lat != null && wh.lng != null) {
-                            // Open directions to coordinates
-                            url = `https://www.google.com/maps/dir/?api=1&destination=${wh.lat},${wh.lng}`;
+                          if (wh.latitude != null && wh.longitude != null) {
+                            url = `https://www.google.com/maps/dir/?api=1&destination=${wh.latitude},${wh.longitude}`;
                           } else {
                             const dest = encodeURIComponent(
                               wh.address || wh.name,
@@ -371,8 +337,8 @@ const WarehouseLocationScreen = () => {
                             await Linking.openURL(url);
                           } else {
                             const web =
-                              wh.lat != null && wh.lng != null
-                                ? `https://www.google.com/maps/search/?api=1&query=${wh.lat},${wh.lng}`
+                              wh.latitude != null && wh.longitude != null
+                                ? `https://www.google.com/maps/search/?api=1&query=${wh.latitude},${wh.longitude}`
                                 : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                                     wh.address || wh.name,
                                   )}`;
@@ -403,7 +369,7 @@ const WarehouseLocationScreen = () => {
                   <Text className="text-sm text-gray-600 ml-2">
                     Giờ mở cửa:{' '}
                     <Text className="font-semibold text-gray-900">
-                      {wh.open} - {wh.close}
+                      {wh.openTime}
                     </Text>
                   </Text>
                 </View>

@@ -204,6 +204,29 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
     },
   };
 
+  const handleSkip = async () => {
+    if (connection) {
+      try {
+        await connection.stop();
+        console.log('[DeliveryQr] Closed socket because of manual skip');
+      } catch (e) {
+        console.warn('[DeliveryQr] Error closing socket', e);
+      }
+    }
+    await routeService.userConfirmRouter(
+      product.collectionRouteId,
+      false,
+      false,
+    );
+    toast.show({
+      type: 'info',
+      text1: 'Bỏ qua',
+      text2: 'Bạn đã bỏ qua xác nhận giao hàng!',
+    });
+    onAccept?.();
+    onClose();
+  };
+
   return (
     <Modal
       visible={visible}
@@ -232,7 +255,7 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
                 Khi đến nơi, hãy đưa mã xác nhận này cho khách hàng để họ quét
                 và xác nhận lấy hàng.
               </Text>
-              <View className="bg-gray-50 p-6 rounded-2xl mb-6 items-center">
+              <View className="bg-gray-50 p-6 rounded-2xl mb-2 items-center">
                 {product ? (
                   <>
                     <QRCode value={JSON.stringify(confirmPayload)} size={220} />
@@ -251,18 +274,29 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
               </View>
 
               {isWaitingForConfirmation && product && (
-                <View className="w-full bg-blue-50 rounded-xl p-4 border border-blue-200 mb-4">
+                <View className="w-full rounded-xl p-4 bg-red-50 border-2  border-red-200 mb-4">
                   <View className="flex-row items-center justify-center">
                     <Icon name="clock" size={18} color="#e85a4f" />
-                    <Text className="text-sm text-blue-800 text-center ml-2 font-medium">
+                    <Text className="text-sm text-primary-100 text-center ml-2 font-medium">
                       Đang chờ khách hàng xác nhận...
                     </Text>
                   </View>
-                  <Text className="text-xs text-blue-600 text-center mt-2">
+                  <Text className="text-xs text-primary-50 text-center mt-2">
                     Vui lòng yêu cầu khách hàng quét mã QR và xác nhận
                   </Text>
                 </View>
               )}
+              <TouchableOpacity
+                className="mb-4 items-center flex-row justify-center"
+                onPress={handleSkip}
+              >
+                <View className="flex-row px-2 items-center border-b border-primary-50 pb-[2px] ">
+                  <Text className="text-primary-100 font-bold mr-2">
+                    Bỏ qua
+                  </Text>
+                  <Icon name="chevrons-right" size={14} color="#e85a4f" />
+                </View>
+              </TouchableOpacity>
             </View>
           </ScrollView>
         </View>

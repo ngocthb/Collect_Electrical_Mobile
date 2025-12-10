@@ -44,6 +44,7 @@ const DeliveryDetailsScreen = () => {
   const handleConfirm = useCallback(() => {
     navigation.navigate('DeliveryPhotoConfirm', {
       requestId: normalizedRequest?.collectionRouteId,
+      productImages: normalizedRequest?.pickUpItemImages || [],
     });
   }, [navigation, normalizedRequest?.collectionRouteId]);
 

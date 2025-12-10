@@ -142,7 +142,7 @@ const DeliveryScanQrScreen = ({
       title="Xác thực sản phẩm"
       onBackPress={() => navigation.goBack()}
     >
-      <ScrollView className="flex-1 bg-background-50">
+      <View className="flex-1 bg-background-50">
         <View className="flex-1 px-6 pb-8">
           {!shipperId && (
             <View className="items-center pt-12">
@@ -182,10 +182,7 @@ const DeliveryScanQrScreen = ({
                       </View>
                     </View>
                     <View className="w-2/3 ">
-                      <Text className="text-sm text-start text-white  mb-1">
-                        Người gửi hàng
-                      </Text>
-                      <Text className="text-lg font-bold text-gray-900 text-start">
+                      <Text className="text-lg font-bold text-white text-start">
                         {senderInfo?.name}
                       </Text>
                       <Text className="text-sm text-white text-start mt-1">
@@ -219,7 +216,7 @@ const DeliveryScanQrScreen = ({
                   </View>
 
                   <View>
-                    <Text className="text-base font-semibold mb-2">
+                    <Text className="text-text-main text-xs font-semibold uppercase tracking-wider mb-2">
                       Ảnh xác nhận
                     </Text>
                     {imageUrl.length > 0 && (
@@ -235,6 +232,12 @@ const DeliveryScanQrScreen = ({
                       </View>
                     )}
                   </View>
+
+                  <AppButton
+                    title="Hoàn thành"
+                    onPress={handleDone}
+                    className="mb-4"
+                  />
                 </View>
               </View>
             </View>
@@ -251,21 +254,8 @@ const DeliveryScanQrScreen = ({
               )}
             </>
           )}
-
-          {/* Complete Button */}
-          <AppButton title="Hoàn thành" onPress={handleDone} className="mb-4" />
-
-          {/* Additional Info */}
-          {!shipperId && (
-            <View className="bg-amber-50 rounded-xl p-4 border border-amber-200">
-              <Text className="text-sm text-amber-800 text-center">
-                ⚠️ Vui lòng chỉ nhận hàng sau khi đã xác nhận đúng người giao
-                hàng
-              </Text>
-            </View>
-          )}
         </View>
-      </ScrollView>
+      </View>
     </SubLayout>
   );
 };

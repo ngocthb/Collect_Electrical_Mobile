@@ -39,7 +39,7 @@ const ScanQrComponent: React.FC<ScanQrComponentProps> = ({
   };
 
   return (
-    <View className="flex-1 bg-background-50 px-4 pt-8 items-center h-screen">
+    <View className="flex-1 bg-background-50 px-4 pt-8 items-center">
       <Text className="text-xl font-bold mb-2 text-primary-700 text-center">
         {title}
       </Text>
