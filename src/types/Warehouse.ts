@@ -8,4 +8,6 @@ export type Warehouse = {
   status: string;
   companyId: string;
   rating: number;
+  distanceMeters?: number | 0;
+  distanceText?: string | '';
 };

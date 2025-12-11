@@ -21,6 +21,7 @@ import type { LocationData, MapboxFeature } from '../types/MapboxPicker';
 import type { Feature } from 'geojson';
 import Config from '../config/env';
 import { ScrollView } from 'react-native-gesture-handler';
+import AppButton from './ui/AppButton';
 MapboxGL.setAccessToken(Config.MAPBOX_ACCESS_TOKEN);
 
 interface MapboxPickerProps {
@@ -44,7 +45,7 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
   const [searchResults, setSearchResults] = useState<MapboxFeature[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(
-    initialLocation || null,
+    null,
   );
   const [markerCoordinate, setMarkerCoordinate] = useState<
     [number, number] | null
@@ -70,6 +71,7 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
         try {
           const coords = await getCurrentLocation();
           setCurrentLocation(coords);
+
           // Tự động zoom vào vị trí hiện tại khi lần đầu lấy được
           cameraRef.current?.setCamera({
             centerCoordinate: coords,
@@ -436,28 +438,15 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
               {selectedLocation.longitude.toFixed(6)}
             </Text>
           </View>
-          <TouchableOpacity
-            className="bg-primary-100 py-4 rounded-xl items-center flex-row justify-center"
-            onPress={() => {
-              if (!confirmLoading) handleConfirmLocation();
-            }}
-            activeOpacity={0.8}
-            disabled={confirmLoading}
-            style={{
-              shadowColor: '#e85a4f',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 8,
-              elevation: 6,
-            }}
-          >
-            {confirmLoading ? (
-              <ActivityIndicator size="small" color="#fff" className="mr-2" />
-            ) : null}
-            <Text className="text-white text-base font-semibold">
-              {confirmLoading ? 'Đang xử lý...' : confirmButtonText}
-            </Text>
-          </TouchableOpacity>
+          <AppButton
+            title={confirmButtonText}
+            onPress={handleConfirmLocation}
+            loading={confirmLoading}
+            disabled={
+              selectedLocation?.latitude === 0 &&
+              selectedLocation?.longitude === 0
+            }
+          />
         </View>
       )}
     </View>

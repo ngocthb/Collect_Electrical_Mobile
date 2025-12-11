@@ -7,10 +7,10 @@ import { LocationData } from '../../types/MapboxPicker';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   saveAddress,
-  addAddress,
+  setAddressList,
   updateAddress,
 } from '../../store/slices/addressSlice';
-
+import { getUserAddresses } from '../../services/addressService';
 import toast from 'react-native-toast-message';
 import type { Address } from '../../types/Address';
 import {
@@ -126,7 +126,9 @@ const AddressMap: React.FC = () => {
         isDefault: (created as any).isDefault ?? false,
       };
 
-      dispatch(addAddress(newAddr));
+      const addresses = await getUserAddresses(user.userId);
+      dispatch(setAddressList(addresses || []));
+
       toast.show({
         type: 'success',
         text1: 'Thành công',
