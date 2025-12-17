@@ -16,6 +16,7 @@ import { setError, setLoading, setUser } from '../../store/slices/authSlice';
 import Toast from 'react-native-toast-message';
 import { fetchUserProfile } from '../../services/authService';
 import { signIn } from '../../services/authService';
+import type { DeliveryLoginResponse } from '../../types/Profile';
 const logo = require('../../assets/images/logo.png');
 
 export default function DeliveryLoginScreen() {
@@ -31,22 +32,29 @@ export default function DeliveryLoginScreen() {
     try {
       dispatch(setLoading(true));
 
-      await signIn(email, password);
+      const data: DeliveryLoginResponse = await signIn(email, password);
+      if (data.isFirstLogin) {
+        Toast.show({
+          type: 'info',
+          text1: 'Đăng nhập thành công',
+          text2: 'Vui lòng đổi mật khẩu để bảo mật tài khoản',
+        });
+        navigation.navigate('ForgotPass', { type: 'verify_account', email });
+        return;
+      }
       const userProfile: any = await fetchUserProfile();
       dispatch(setUser(userProfile));
-      console.log(userProfile);
+
       if (userProfile.role === 'Collector') {
         // @ts-ignore
         globalThis.navigation?.replace('Dashboard');
-      } else {
-        // @ts-ignore
-        globalThis.navigation?.replace('MainTabs');
+
+        Toast.show({
+          type: 'success',
+          text1: 'Đăng nhập thành công!',
+          text2: `Chào mừng ${userProfile.name || userProfile.email}`,
+        });
       }
-      Toast.show({
-        type: 'success',
-        text1: 'Đăng nhập thành công!',
-        text2: `Chào mừng ${userProfile.name || userProfile.email}`,
-      });
     } catch (error) {
       Toast.show({
         type: 'error',
@@ -108,15 +116,15 @@ export default function DeliveryLoginScreen() {
 
         {/* Forgot password */}
         <View className="w-full mt-2 items-end mb-4">
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('ForgotPass', { type: 'forgot_password' })
+            }
+          >
             <Text className="text-text-muted text-xs">Quên mật khẩu?</Text>
           </TouchableOpacity>
         </View>
-        {auth.error ? (
-          <Text className="text-red-500 mt-3 text-center mb-4">
-            {auth.error}
-          </Text>
-        ) : null}
+
         <AppButton
           title="Đăng nhập"
           onPress={handleLogin}

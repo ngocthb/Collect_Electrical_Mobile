@@ -2,7 +2,7 @@ import axiosClient from '../config/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import GoogleSignin from '../config/googleSignIn';
 import auth from '@react-native-firebase/auth';
-import { Profile } from '../types/Profile';
+import { Profile, DeliveryLoginResponse } from '../types/Profile';
 
 export const signInWithGoogle = async (): Promise<any> => {
   try {
@@ -50,13 +50,13 @@ export const signInWithGoogle = async (): Promise<any> => {
 export const signIn = async (
   username: string,
   password: string,
-): Promise<any> => {
+): Promise<DeliveryLoginResponse> => {
   try {
     const res = (await axiosClient.post('/auth/login', {
       username,
       password,
     })) as any;
-    const token: string = res.token;
+    const token: string = res.accessToken;
     if (token) {
       await AsyncStorage.setItem('token', token);
 
@@ -64,7 +64,7 @@ export const signIn = async (
         axiosClient.defaults.headers.Authorization = `Bearer ${token}`;
       } catch (e) {}
     }
-    return token;
+    return res;
   } catch (error) {
     console.error('[signIn] Error:', error);
     throw error;
@@ -107,6 +107,49 @@ export const fetchUserProfile = async (): Promise<any> => {
     return response;
   } catch (error) {
     console.error('[fetchUserProfile] Error:', error);
+    throw error;
+  }
+};
+
+export const getOtpByEmail = async (email: string): Promise<any> => {
+  try {
+    const response = await axiosClient.post('/forgot-password/save-otp', {
+      email,
+    });
+    return response;
+  } catch (error) {
+    console.error('[getOtpByEmail] Error:', error);
+    throw error;
+  }
+};
+
+export const verifyOtp = async (email: string, otp: string): Promise<any> => {
+  try {
+    const response = await axiosClient.post('/forgot-password/check-otp', {
+      email,
+      otp,
+    });
+    return response;
+  } catch (error) {
+    console.error('[verifyOtp] Error:', error);
+    throw error;
+  }
+};
+
+export const changePassword = async (
+  email: string,
+  newPassword: string,
+  confirmNewPassword: string,
+): Promise<any> => {
+  try {
+    const response = await axiosClient.post('/forgot-password/re-pass', {
+      email,
+      newPassword,
+      confirmNewPassword,
+    });
+    return response;
+  } catch (error) {
+    console.error('[changePassword] Error:', error);
     throw error;
   }
 };

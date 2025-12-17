@@ -11,3 +11,8 @@ export interface Profile {
   smallCollectionPointId: number;
   points: number;
 }
+
+export interface DeliveryLoginResponse {
+  accessToken: string;
+  isFirstLogin: boolean;
+}

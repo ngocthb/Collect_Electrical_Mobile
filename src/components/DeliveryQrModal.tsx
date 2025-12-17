@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
-import AppButton from './ui/AppButton';
 import QRCode from 'react-native-qrcode-svg';
 import routeService from '../services/routeService';
 import * as signalR from '@microsoft/signalr';

@@ -58,7 +58,7 @@ const ProfileScreen = () => {
 
   const filteredMenu = menuItems.filter(item => {
     if (isUser) {
-      return [1, 2, 3, 6, 7].includes(item.id);
+      return [1, 2, 3, 6].includes(item.id);
     }
 
     return [1, 5, 7].includes(item.id);

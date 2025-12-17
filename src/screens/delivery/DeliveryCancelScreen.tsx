@@ -26,10 +26,7 @@ const DeliveryCancelScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const request = route.params?.request;
-  const requestId = String(
-request ?? route.params?.requestId ?? '',
-  );
-
+  const requestId = String(request ?? route.params?.requestId ?? '');
 
   React.useEffect(() => {
     let mounted = true;
@@ -42,7 +39,6 @@ request ?? route.params?.requestId ?? '',
     (async () => {
       try {
         const res = await routeService.getDetail(String(id));
-      
       } catch (e) {
         console.warn('Failed to fetch route detail for cancel screen', e);
       }

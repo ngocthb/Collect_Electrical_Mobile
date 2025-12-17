@@ -123,11 +123,19 @@ const DefaultAddressScreen: React.FC = () => {
           onSelectAddress={setSelectedAddress}
         />
 
-        {!selectedAddress?.isDefault && (
+        {
           <View className="py-4">
-            <AppButton title="Lưu làm địa chỉ mặc định" onPress={handleSave} />
+            <AppButton
+              title="Lưu làm địa chỉ mặc định"
+              onPress={handleSave}
+              disabled={
+                selectedAddress?.isDefault ||
+                addresses.length < 0 ||
+                selectedAddress === null
+              }
+            />
           </View>
-        )}
+        }
       </View>
     </SubLayout>
   );

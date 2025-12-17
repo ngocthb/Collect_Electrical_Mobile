@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  Modal,
+  ActivityIndicator,
+} from 'react-native';
 import toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 import AppButton from '../../components/ui/AppButton';
@@ -17,6 +25,8 @@ import routeService from '../../services/routeService';
 const DeliveryPhotoConfirmScreen = () => {
   const navigation = useNavigation<any>();
   const [selectedImages, setSelectedImages] = useState<Asset[]>([]);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const route = useRoute<any>();
   const dispatch = useDispatch();
@@ -63,64 +73,73 @@ const DeliveryPhotoConfirmScreen = () => {
       });
       return;
     }
-    navigation.navigate('DeliveryCompleteScreen', {
-      requestId: routeProductId,
-    });
 
-    // Upload và check image chạy ngầm
-    (async () => {
-      try {
-        const uploadedUrls: string[] = [];
+    setIsProcessing(true);
 
-        for (const img of selectedImages) {
-          try {
-            const url = await uploadImageToCloudinary(img);
-            if (url) uploadedUrls.push(url);
-          } catch (uploadErr) {
-            console.warn('Upload failed for image', img?.uri, uploadErr);
-          }
+    try {
+      const uploadedUrls: string[] = [];
+
+      // Upload images
+      for (const img of selectedImages) {
+        try {
+          const url = await uploadImageToCloudinary(img);
+          if (url) uploadedUrls.push(url);
+        } catch (uploadErr) {
+          console.warn('Upload failed for image', img?.uri, uploadErr);
         }
+      }
 
-        if (uploadedUrls.length === 0) {
-          toast.show({
-            type: 'error',
-            text1: 'Lỗi',
-            text2: 'Không thể tải lên ảnh.',
-          });
-          return;
-        }
-
-        // Lưu URLs vào Redux
-        await dispatch(saveImageUrls(uploadedUrls));
-
-        // Check image matching
-        const checkImage = await routeService.checkImage(
-          productImages,
-          uploadedUrls,
-        );
-        console.log(checkImage);
-        if (!checkImage || !checkImage.areSimilar) {
-          toast.show({
-            type: 'warning',
-            text1: 'Cảnh báo',
-            text2: 'Ảnh xác nhận không khớp với ảnh sản phẩm.',
-          });
-        } else {
-          toast.show({
-            type: 'success',
-            text1: 'Thành công',
-            text2: 'Ảnh xác nhận khớp với ảnh sản phẩm.',
-          });
-        }
-      } catch (e) {
-        console.warn('Background upload failed', e);
+      if (uploadedUrls.length === 0) {
         toast.show({
           type: 'error',
           text1: 'Lỗi',
-          text2: 'Có lỗi khi xử lý ảnh',
+          text2: 'Không thể tải lên ảnh.',
+        });
+        setIsProcessing(false);
+        return;
+      }
+
+      // Lưu URLs vào Redux
+      await dispatch(saveImageUrls(uploadedUrls));
+
+      // Check image matching
+      const checkImage = await routeService.checkImage(
+        productImages,
+        uploadedUrls,
+      );
+      console.log(checkImage);
+
+      setIsProcessing(false);
+
+      if (!checkImage || !checkImage.areSimilar) {
+        // Hiện modal cảnh báo
+        setShowWarningModal(true);
+      } else {
+        toast.show({
+          type: 'success',
+          text1: 'Thành công',
+          text2: 'Ảnh xác nhận khớp với ảnh sản phẩm.',
+        });
+        navigation.navigate('DeliveryCompleteScreen', {
+          requestId: routeProductId,
         });
       }
-    })();
+    } catch (e) {
+      console.warn('Image processing failed', e);
+      setIsProcessing(false);
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Có lỗi khi xử lý ảnh',
+      });
+    }
+  };
+
+  const handleProceedAnyway = () => {
+    setShowWarningModal(false);
+    navigation.navigate('DeliveryCompleteScreen', {
+      requestId: routeProductId,
+    });
   };
 
   return (
@@ -167,9 +186,56 @@ const DeliveryPhotoConfirmScreen = () => {
         <AppButton
           title="Xác nhận"
           onPress={handleConfirm}
-          disabled={selectedImages.length === 0}
+          disabled={selectedImages.length === 0 || isProcessing}
+          loading={isProcessing}
         />
       </ScrollView>
+
+      {/* Warning Modal */}
+      <Modal
+        visible={showWarningModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowWarningModal(false)}
+      >
+        <View className="flex-1 bg-black/50 items-center justify-center px-6">
+          <View className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <View className="items-center mb-4">
+              <View className="w-16 h-16 rounded-full bg-amber-100 items-center justify-center mb-3">
+                <Icon name="alert-triangle" size={32} color="#F59E0B" />
+              </View>
+              <Text className="text-xl font-bold text-gray-900 mb-2">
+                Cảnh báo
+              </Text>
+              <Text className="text-sm text-gray-600 text-center">
+                Ảnh xác nhận không khớp với ảnh sản phẩm ban đầu. Bạn có chắc
+                chắn muốn tiếp tục?
+              </Text>
+            </View>
+
+            <View className="flex-row justify-between">
+              <View style={{ width: '48%' }}>
+                <AppButton
+                  title="Từ chối"
+                  onPress={() =>
+                    navigation.navigate('DeliveryCancel', {
+                      requestId: routeProductId,
+                    })
+                  }
+                  color="#ef4444"
+                />
+              </View>
+              <View style={{ width: '48%' }}>
+                <AppButton
+                  title="Tiếp tục"
+                  onPress={handleProceedAnyway}
+                  color="#22c55e"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SubLayout>
   );
 };
