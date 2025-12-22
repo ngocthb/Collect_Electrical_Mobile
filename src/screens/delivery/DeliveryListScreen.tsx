@@ -78,7 +78,7 @@ export default function DeliveryListScreen() {
       // Compute distances immediately after fetching
       try {
         const loc = await getCurrentLocation();
-        const [currLng, currLat] = loc || [null, null];
+        const [currLng, currLat] = loc || [106, 10];
 
         const mapped = acc.map(o => {
           const lat = o?.iat ?? o?.lat ?? null;
@@ -102,7 +102,7 @@ export default function DeliveryListScreen() {
         setOrdersWithDistance(mapped);
       } catch (locError) {
         console.warn('Failed to compute distances', locError);
-        // Set orders without distances
+       
         setOrdersWithDistance(
           acc.map(o => ({ ...o, distanceMeters: 0, distanceText: '' })),
         );
@@ -187,7 +187,7 @@ export default function DeliveryListScreen() {
     )}/${pad(e.getMonth() + 1)}`;
   };
 
-  return (
+    return (
     <SubLayout
       title="Đơn hàng"
       onBackPress={() => {

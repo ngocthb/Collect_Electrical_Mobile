@@ -30,7 +30,7 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
   const cleanReceiverId = receiver?.userId
     ? cleanUserIdForZego(receiver.userId)
     : null;
-
+console.log(order)
   const invitees = useMemo(() => {
     if (!cleanReceiverId) return [];
     return [
@@ -42,6 +42,7 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
   }, [cleanReceiverId, receiver?.name]);
 
   const handleEyePress = () => {
+ 
     navigation.navigate('DeliveryDetails', {
       normalizedRequest: order,
       pickupLocationName: getOrderAddress(order),
@@ -52,10 +53,11 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
   };
 
   const handleDirections = async () => {
-    const lat = order?.iat ?? order?.lat;
+  
+      const lat = order?.iat ?? order?.lat;
     const lng = order?.ing ?? order?.lng;
 
-    if (!lat || !lng) {
+      if (!lat || !lng) {
       console.warn('No coordinates available for directions');
       return;
     }
@@ -117,10 +119,10 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
           <View className="flex-row gap-3 items-start">
             <TouchableOpacity
               onPress={() =>
-                isSelectedDateToday && !actionsDisabled && handleEyePress()
+                handleEyePress()
               }
               className="bg-gray-100 rounded-full p-2"
-              disabled={!isSelectedDateToday || actionsDisabled}
+              disabled={isSelectedDateToday }
               style={{
                 opacity: !isSelectedDateToday || actionsDisabled ? 0.4 : 1,
               }}
@@ -129,18 +131,18 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() =>
-                isSelectedDateToday && !actionsDisabled && handleDirections()
+                handleDirections()
               }
               className="bg-gray-100 rounded-full p-2"
-              disabled={!isSelectedDateToday || actionsDisabled}
+              disabled={isSelectedDateToday }
               style={{
-                opacity: !isSelectedDateToday || actionsDisabled ? 0.4 : 1,
+                opacity: isSelectedDateToday  ? 0.4 : 1,
               }}
             >
               <Icon name="directions" size={26} color="#3366CC" />
             </TouchableOpacity>
 
-            {invitees.length > 0 && isSelectedDateToday && !actionsDisabled ? (
+            {invitees.length > 0 && !isSelectedDateToday && actionsDisabled ? (
               <ZegoSendCallInvitationButton
                 invitees={invitees}
                 isVideoCall={false}

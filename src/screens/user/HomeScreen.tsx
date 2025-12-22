@@ -79,8 +79,8 @@ export default function HomeScreen() {
               <Text className="text-base font-bold text-primary-100 mr-2">
                 {(user?.points ?? 0).toLocaleString()}
               </Text>
-              <View className="w-6 h-6 bg-yellow-400 rounded-full items-center justify-center">
-                <Text className="text-xs">🪙</Text>
+              <View className=" items-center justify-center">
+                <Text className="text-lg">🪙</Text>
               </View>
             </View>
           </View>

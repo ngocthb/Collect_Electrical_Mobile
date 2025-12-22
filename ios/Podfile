@@ -8,39 +8,36 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
-# Thêm dòng này để enable Mapbox
+# Enable Mapbox
 $RNMapboxMapsImpl = 'mapbox'
-
-linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
-end
-
-# pre_install phải đặt TRƯỚC target
-pre_install do |installer|
-  $RNMapboxMaps.pre_install(installer)
-end
 
 target 'mobile' do
   config = use_native_modules!
-
+  
+  # 🔥 BẮT BUỘC: static frameworks cho Firebase + gRPC
+  use_frameworks! :linkage => :static
+  
   use_react_native!(
     :path => config[:reactNativePath],
-    # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
-
+  
+  # ⬇️ THÊM FIREBASE PODS VÀO ĐÂY ⬇️
+  pod 'Firebase/Core'
+  pod 'Firebase/Auth'
+  pod 'GoogleSignIn'
+  # ⬆️ KẾT THÚC PHẦN THÊM ⬆️
+  
+  pre_install do |installer|
+    $RNMapboxMaps.pre_install(installer)
+  end
+  
   post_install do |installer|
-    # Gọi Mapbox post_install TRƯỚC
     $RNMapboxMaps.post_install(installer)
-    
-    # Sau đó mới gọi react_native_post_install
     react_native_post_install(
       installer,
       config[:reactNativePath],
-      :mac_catalyst_enabled => false,
-      # :ccache_enabled => true
+      :mac_catalyst_enabled => false
     )
   end
 end

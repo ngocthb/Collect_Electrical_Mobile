@@ -1,16 +1,7 @@
 import React from 'react';
-import { View, ScrollView, RefreshControl } from 'react-native';
+import { View, ScrollView, RefreshControl, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BackHeader from '../components/BackHeader';
-
-interface SubLayoutProps {
-  title: string;
-  onBackPress: () => void;
-  children: React.ReactNode;
-  rightComponent?: React.ReactNode;
-  onRefresh?: () => Promise<void> | void;
-  noScroll?: boolean;
-  enableRefresh?: boolean;
-}
 
 const SubLayout: React.FC<SubLayoutProps> = ({
   title,
@@ -34,12 +25,16 @@ const SubLayout: React.FC<SubLayoutProps> = ({
   };
 
   return (
-    <View className="flex-1 ">
+    <SafeAreaView
+      edges={Platform.OS === 'ios' ? ['top'] : []}
+      style={{ flex: 1, backgroundColor: '#F9FAFB' }}
+    >
       <BackHeader
         title={title}
         onBackPress={onBackPress}
         rightComponent={rightComponent}
       />
+
       {noScroll ? (
         <View style={{ flex: 1 }}>{children}</View>
       ) : (
@@ -56,10 +51,10 @@ const SubLayout: React.FC<SubLayoutProps> = ({
             ) : undefined
           }
         >
-          <View className="flex-1">{children}</View>
+          <View style={{ flex: 1 }}>{children}</View>
         </ScrollView>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

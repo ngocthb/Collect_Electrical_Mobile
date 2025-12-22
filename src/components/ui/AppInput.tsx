@@ -98,8 +98,12 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
           editable={!disabled}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          multiline={numberOfLines > 1} // Enable multiline if numberOfLines > 1
-          numberOfLines={numberOfLines} // Pass the number of lines to TextInput
+                                                       multiline={true} // thay vì numberOfLines>1
+                                                        style={{
+                                                          minHeight: compact ? 30 : 40, // đặt chiều cao tối thiểu
+                                                          paddingVertical: compact ? 4 : 8,
+                                                          lineHeight: compact ? 16 : 20,
+                                                        }}          numberOfLines={numberOfLines} // Pass the number of lines to TextInput
           {...props}
         />
 
@@ -163,3 +167,5 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
 AppInput.displayName = 'AppInput';
 
 export default AppInput;
+
+ 

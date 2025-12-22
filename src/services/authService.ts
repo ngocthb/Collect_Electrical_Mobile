@@ -6,52 +6,77 @@ import { Profile, DeliveryLoginResponse } from '../types/Profile';
 
 export const signInWithGoogle = async (): Promise<any> => {
   try {
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    console.log('🚀 [1] Bắt đầu Google Sign In');
+    
+    if (Platform.OS === 'android') {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    }
+    
+    console.log('🚀 [2] Sign out để clean state');
     await GoogleSignin.signOut();
+    
+    console.log('🚀 [3] Mở Google Sign In UI');
     const userInfo = await GoogleSignin.signIn();
-
-    if (!userInfo.data?.idToken) {
+    
+    console.log('🚀 [4] UserInfo:', JSON.stringify(userInfo, null, 2));
+    
+    // Handle cancelled
+    if (userInfo.type === 'cancelled') {
+      throw new Error('User cancelled the sign in');
+    }
+    
+    const idToken = userInfo.data?.idToken;
+    
+    if (!idToken) {
+      console.error('❌ Không có idToken');
       throw new Error('Không thể lấy ID token từ Google');
     }
-
-    const googleCredential = auth.GoogleAuthProvider.credential(
-      userInfo.data.idToken,
-    );
-    const userCredential = await auth().signInWithCredential(googleCredential);
-
+    
+    console.log('🚀 [5] ID Token OK');
+    
+    // Tạo credential
+    const credential = auth.GoogleAuthProvider.credential(idToken);
+    console.log('🚀 [6] Credential created');
+    
+    console.log('🚀 [7] Đăng nhập Firebase...');
+    // Gọi trực tiếp auth() - nó sẽ tự động init
+    const userCredential = await auth().signInWithCredential(credential);
+    
     if (!userCredential.user) {
       throw new Error('Đăng nhập Firebase thất bại');
     }
-
-    // 4. Lấy Firebase ID Token
+    
+    console.log('🚀 [8] Firebase User:', userCredential.user.uid);
+    
     const firebaseIdToken = await userCredential.user.getIdToken();
-
+    console.log('🚀 [9] Firebase ID Token OK');
+    
+    console.log('🚀 [10] Gọi API backend...');
     const response = await getTokenByLoginGoogle(firebaseIdToken);
-
-    // Try to find the token in common fields and persist it to AsyncStorage
+    
     const _res: any = response;
     const token = _res?.token || _res?.accessToken || _res?.data?.token || null;
-
+    
     if (token) {
       await AsyncStorage.setItem('token', token);
-
-      try {
-        axiosClient.defaults.headers.Authorization = `Bearer ${token}`;
-      } catch (e) {}
+      axiosClient.defaults.headers.Authorization = `Bearer ${token}`;
+      console.log('🚀 [11] Token saved');
     }
-
+    
     return response;
-  } catch (error) {
-    console.error('[signInWithGoogle] Error:', error);
+  } catch (error: any) {
+    console.error('❌ Error:', error);
+    console.error('❌ Code:', error?.code);
+    console.error('❌ Message:', error?.message);
     throw error;
   }
 };
-
 export const signIn = async (
   username: string,
   password: string,
 ): Promise<DeliveryLoginResponse> => {
   try {
+      console.log(username,password);
     const res = (await axiosClient.post('/auth/login', {
       username,
       password,

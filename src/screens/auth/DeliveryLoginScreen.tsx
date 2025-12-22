@@ -32,7 +32,7 @@ export default function DeliveryLoginScreen() {
     try {
       dispatch(setLoading(true));
 
-      const data: DeliveryLoginResponse = await signIn(email, password);
+      const data: DeliveryLoginResponse = await signIn("collector.dung", "12345678");
       if (data.isFirstLogin) {
         Toast.show({
           type: 'info',

@@ -44,11 +44,9 @@ const WeekStrip: React.FC<Props> = ({
           <Icon name="chevron-left" size={20} color="#e85a4f" />
         </TouchableOpacity> */}
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ alignItems: 'center', paddingHorizontal: 6 }}
-        style={{ flex: 1 }}
+      <View
+          className="flex-row jutify-between"
+   
       >
         {days.map((d, idx) => {
           const isSelected = d.toDateString() === selectedDate.toDateString();
@@ -83,7 +81,7 @@ const WeekStrip: React.FC<Props> = ({
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+      </View>
 
       {/* <TouchableOpacity onPress={onNextWeek} className="p-2">
           <Icon name="chevron-right" size={20} color="#e85a4f" />
@@ -93,3 +91,4 @@ const WeekStrip: React.FC<Props> = ({
 };
 
 export default WeekStrip;
+
