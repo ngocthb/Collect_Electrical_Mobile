@@ -246,7 +246,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
                 </Text>
                 <ImageGalleryViewer
                   images={normalizedRequest?.pickUpItemImages || []}
-                  imageSize={100}
+                  imageSize={200}
                   imageSpacing={8}
                   borderRadius={8}
                 />
@@ -275,14 +275,14 @@ const DeliveryMapPanel: React.FC<Props> = ({
               <>
                 <View className="flex-row justify-between ">
                   <View style={{ width: '48%' }}>
+                    <AppButton title="Lấy hàng thất bại" onPress={onReject} />
+                  </View>
+                  <View style={{ width: '48%' }}>
                     <AppButton
                       title="Lấy hàng thành công"
                       onPress={onConfirm}
                       color="#3366CC"
                     />
-                  </View>
-                  <View style={{ width: '48%' }}>
-                    <AppButton title="Lấy hàng thất bại" onPress={onReject} />
                   </View>
                 </View>
                 <View className="h-5" />

@@ -184,7 +184,7 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
       }
     };
   }, [product?.collectionRouteId, navigation]);
-
+  console.log(product);
   const confirmPayload = {
     code: product?.collectionRouteId,
     shipper: {
@@ -194,7 +194,7 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
       licensePlate: product?.licensePlate || null,
     },
     request: {
-      itemName: product?.itemName,
+      itemName: `${product.subCategoryName} • ${product.brandName}`,
       pickUpItemImages: product?.pickUpItemImages || [],
       confirmImages: product?.confirmImages || [],
       collectionDate: product?.collectionDate || null,

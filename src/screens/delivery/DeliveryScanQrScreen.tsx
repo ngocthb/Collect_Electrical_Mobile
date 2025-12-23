@@ -156,16 +156,6 @@ const DeliveryScanQrScreen = ({
           {shipperId ? (
             <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm border-2 border-red-200 ">
               <View className="items-center">
-                <View className="w-16 h-16 bg-green-100 rounded-full items-center justify-center mb-4">
-                  <Icon name="check-circle" size={32} color="#10B981" />
-                </View>
-                <Text className="text-xl font-bold text-green-600 mb-2">
-                  Xác thực thành công!
-                </Text>
-
-                <Text className="text-sm text-text-main mb-4">
-                  Mã sản phẩm : {shipperId}
-                </Text>
                 <View className=" justify-between  bg-primary-100  rounded-xl py-4 px-2 w-full mb-4 items-center gap-2 border-2 border-red-200">
                   <View className="flex-row  items-center  w-full">
                     <View className="w-1/3 items-center">
@@ -191,7 +181,9 @@ const DeliveryScanQrScreen = ({
                     </View>
                   </View>
                 </View>
-
+                <Text className="text-sm text-text-main mb-4">
+                  Mã sản phẩm : {shipperId}
+                </Text>
                 {/* Items to be delivered (from request) */}
                 <View className="bg-white rounded-lg w-full">
                   <View>
@@ -208,7 +200,7 @@ const DeliveryScanQrScreen = ({
                         ).map((img: any) =>
                           typeof img === 'string' ? img : img?.uri || '',
                         )}
-                        imageSize={120}
+                        imageSize={140}
                         imageSpacing={8}
                         borderRadius={8}
                       />
@@ -225,7 +217,7 @@ const DeliveryScanQrScreen = ({
                           images={imageUrl.map((img: any) =>
                             typeof img === 'string' ? img : img?.uri || '',
                           )}
-                          imageSize={120}
+                          imageSize={140}
                           imageSpacing={8}
                           borderRadius={8}
                         />

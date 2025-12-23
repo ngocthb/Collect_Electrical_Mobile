@@ -109,7 +109,7 @@ const UserConfirmScreen = () => {
       routes: [{ name: 'MainTabs' }],
     });
   };
-
+  console.log(request);
   return (
     <SubLayout
       title="Xác nhận người giao hàng"
@@ -130,18 +130,6 @@ const UserConfirmScreen = () => {
           {shipperId ? (
             <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm border-2 border-red-200 ">
               <View className="items-center">
-                {/* Success Icon */}
-                <View className="w-16 h-16 bg-green-100 rounded-full items-center justify-center mb-4">
-                  <Icon name="check-circle" size={32} color="#10B981" />
-                </View>
-
-                <Text className="text-xl font-bold text-green-600 mb-2">
-                  Quét thành công!
-                </Text>
-                <Text className="text-sm text-gray-500 mb-6">
-                  Người giao hàng đã được xác thực
-                </Text>
-
                 {/* Shipper Info Card */}
                 <View className="flex-row bg-primary-100 rounded-xl p-4 w-full mb-6 border-2 border-red-200">
                   <View className="items-center mr-4">
@@ -194,7 +182,7 @@ const UserConfirmScreen = () => {
                           <View>
                             <ImageGalleryViewer
                               images={request.pickUpItemImages}
-                              imageSize={84}
+                              imageSize={120}
                               imageSpacing={12}
                               borderRadius={12}
                             />
@@ -206,21 +194,6 @@ const UserConfirmScreen = () => {
                         <Text className="text-sm text-gray-600 mb-2">
                           Mô tả: {request.description}
                         </Text>
-                      )}
-
-                      {/* Address */}
-                      {request?.address && (
-                        <View className="flex-row items-start mt-2 bg-gray-50 p-3 rounded-lg">
-                          <Icon
-                            name="map-pin"
-                            size={16}
-                            color="#6B7280"
-                            style={{ marginTop: 2, marginRight: 8 }}
-                          />
-                          <Text className="flex-1 text-sm text-gray-700">
-                            {request.address}
-                          </Text>
-                        </View>
                       )}
                     </View>
                   ) : (
@@ -245,7 +218,7 @@ const UserConfirmScreen = () => {
 
                 {/* Warning Message - Only show when not scanned */}
                 {shipperId && (
-                  <View className="bg-amber-50 rounded-xl p-4 border border-amber-200 mt-2">
+                  <View className="bg-amber-50 rounded-xl p-4 border border-amber-200 mt-4">
                     <Text className="text-xs text-amber-800 text-center">
                       ⚠️ Vui lòng chỉ nhận hàng sau khi đã xác nhận đúng người
                       giao hàng

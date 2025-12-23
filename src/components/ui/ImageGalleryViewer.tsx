@@ -37,7 +37,7 @@ const ImageGalleryViewer: React.FC<ImageGalleryViewerProps> = ({
   if (!images || images.length === 0) return null;
 
   const shouldCenter = images.length <= 2;
-  const scrollEnabled = images.length > 2;
+  const scrollEnabled = images.length > 1;
 
   return (
     <View>

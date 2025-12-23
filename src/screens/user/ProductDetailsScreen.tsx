@@ -358,11 +358,8 @@ const ProductDetailsScreen = () => {
 
             {renderAttributesOrCondition()}
 
-            {showVerifyButton && (
-              <View className="bg-green-50 border-2 border-green-500 rounded-2xl p-5 mb-4">
-                <Text className="text-text-main font-semibold text-sm mb-4 text-center">
-                  Xác thực nhân viên thu gom.
-                </Text>
+            {true && (
+              <View className="mt-4 mb-4">
                 <View className="flex-row">
                   <View style={{ width: '48%', marginRight: '4%' }}>
                     <AppButton
