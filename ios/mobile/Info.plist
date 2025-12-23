@@ -37,8 +37,8 @@
 	<string>1</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
-		<string>googleauth </string>
-		<string>googlechrome </string>
+		<string>googleauth</string>
+		<string>googlechrome</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
@@ -61,9 +61,9 @@
 	<string>Ứng dụng cần quyền truy cập vị trí để xác định vị trí của người dùng</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Ứng dụng cần quyền thư viện ảnh để chọn ảnh sản phẩm</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Ứng dụng cần quyền microphone để ghi âm</string>
 	<key>RCTNewArchEnabled</key>
-	<string>Ứng dụng cần quyền microphone để gọi thoại</string>
-<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIAppFonts</key>
 	<array>
