@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import ImageGalleryViewer from '../../components/ui/ImageGalleryViewer';
 import {
@@ -29,6 +35,7 @@ const ProductDetailsScreen = () => {
   const productId: string | undefined = route.params?.productId;
 
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [isRejected, setIsRejected] = useState(false);
   const [showVerifyButton, setShowVerifyButton] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
@@ -64,28 +71,38 @@ const ProductDetailsScreen = () => {
     };
   }, [productId]);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      if (!productId) return;
-      setLoading(true);
-      try {
-        const data = await getProductById(productId);
-        if (mounted) {
-          setProduct(data);
-          setIsRejected(data.status === 'Đã Từ Chối');
-        }
-      } catch (e) {
-        console.warn('Failed to load request', e);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
+  const loadProduct = async (isRefresh = false) => {
+    if (!productId) return;
 
-    return () => {
-      mounted = false;
-    };
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
+    try {
+      const data = await getProductById(productId);
+      setProduct(data);
+
+      setIsRejected(data.status === 'Đã Từ Chối');
+    } catch (e) {
+      console.warn('Failed to load request', e);
+    } finally {
+      if (isRefresh) {
+        setRefreshing(false);
+      } else {
+        setLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    loadProduct();
   }, [productId]);
+
+  const onRefresh = () => {
+    loadProduct(true);
+  };
 
   const renderTimeSlots = (slots: Record<string, string[]>) => {
     const result = groupTimeSlots(slots);
@@ -200,13 +217,14 @@ const ProductDetailsScreen = () => {
     <SubLayout
       title="Thông tin giao hàng"
       onBackPress={() => navigation.goBack()}
+      onRefresh={onRefresh}
     >
       {loading ? (
         <View className="flex-1 bg-background-50 items-center justify-center">
           <ActivityIndicator size="large" color="#e85a4f" />
         </View>
       ) : (
-        <ScrollView className="flex-1 bg-background-50">
+        <View className="flex-1 bg-background-50">
           <View className="px-5 py-4">
             {product?.collector && (
               <View className="bg-primary-100 border-2 border-red-200  rounded-2xl shadow-lg mb-3  p-4 ">
@@ -343,8 +361,7 @@ const ProductDetailsScreen = () => {
             {showVerifyButton && (
               <View className="bg-green-50 border-2 border-green-500 rounded-2xl p-5 mb-4">
                 <Text className="text-text-main font-semibold text-sm mb-4 text-center">
-                  Nhân viên thu gom đang ở gần vị trí của bạn. Vui lòng chuẩn bị
-                  xác thực.
+                  Xác thực nhân viên thu gom.
                 </Text>
                 <View className="flex-row">
                   <View style={{ width: '48%', marginRight: '4%' }}>
@@ -368,7 +385,7 @@ const ProductDetailsScreen = () => {
               </View>
             )}
           </View>
-        </ScrollView>
+        </View>
       )}
     </SubLayout>
   );

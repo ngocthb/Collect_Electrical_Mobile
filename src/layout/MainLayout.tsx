@@ -1,8 +1,18 @@
 import React from 'react';
-import { View, ScrollView, RefreshControl } from 'react-native';
+import { View, ScrollView, RefreshControl, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Header from '../components/Header';
+
+interface MainLayoutProps {
+  icon?: string;
+  children: React.ReactNode;
+  headerTitle?: string;
+  headerSubtitle?: string;
+  hideHeader?: boolean;
+  onRefresh?: () => Promise<void> | void;
+  headerRightComponent?: React.ReactNode;
+}
 
 const MainLayout: React.FC<MainLayoutProps> = ({
   icon,
@@ -26,8 +36,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   };
 
   return (
-    <SafeAreaView  edges={Platform.OS === 'ios' ? ['top'] : []}
-          style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
+    <SafeAreaView
+      edges={Platform.OS === 'ios' ? ['top'] : []}
+      style={{ flex: 1, backgroundColor: '#F9FAFB' }}
+    >
       {!hideHeader && (
         <Header
           icon={icon}

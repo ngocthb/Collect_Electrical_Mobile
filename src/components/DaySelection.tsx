@@ -154,11 +154,10 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     const targetDate = new Date(today);
     targetDate.setDate(today.getDate() + baseShift + offset);
 
-    const sameYear = targetDate.getFullYear() === today.getFullYear();
     const dd = String(targetDate.getDate()).padStart(2, '0');
     const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
-    const yyyy = String(targetDate.getFullYear());
-    return sameYear ? `${dd}/${mm}` : `${dd}/${mm}/${yyyy}`;
+
+    return `${dd}/${mm}`;
   };
 
   // Toggle a single day selection

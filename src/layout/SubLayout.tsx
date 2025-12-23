@@ -3,6 +3,16 @@ import { View, ScrollView, RefreshControl, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BackHeader from '../components/BackHeader';
 
+interface SubLayoutProps {
+  title: string;
+  onBackPress: () => void;
+  children: React.ReactNode;
+  rightComponent?: React.ReactNode;
+  onRefresh?: () => Promise<void> | void;
+  noScroll?: boolean;
+  enableRefresh?: boolean;
+}
+
 const SubLayout: React.FC<SubLayoutProps> = ({
   title,
   onBackPress,

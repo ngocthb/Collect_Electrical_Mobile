@@ -61,34 +61,23 @@ export default function DeliveryListScreen() {
     return date;
   };
 
-  const fetchOrdersForWeek = async (date: Date, userId: string) => {
+  const fetchOrdersForToday = async (userId: string) => {
     setIsLoading(true);
     try {
-      const start = startOfWeek(date);
-      const acc: any[] = [];
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(start);
-        d.setDate(start.getDate() + i);
-        const dateStr = formatAPIDate(d);
+      const today = new Date();
+      const dateStr = formatAPIDate(today);
 
-        const res: any = await routeService.listByDate(userId, dateStr);
-        if (res && Array.isArray(res)) acc.push(...res);
-      }
+      const res: any = await routeService.listByDate(userId, dateStr);
+      const orders = Array.isArray(res) ? res : [];
 
-      // Compute distances immediately after fetching
       try {
         const loc = await getCurrentLocation();
         const [currLng, currLat] = loc || [106, 10];
 
-        const mapped = acc.map(o => {
-          const lat = o?.iat ?? o?.lat ?? null;
-          const lng = o?.ing ?? o?.lng ?? null;
-          if (
-            lat == null ||
-            lng == null ||
-            currLat == null ||
-            currLng == null
-          ) {
+        const mapped = orders.map(o => {
+          const lat = o?.lat ?? o?.iat ?? null;
+          const lng = o?.lng ?? o?.ing ?? null;
+          if (!lat || !lng || !currLat || !currLng) {
             return { ...o, distanceMeters: 0, distanceText: '' };
           }
           const dist = calculateDistance(currLat, currLng, lat, lng);
@@ -102,9 +91,8 @@ export default function DeliveryListScreen() {
         setOrdersWithDistance(mapped);
       } catch (locError) {
         console.warn('Failed to compute distances', locError);
-       
         setOrdersWithDistance(
-          acc.map(o => ({ ...o, distanceMeters: 0, distanceText: '' })),
+          orders.map(o => ({ ...o, distanceMeters: 0, distanceText: '' })),
         );
       }
     } catch (e: any) {
@@ -116,15 +104,10 @@ export default function DeliveryListScreen() {
   };
 
   useEffect(() => {
-    let mounted = true;
-    if (!mounted) return;
     if (userId) {
-      fetchOrdersForWeek(selectedDate, userId);
+      fetchOrdersForToday(userId);
     }
-    return () => {
-      mounted = false;
-    };
-  }, [selectedDate, userId]);
+  }, [userId]);
 
   // Filter orders by selected date and status (show only orders of the selected day)
   const selectedStart = new Date(selectedDate);
@@ -187,7 +170,7 @@ export default function DeliveryListScreen() {
     )}/${pad(e.getMonth() + 1)}`;
   };
 
-    return (
+  return (
     <SubLayout
       title="Đơn hàng"
       onBackPress={() => {

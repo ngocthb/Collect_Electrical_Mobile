@@ -31,6 +31,15 @@ const UserConfirmScreen = () => {
       if (parsed && typeof parsed === 'object') {
         const sid = parsed.code || parsed.shipper?.id || parsed.shipperId;
 
+        if (!parsed.code || !parsed.shipper || !parsed.request) {
+          toast.show({
+            type: 'error',
+            text1: 'Mã QR không hợp lệ',
+            text2: 'Vui lòng quét mã QR hợp lệ của người giao hàng',
+          });
+          return;
+        }
+
         if (parsed.code) {
           setCode(parsed.code);
         }
@@ -45,17 +54,30 @@ const UserConfirmScreen = () => {
         if (sid) {
           setShipperId(String(sid));
         } else {
-          console.warn('⚠️ No shipper ID found in QR data');
+          toast.show({
+            type: 'error',
+            text1: 'Mã QR không hợp lệ',
+            text2: 'Vui lòng quét mã QR hợp lệ của người giao hàng',
+          });
         }
 
         return;
       }
     } catch (e) {
-      console.log('❌ Parse failed, treating as plain ID:', e);
+      toast.show({
+        type: 'error',
+        text1: 'Mã QR không hợp lệ',
+        text2: 'Vui lòng quét mã QR hợp lệ của người giao hàng',
+      });
+      return;
     }
 
-    // Fallback: treat as plain shipper ID string
-    setShipperId(String(data));
+    // Fallback: Invalid format
+    toast.show({
+      type: 'error',
+      text1: 'Mã QR không hợp lệ',
+      text2: 'Vui lòng quét mã QR hợp lệ của người giao hàng',
+    });
   };
 
   const handleConfirm = async () => {
@@ -88,20 +110,13 @@ const UserConfirmScreen = () => {
     });
   };
 
-  const handleImagePress = (imageUri: string) => {
-    setSelectedImage(imageUri);
-    toggleModal();
-  };
-
-  console.log(request);
-  console.log(shipperInfo);
   return (
     <SubLayout
       title="Xác nhận người giao hàng"
       onBackPress={() => navigation.goBack()}
     >
       <ScrollView className="flex-1 bg-background-50">
-        <View className="flex-1 px-6 pt-12 pb-8">
+        <View className="flex-1 px-6  pb-8">
           {/* Header Icon - Only show when not scanned */}
           {!shipperId && !shipperInfo && (
             <View className="items-center mb-6">
@@ -132,7 +147,7 @@ const UserConfirmScreen = () => {
                   <View className="items-center mr-4">
                     <AppAvatar
                       name={shipperInfo?.name}
-                      uri={shipperInfo.avatar}
+                      uri={shipperInfo?.avatar}
                       size={70}
                       style={{
                         borderWidth: 3,
@@ -170,13 +185,13 @@ const UserConfirmScreen = () => {
                   {request ? (
                     <View>
                       <Text className="text-sm font-semibold text-gray-900 mb-2">
-                        {request.itemName}
+                        {request?.itemName}
                       </Text>
 
                       {/* Product Images */}
-                      {request.pickUpItemImages &&
-                        request.pickUpItemImages.length > 0 && (
-                          <View className="mb-3">
+                      {request?.pickUpItemImages &&
+                        request?.pickUpItemImages.length > 0 && (
+                          <View>
                             <ImageGalleryViewer
                               images={request.pickUpItemImages}
                               imageSize={84}
@@ -187,14 +202,14 @@ const UserConfirmScreen = () => {
                         )}
 
                       {/* Description */}
-                      {request.description && (
+                      {request?.description && (
                         <Text className="text-sm text-gray-600 mb-2">
                           Mô tả: {request.description}
                         </Text>
                       )}
 
                       {/* Address */}
-                      {request.address && (
+                      {request?.address && (
                         <View className="flex-row items-start mt-2 bg-gray-50 p-3 rounded-lg">
                           <Icon
                             name="map-pin"
@@ -214,6 +229,29 @@ const UserConfirmScreen = () => {
                     </Text>
                   )}
                 </View>
+                {/* Bottom Button */}
+                <View className="flex-row flex-1 justify-between gap-2">
+                  <View style={{ width: '48%' }}>
+                    <AppButton
+                      title="Xác nhận "
+                      onPress={handleConfirm}
+                      color="#3366CC"
+                    />
+                  </View>
+                  <View style={{ width: '48%' }}>
+                    <AppButton title="Từ chối " onPress={handleReject} />
+                  </View>
+                </View>
+
+                {/* Warning Message - Only show when not scanned */}
+                {shipperId && (
+                  <View className="bg-amber-50 rounded-xl p-4 border border-amber-200 mt-2">
+                    <Text className="text-xs text-amber-800 text-center">
+                      ⚠️ Vui lòng chỉ nhận hàng sau khi đã xác nhận đúng người
+                      giao hàng
+                    </Text>
+                  </View>
+                )}
               </View>
             </View>
           ) : (
@@ -225,30 +263,6 @@ const UserConfirmScreen = () => {
               onScan={handleQRScan}
               onClose={() => {}}
             />
-          )}
-
-          {/* Bottom Button */}
-          <View className="flex-row flex-1 justify-between">
-            <View style={{ width: '48%' }}>
-              <AppButton
-                title="Xác nhận "
-                onPress={handleConfirm}
-                color="#3366CC"
-              />
-            </View>
-            <View style={{ width: '48%' }}>
-              <AppButton title="Từ chối " onPress={handleReject} />
-            </View>
-          </View>
-
-          {/* Warning Message - Only show when not scanned */}
-          {!shipperId && (
-            <View className="bg-amber-50 rounded-xl p-4 border border-amber-200">
-              <Text className="text-xs text-amber-800 text-center">
-                ⚠️ Vui lòng chỉ nhận hàng sau khi đã xác nhận đúng người giao
-                hàng
-              </Text>
-            </View>
           )}
         </View>
       </ScrollView>

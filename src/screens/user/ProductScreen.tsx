@@ -43,6 +43,7 @@ const ProductScreen = () => {
         return;
       }
       const resp = await getProductsByUser(userId);
+      console.log(resp);
       if (isMounted.current) setProducts(Array.isArray(resp) ? resp : []);
     } catch (e) {
       console.warn('[Products] Failed to load user products', e);
@@ -66,7 +67,7 @@ const ProductScreen = () => {
   );
 
   const openProduct = (prod: any) => {
-    if (!isCompletedStatus(prod.status)) {
+    if (!isCompletedStatus(prod.status) || prod.status === 'Đã Từ Chối') {
       navigation.navigate('ProductDetails', { productId: prod.productId });
     } else {
       navigation.navigate('Timeline', {
@@ -202,12 +203,13 @@ const ProductScreen = () => {
                 onPress={() => openProduct(prod)}
               >
                 {/* Image */}
-                <View className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
+                <View className="w-16 h-16 rounded-lg overflow-hidden bg-red-200">
                   <Image
-                    source={{ uri: prod.productImages?.[0] || '' }}
-                    className="w-full h-full"
+                    source={{ uri: prod.productImages?.[0] }}
+                    style={{ width: 64, height: 64 }}
                     resizeMode="cover"
                   />
+                  <Text>{prod.productImages?.[0] ? '✅' : '❌'}</Text>
                 </View>
 
                 {/* Content */}

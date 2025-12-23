@@ -50,8 +50,8 @@ const DimensionInputs: React.FC<Props> = ({
   const commonUnit = getUnit(attributes[0].name || '');
 
   return (
-    <View>
-      <View className="flex-row items-center justify-between mb-2">
+    <View className="flex mb-2">
+      <View className="flex-row items-center justify-between">
         <View className="w-2/5">
           <Text className="text-sm font-medium text-text-sub">
             Dài x Rộng x Cao {commonUnit ? `(${commonUnit})` : ''}
@@ -82,6 +82,9 @@ const DimensionInputs: React.FC<Props> = ({
           </View>
         </View>
       </View>
+      <Text className="text-primary-50 text-xs font-semibold">
+        * Vui lòng nhập kích thước gần đúng với thực tế
+      </Text>
     </View>
   );
 };

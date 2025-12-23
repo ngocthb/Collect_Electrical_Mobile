@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 
 import MainLayout from '../../layout/MainLayout';
 
@@ -12,7 +12,11 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
 }) => {
   return (
     <MainLayout headerTitle="Thông báo">
-      <View className="flex-1 bg-gradient-to-b from-gray-50 to-white"></View>
+      <View className="flex-1 bg-gradient-to-b from-gray-50 to-white">
+        <Text className="text-center mt-4 text-gray-500">
+          Chức năng thông báo đang được phát triển.
+        </Text>
+      </View>
     </MainLayout>
   );
 };

@@ -119,19 +119,11 @@ export default function CategoryPickerModal({
               <Text className="text-gray-600 mt-2">Đang tải danh mục...</Text>
             </View>
           ) : error ? (
-            <View
-              className="items-center justify-center"
-              style={{ minHeight: minHeight - 100 }} // Account for header and padding
-            >
-              <Text className="text-sm text-red-600 text-center">{error}</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  setError(null);
-                }}
-                className="mt-4 px-4 py-2 bg-blue-500 rounded-lg"
-              >
-                <Text className="text-white font-medium">Thử lại</Text>
-              </TouchableOpacity>
+            <View className="items-center justify-center py-12">
+              <Icon name="inbox" size={64} color="#DDD" />
+              <Text className="text-text-muted mt-4 text-center">
+                Không có danh mục nào
+              </Text>
             </View>
           ) : (
             <>

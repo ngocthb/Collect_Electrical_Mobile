@@ -4,6 +4,7 @@ export const COMPLETED_STATUSES = [
   'Đã thu gom',
   'Nhập kho',
   'Đã đóng thùng',
+  'Đã từ chối',
 ];
 
 export const ALL_KNOWN_STATUSES = [

@@ -10,6 +10,7 @@ import AppSearchableDropdown from '../../components/ui/AppSearchableDropdown';
 import AttributeSizePanel from '../../components/AttributeSizePanel';
 import PickupTimeSelector from '../../components/PickupTimeSelector';
 import ImagePickerModal from '../../components/ImagePickerModal';
+import ConfirmModal from '../../components/ConfirmModal';
 import AppImageGallery from '../../components/ui/AppImageGallery';
 import AppButton from '../../components/ui/AppButton';
 import SizeOptions from '../../components/SizeOptions';
@@ -51,6 +52,7 @@ const CreateRequestScreen = () => {
   const [selectedImages, setSelectedImages] = useState<Asset[]>([]);
   const [isImagePickerVisible, setIsImagePickerVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const dispatch = useAppDispatch();
   const goToNextStep = () => {
     if (currentStep < 2) {
@@ -247,7 +249,7 @@ const CreateRequestScreen = () => {
         {currentStep === 2 && (
           <AppButton
             title="Hoàn tất"
-            onPress={handleCreateRequest}
+            onPress={() => setShowConfirmModal(true)}
             disabled={!isStep2Valid}
             loading={loading}
           />
@@ -260,6 +262,18 @@ const CreateRequestScreen = () => {
         onSelect={handleAddImage}
         currentCount={selectedImages.length}
         maxItems={5}
+      />
+
+      <ConfirmModal
+        visible={showConfirmModal}
+        iconName="alert-triangle"
+        title="Xác nhận tạo yêu cầu"
+        message="Chúng tôi có thể từ chối nhận hàng nếu thông tin kích thước không chính xác."
+        onConfirm={() => {
+          setShowConfirmModal(false);
+          handleCreateRequest();
+        }}
+        onCancel={() => setShowConfirmModal(false)}
       />
 
       {loading && currentStep === 2 && (

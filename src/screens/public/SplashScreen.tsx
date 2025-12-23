@@ -78,7 +78,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
         </View>
 
         <Text className="text-5xl font-bold text-text-muted tracking-widest mb-2">
-          THU GOM
+          EWISE
         </Text>
       </Animated.View>
     </View>
