@@ -26,6 +26,7 @@ const DeliveryDetailsScreen = () => {
 
       try {
         const res = await getCurrentLocationDistance(lat, lng);
+        console.log(res);
         setDistanceInMeters(res.distance);
         console.log('Initial distance:', res.distance);
       } catch (err) {

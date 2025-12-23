@@ -46,8 +46,6 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
       normalizedRequest: order,
       pickupLocationName: getOrderAddress(order),
       isRouteLoading: false,
-      distanceText: order?.distanceText || '---',
-      durationText: '---',
     });
   };
 

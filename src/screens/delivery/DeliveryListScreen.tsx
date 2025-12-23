@@ -1,4 +1,10 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, {
+  useRef,
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   ScrollView,
   View,
@@ -35,151 +41,213 @@ export default function DeliveryListScreen() {
   const [showWeekCalendar, setShowWeekCalendar] = useState(false);
   const [ordersWithDistance, setOrdersWithDistance] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
   const user = useAppSelector(s => s.auth.user);
   const userId = user?.userId;
-  const isSelectedDateToday = (() => {
+
+  // Memoize isSelectedDateToday để tránh tính lại mỗi lần render
+  const isSelectedDateToday = useMemo(() => {
     const selected = new Date(selectedDate);
     selected.setHours(0, 0, 0, 0);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return selected.getTime() === today.getTime();
-  })();
+  }, [selectedDate]);
 
-  const formatAPIDate = (date: Date) => {
+  const formatAPIDate = useCallback((date: Date) => {
     const yyyy = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, '0');
     const dd = String(date.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
-  };
+  }, []);
 
-  const startOfWeek = (d: Date) => {
+  const startOfWeek = useCallback((d: Date) => {
     const date = new Date(d);
     const day = date.getDay();
     const diff = (day === 0 ? -6 : 1) - day; // Monday as start
     date.setDate(date.getDate() + diff);
     date.setHours(0, 0, 0, 0);
     return date;
-  };
+  }, []);
 
-  const fetchOrdersForToday = async (userId: string) => {
-    setIsLoading(true);
+  // Tách riêng việc tính distance - chạy ngầm không block UI
+  const calculateDistancesInBackground = useCallback(async (orders: any[]) => {
     try {
-      const today = new Date();
-      const dateStr = formatAPIDate(today);
+      const loc = await getCurrentLocation();
+      const [currLng, currLat] = loc || [106, 10];
 
-      const res: any = await routeService.listByDate(userId, dateStr);
-      const orders = Array.isArray(res) ? res : [];
-
-      try {
-        const loc = await getCurrentLocation();
-        const [currLng, currLat] = loc || [106, 10];
-
-        const mapped = orders.map(o => {
-          const lat = o?.lat ?? o?.iat ?? null;
-          const lng = o?.lng ?? o?.ing ?? null;
-          if (!lat || !lng || !currLat || !currLng) {
-            return { ...o, distanceMeters: 0, distanceText: '' };
-          }
-          const dist = calculateDistance(currLat, currLng, lat, lng);
-          const distanceText =
-            dist < 1000
-              ? `${Math.round(dist)} m`
-              : `${(dist / 1000).toFixed(1)} km`;
-          return { ...o, distanceMeters: dist, distanceText };
-        });
-
-        setOrdersWithDistance(mapped);
-      } catch (locError) {
-        console.warn('Failed to compute distances', locError);
-        setOrdersWithDistance(
-          orders.map(o => ({ ...o, distanceMeters: 0, distanceText: '' })),
-        );
+      if (!currLat || !currLng) {
+        return orders.map(o => ({ ...o, distanceMeters: 0, distanceText: '' }));
       }
-    } catch (e: any) {
-      console.warn('Failed to load orders from API', e?.message ?? e);
-      setOrdersWithDistance([]);
-    } finally {
-      setIsLoading(false);
+
+      const mapped = orders.map(o => {
+        const lat = o?.lat ?? o?.iat ?? null;
+        const lng = o?.lng ?? o?.ing ?? null;
+
+        if (!lat || !lng) {
+          return { ...o, distanceMeters: 0, distanceText: '' };
+        }
+
+        const dist = calculateDistance(currLat, currLng, lat, lng);
+        const distanceText =
+          dist < 1000
+            ? `${Math.round(dist)} m`
+            : `${(dist / 1000).toFixed(1)} km`;
+
+        return { ...o, distanceMeters: dist, distanceText };
+      });
+
+      return mapped;
+    } catch (locError) {
+      console.warn('Failed to compute distances', locError);
+      return orders.map(o => ({ ...o, distanceMeters: 0, distanceText: '' }));
     }
-  };
+  }, []);
+
+  const fetchOrdersForToday = useCallback(
+    async (userId: string) => {
+      setIsLoading(true);
+      try {
+        const today = new Date();
+        const dateStr = formatAPIDate(today);
+
+        const res: any = await routeService.listByDate(userId, dateStr);
+        const orders = Array.isArray(res) ? res : [];
+
+        // Set orders NGAY LẬP TỨC không có distance (hiển thị nhanh)
+        const ordersWithoutDistance = orders.map(o => ({
+          ...o,
+          distanceMeters: 0,
+          distanceText: '',
+        }));
+        setOrdersWithDistance(ordersWithoutDistance);
+        setIsLoading(false);
+
+        // Tính distance chạy ngầm KHÔNG block UI
+        calculateDistancesInBackground(orders).then(ordersWithDist => {
+          setOrdersWithDistance(ordersWithDist);
+        });
+      } catch (e: any) {
+        console.warn('Failed to load orders from API', e?.message ?? e);
+        setOrdersWithDistance([]);
+        setIsLoading(false);
+      }
+    },
+    [formatAPIDate, calculateDistancesInBackground],
+  );
 
   useEffect(() => {
     if (userId) {
       fetchOrdersForToday(userId);
     }
-  }, [userId]);
+  }, [userId, fetchOrdersForToday]);
 
-  // Filter orders by selected date and status (show only orders of the selected day)
-  const selectedStart = new Date(selectedDate);
-  selectedStart.setHours(0, 0, 0, 0);
-  let filteredOrders = ordersWithDistance.filter(order => {
-    const orderDate = getOrderDate(order);
-    if (!orderDate) return false;
-    const d = new Date(orderDate);
-    d.setHours(0, 0, 0, 0);
-    const matchesDate = d.getTime() === selectedStart.getTime();
-    const matchesStatus =
-      selectedStatus === 'all' || resolveStatus(order) === selectedStatus;
-    return matchesDate && matchesStatus;
-  });
+  // Tối ưu: Dùng useMemo để cache kết quả filter và sort
+  const filteredOrders = useMemo(() => {
+    const selectedStart = new Date(selectedDate);
+    selectedStart.setHours(0, 0, 0, 0);
 
-  if (selectedStatus === 'all') {
-    const top: any[] = [];
-    const middle: any[] = [];
-    const bottom: any[] = [];
-    filteredOrders.forEach(o => {
-      const s = resolveStatus(o);
-      if (s === 'completed' || s === 'failed') bottom.push(o);
-      else if (s === 'pending') top.push(o);
-      else middle.push(o);
+    // Filter orders by date and status
+    let filtered = ordersWithDistance.filter(order => {
+      const orderDate = getOrderDate(order);
+      if (!orderDate) return false;
+
+      const d = new Date(orderDate);
+      d.setHours(0, 0, 0, 0);
+
+      const matchesDate = d.getTime() === selectedStart.getTime();
+      const matchesStatus =
+        selectedStatus === 'all' || resolveStatus(order) === selectedStatus;
+
+      return matchesDate && matchesStatus;
     });
-    filteredOrders = [...top, ...middle, ...bottom];
-  }
 
-  useEffect(() => {
-    if (filteredOrders.length > 0) {
-      setTimeout(() => {
-        if (listRef.current && lastItemRef.current) {
-          // @ts-ignore
-          listRef.current.measure((x, y, w, h) => {
-            // @ts-ignore
-            lastItemRef.current.measure((lx, ly, lw, lh) => {
-              setLineHeight(h - lh - 15);
-            });
-          });
+    // Sort orders by status
+    if (selectedStatus === 'all') {
+      const top: any[] = [];
+      const middle: any[] = [];
+      const bottom: any[] = [];
+
+      filtered.forEach(o => {
+        const s = resolveStatus(o);
+        if (s === 'completed' || s === 'failed') {
+          bottom.push(o);
+        } else if (s === 'pending') {
+          top.push(o);
+        } else {
+          middle.push(o);
         }
-      }, 100);
+      });
+
+      filtered = [...top, ...middle, ...bottom];
+    }
+
+    return filtered;
+  }, [ordersWithDistance, selectedDate, selectedStatus]);
+
+  // Tối ưu: Dùng onLayout thay vì measure + setTimeout
+  const handleListLayout = useCallback(() => {
+    if (filteredOrders.length > 0 && listRef.current && lastItemRef.current) {
+      // @ts-ignore
+      listRef.current.measure((x, y, w, h) => {
+        // @ts-ignore
+        lastItemRef.current.measure((lx, ly, lw, lh) => {
+          const newHeight = h - lh - 15;
+          setLineHeight(newHeight);
+        });
+      });
     } else {
       setLineHeight(0);
     }
-  }, [filteredOrders]);
+  }, [filteredOrders.length]);
 
-  const changeWeek = (weeks: number) => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + weeks * 7);
-    setSelectedDate(newDate);
-  };
+  useEffect(() => {
+    // Delay nhỏ để đảm bảo layout đã render xong
+    const timer = setTimeout(handleListLayout, 50);
+    return () => clearTimeout(timer);
+  }, [handleListLayout]);
 
-  const formatWeekLabel = (date: Date) => {
-    const s = startOfWeek(date);
-    const e = new Date(s);
-    e.setDate(s.getDate() + 6);
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${pad(s.getDate())}/${pad(s.getMonth() + 1)} - ${pad(
-      e.getDate(),
-    )}/${pad(e.getMonth() + 1)}`;
-  };
+  const changeWeek = useCallback((weeks: number) => {
+    setSelectedDate(prevDate => {
+      const newDate = new Date(prevDate);
+      newDate.setDate(newDate.getDate() + weeks * 7);
+      return newDate;
+    });
+  }, []);
+
+  const formatWeekLabel = useCallback(
+    (date: Date) => {
+      const s = startOfWeek(date);
+      const e = new Date(s);
+      e.setDate(s.getDate() + 6);
+      const pad = (n: number) => String(n).padStart(2, '0');
+      return `${pad(s.getDate())}/${pad(s.getMonth() + 1)} - ${pad(
+        e.getDate(),
+      )}/${pad(e.getMonth() + 1)}`;
+    },
+    [startOfWeek],
+  );
+
+  const handleBackPress = useCallback(() => {
+    if (navigation.canGoBack && navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+    }
+  }, [navigation]);
+
+  const handleSelectDate = useCallback((d: Date) => {
+    setSelectedDate(d);
+  }, []);
+
+  const handleStatusChange = useCallback((status: string) => {
+    setSelectedStatus(status);
+  }, []);
 
   return (
     <SubLayout
       title="Đơn hàng"
-      onBackPress={() => {
-        if (navigation.canGoBack && navigation.canGoBack()) {
-          navigation.goBack();
-        } else {
-          navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
-        }
-      }}
+      onBackPress={handleBackPress}
       rightComponent={
         <View className="flex-row items-center bg-gray-100 rounded-xl p-2 shadow-sm">
           <TouchableOpacity
@@ -198,12 +266,12 @@ export default function DeliveryListScreen() {
         visible={showWeekCalendar}
         initialDate={selectedDate}
         onClose={() => setShowWeekCalendar(false)}
-        onSelect={d => setSelectedDate(d)}
+        onSelect={handleSelectDate}
       />
 
       <WeekStrip
         selectedDate={selectedDate}
-        onSelectDate={d => setSelectedDate(d)}
+        onSelectDate={handleSelectDate}
         onPrevWeek={() => changeWeek(-1)}
         onNextWeek={() => changeWeek(1)}
       />
@@ -211,11 +279,10 @@ export default function DeliveryListScreen() {
       <StatusFilter
         options={statusOptions}
         selectedStatus={selectedStatus}
-        onStatusChange={setSelectedStatus}
+        onStatusChange={handleStatusChange}
       />
 
       <ScrollView className="flex-1 bg-background-50">
-        {/* Orders List */}
         <View className="px-4 pt-2">
           {isLoading ? (
             <View className="items-center justify-center py-12">
@@ -232,27 +299,30 @@ export default function DeliveryListScreen() {
               </Text>
             </View>
           ) : (
-            <View className="flex-row relative" ref={listRef}>
-              {/* Timeline vertical line */}
-              <View
-                className="absolute left-5 top-5 w-0.5 bg-primary-50 z-0"
-                style={{
-                  height: lineHeight,
-                }}
-              />
+            <View
+              className="flex-row relative"
+              ref={listRef}
+              onLayout={handleListLayout}
+            >
               <View className="flex-1">
-                {filteredOrders.map((order, idx) => (
-                  <DeliveryOrderCard
-                    key={idx}
-                    order={order}
-                    isSelectedDateToday={isSelectedDateToday}
-                  />
-                ))}
+                {filteredOrders.map((order, idx) => {
+                  const isLast = idx === filteredOrders.length - 1;
+                  return (
+                    <View
+                      key={order.id || idx}
+                      ref={isLast ? lastItemRef : null}
+                    >
+                      <DeliveryOrderCard
+                        order={order}
+                        isSelectedDateToday={isSelectedDateToday}
+                      />
+                    </View>
+                  );
+                })}
               </View>
             </View>
           )}
         </View>
-        {/* Cancel flow moved to a dedicated screen (DeliveryCancel) */}
       </ScrollView>
     </SubLayout>
   );

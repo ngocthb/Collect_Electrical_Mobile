@@ -306,6 +306,7 @@ export async function getCurrentLocationDistance(
   targetLng: number,
 ): Promise<{ location: { lat: number; lng: number }; distance: number }> {
   const hasPermission = await requestLocationPermission();
+
   if (!hasPermission) {
     throw new Error('Location permission denied');
   }
@@ -314,6 +315,7 @@ export async function getCurrentLocationDistance(
     Geolocation.getCurrentPosition(
       position => {
         const { latitude, longitude } = position.coords;
+
         const distance = calculateDistance(
           latitude,
           longitude,
@@ -328,7 +330,7 @@ export async function getCurrentLocationDistance(
       {
         enableHighAccuracy: true,
         timeout: 15000,
-        maximumAge: 5000,
+        maximumAge: 60000,
         showLocationDialog: true,
       },
     );
