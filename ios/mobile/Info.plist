@@ -42,6 +42,8 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAllowsArbitraryLoads</key>
+	<false/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSExceptionDomains</key>
@@ -55,14 +57,24 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Ứng dụng cần quyền Bluetooth để kết nối với các thiết bị ngoại vi.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Ứng dụng cần quyền camera để chụp ảnh sản phẩm</string>
+	<string>Ứng dụng cần quyền truy cập camera để chụp ảnh sản phẩm, quay video và thực hiện cuộc gọi video.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Ứng dụng cần quyền truy cập vị trí của bạn để gửi thông báo về đơn hàng đang giao và các ưu đãi gần bạn.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Ứng dụng cần quyền truy cập vị trí của bạn để theo dõi đơn hàng và gửi thông báo khi có cập nhật giao hàng.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Ứng dụng cần quyền truy cập vị trí để xác định vị trí của người dùng</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Ứng dụng cần quyền thư viện ảnh để chọn ảnh sản phẩm</string>
+	<string>Ứng dụng cần quyền truy cập vị trí của bạn để hiển thị địa chỉ giao hàng, tìm kiếm cửa hàng gần bạn và cải thiện trải nghiệm sử dụng.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Ứng dụng cần quyền microphone để ghi âm</string>
+	<string>Ứng dụng cần quyền microphone để thực hiện cuộc gọi thoại, ghi âm và quay video có âm thanh.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Ứng dụng cần quyền để lưu ảnh và video vào thư viện của bạn.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Ứng dụng cần quyền truy cập thư viện ảnh để bạn có thể chọn ảnh và video từ thư viện của bạn.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Ứng dụng cần quyền nhận dạng giọng nói để hỗ trợ tìm kiếm bằng giọng nói.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIAppFonts</key>
@@ -140,6 +152,14 @@
 		<string>Octicons.ttf</string>
 		<string>SimpleLineIcons.ttf</string>
 		<string>Zocial.ttf</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>voip</string>
+		<string>fetch</string>
+		<string>remote-notification</string>
+		<string>location</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

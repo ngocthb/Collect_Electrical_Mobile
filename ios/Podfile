@@ -21,13 +21,17 @@ target 'mobile' do
     :path => config[:reactNativePath],
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
-  
+
   # ⬇️ THÊM FIREBASE PODS VÀO ĐÂY ⬇️
   pod 'Firebase/Core'
   pod 'Firebase/Auth'
   pod 'GoogleSignIn'
   # ⬆️ KẾT THÚC PHẦN THÊM ⬆️
   
+    unless ENV['SIMULATOR'] == '1'
+    pod 'ZPNs'
+  end
+
   pre_install do |installer|
     $RNMapboxMaps.pre_install(installer)
   end

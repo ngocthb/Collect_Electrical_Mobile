@@ -98,7 +98,7 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
           editable={!disabled}
           onFocus={handleFocus}
           onBlur={handleBlur}
-                                                       multiline={true} // thay vì numberOfLines>1
+                                                    multiline={ numberOfLines > 1 } // Enable multiline if numberOfLines > 1
                                                         style={{
                                                           minHeight: compact ? 30 : 40, // đặt chiều cao tối thiểu
                                                           paddingVertical: compact ? 4 : 8,

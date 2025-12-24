@@ -4079,6 +4079,34 @@ PODS:
     - SocketRocket
     - Turf
     - Yoga
+  - RNPermissions (5.4.4):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - RNReanimated (4.1.3):
     - boost
     - DoubleConversion
@@ -4544,6 +4572,7 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
   - "rnmapbox-maps (from `../node_modules/@rnmapbox/maps`)"
+  - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSound (from `../node_modules/react-native-sound`)
@@ -4554,6 +4583,7 @@ DEPENDENCIES:
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
   - "zego-uikit-prebuilt-call-rn (from `../node_modules/@zegocloud/zego-uikit-prebuilt-call-rn`)"
   - "zego-uikit-rn (from `../node_modules/@zegocloud/zego-uikit-rn`)"
+  - ZPNs
 
 SPEC REPOS:
   trunk:
@@ -4784,6 +4814,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-google-signin/google-signin"
   rnmapbox-maps:
     :path: "../node_modules/@rnmapbox/maps"
+  RNPermissions:
+    :path: "../node_modules/react-native-permissions"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
@@ -4929,6 +4961,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 51688624c0a40b052755cd9b53b079368bc616d6
   RNGoogleSignin: 3593186e676d55c10d95130278d5f5b26d8fe7f5
   rnmapbox-maps: c72dff0e39a194ed84de8911f6ff06de85dcb7c4
+  RNPermissions: df015932d169304af82179439da3c357ca6cbe2d
   RNReanimated: c001acbdd8aac49995f6cc3da704d0cc9d70df7a
   RNScreens: de996b48c82245c0b68c677da3334c2061e2a951
   RNSound: 9a85701a35e3132484515e73b694610997c7fdfb
@@ -4945,6 +4978,6 @@ SPEC CHECKSUMS:
   ZIM: 7a72983c32831bb57cd05edb180f060263733515
   ZPNs: 73bad0046a74e37315201053f9a0e7ac625d9436
 
-PODFILE CHECKSUM: a644acd8cc485d27584d5565787da41adcb26484
+PODFILE CHECKSUM: 3adc4a04b01ee964fb6e83e5dc88633b26ae218e
 
 COCOAPODS: 1.16.2
