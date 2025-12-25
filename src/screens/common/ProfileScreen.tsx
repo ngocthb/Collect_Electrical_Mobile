@@ -16,7 +16,6 @@ import { getUserPoints } from '../../services/pointsService';
 import { uninitZegoService } from '../../config/zego';
 import { logout } from '../../store/slices/authSlice';
 import { signOut } from '../../services/authService';
-
 import { useAppDispatch } from '../../store/hooks';
 const menuItems = [
   { id: 1, title: 'Hồ sơ của tôi', icon: 'user', color: '#3366FF' },
@@ -25,7 +24,6 @@ const menuItems = [
   { id: 4, title: 'Lịch thu gom mặc định', icon: 'calendar', color: '#e85a4f' },
   { id: 5, title: 'Thống kê', icon: 'bar-chart-2', color: '#F97316' },
   { id: 6, title: 'Địa chỉ mặc định', icon: 'map-pin', color: '#059669' },
-  { id: 7, title: 'Đổi mật khẩu', icon: 'lock', color: '#EF4444' },
 ];
 
 const ProfileScreen = () => {
@@ -61,7 +59,7 @@ const ProfileScreen = () => {
       return [1, 2, 3, 6].includes(item.id);
     }
 
-    return [1, 5, 7].includes(item.id);
+    return [1, 5].includes(item.id);
   });
 
   const navigation = useNavigation<any>();
@@ -86,9 +84,7 @@ const ProfileScreen = () => {
       case 6:
         navigation.navigate('DefaultAddress');
         break;
-      case 7:
-        navigation.navigate('ChangePassword');
-        break;
+
       default:
         console.warn(`Unhandled menu item ID: ${id}`);
         break;

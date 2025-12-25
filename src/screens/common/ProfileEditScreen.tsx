@@ -8,10 +8,17 @@ import Icon from 'react-native-vector-icons/Feather';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import AppAvatar from '../../components/ui/AppAvatar';
 import ImagePickerModal from '../../components/ImagePickerModal';
+import ConfirmModal from '../../components/ConfirmModal';
 import type { Asset } from 'react-native-image-picker';
+import { updateProfile, deleteAccount } from '../../services/userService';
+import { uploadImageToCloudinary } from '../../config/cloudinary';
+import { setUser } from '../../store/slices/authSlice';
+import { logout } from '../../store/slices/authSlice';
+import { signOut } from '../../services/authService';
 
 const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
   const user = useAppSelector(s => s.auth.user);
+  const dispatch = useAppDispatch();
 
   const [name, setName] = useState(user?.name ?? '');
   const [email] = useState(user?.email ?? '');
@@ -20,8 +27,10 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(
     user?.avatar ?? undefined,
   );
+  const [selectedImage, setSelectedImage] = useState<Asset | null>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleSave = async () => {
     if (!name || name.trim().length === 0) {
@@ -31,13 +40,39 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
 
     setSaving(true);
     try {
-      const updated = {
+      let uploadedAvatarUrl = avatarUrl || '';
+
+      // Upload image to Cloudinary if a new image was selected
+      if (selectedImage && selectedImage.uri) {
+        try {
+          uploadedAvatarUrl = await uploadImageToCloudinary(selectedImage);
+        } catch (uploadError) {
+          console.error('Failed to upload image:', uploadError);
+          toast.show({
+            type: 'error',
+            text1: 'Lỗi',
+            text2: 'Không thể tải ảnh lên',
+          });
+          setSaving(false);
+          return;
+        }
+      }
+
+      // Call API to update profile
+      const response = await updateProfile(user?.userId || '', {
+        email: email,
+        avatarUrl: uploadedAvatarUrl,
+        phoneNumber: phone || '',
+      });
+
+      // Update Redux store with new user data
+      const updatedUser = {
         ...user,
-        name: name.trim(),
-        phone: phone || undefined,
-        address: address || undefined,
-        avatar: avatarUrl || undefined,
+        avatar: uploadedAvatarUrl,
+        phone: phone,
+        email: email,
       };
+      dispatch(setUser(updatedUser as any));
 
       toast.show({
         type: 'success',
@@ -45,9 +80,14 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
         text2: 'Cập nhật hồ sơ thành công',
       });
       navigation.goBack();
-    } catch (e) {
-      console.warn('Failed to save profile', e);
-      toast.show({ type: 'error', text1: 'Lỗi', text2: 'Không thể lưu hồ sơ' });
+    } catch (e: any) {
+      console.error('Failed to save profile', e);
+      const errorMessage = e?.response?.data?.message || 'Không thể lưu hồ sơ';
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: errorMessage,
+      });
     } finally {
       setSaving(false);
     }
@@ -59,6 +99,7 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
 
   const handlePickerSelect = (assets: Asset[]) => {
     if (assets && assets.length > 0 && assets[0].uri) {
+      setSelectedImage(assets[0]);
       setAvatarUrl(assets[0].uri as string);
     }
     setPickerVisible(false);
@@ -66,6 +107,34 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
 
   const handlePickerClose = () => {
     setPickerVisible(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    setShowDeleteModal(false);
+    try {
+      await deleteAccount(user?.userId || '');
+
+      // Clear token and sign out
+      await signOut();
+
+      // Reset redux auth state
+      dispatch(logout());
+
+      toast.show({
+        type: 'success',
+        text1: 'Thành công',
+        text2: 'Tài khoản đã được xóa',
+      });
+    } catch (e: any) {
+      console.error('Failed to delete account:', e);
+      const errorMessage =
+        e?.response?.data?.message || 'Không thể xóa tài khoản';
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: errorMessage,
+      });
+    }
   };
 
   return (
@@ -83,7 +152,13 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
             </View>
             <TouchableOpacity
               onPress={handleChangeAvatar}
-              style={{ position: 'absolute', right: -6, bottom: -6 }}
+              disabled={saving}
+              style={{
+                position: 'absolute',
+                right: -6,
+                bottom: -6,
+                opacity: saving ? 0.5 : 1,
+              }}
             >
               <View
                 style={{
@@ -111,6 +186,7 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
             placeholder="Họ và tên"
             value={name}
             onChangeText={setName}
+            editable={!saving}
           />
 
           <AppInput label="Email" value={email} disabled />
@@ -121,6 +197,7 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
             value={phone}
             onChangeText={setPhone}
             isPhone
+            editable={!saving}
           />
 
           <AppButton
@@ -128,6 +205,22 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
             onPress={handleSave}
           />
         </View>
+
+        {/* Delete Account Button */}
+        <TouchableOpacity
+          onPress={() => setShowDeleteModal(true)}
+          disabled={saving}
+          className="bg-white border-2 border-red-400 rounded-2xl shadow-sm px-5 py-4 flex-row items-center mb-6"
+          activeOpacity={0.7}
+          style={{ opacity: saving ? 0.5 : 1 }}
+        >
+          <View className="w-10 h-10 rounded-full items-center justify-center bg-red-100">
+            <Icon name="trash-2" size={20} color="#DC2626" />
+          </View>
+          <Text className="ml-4 flex-1 text-base text-red-600 font-semibold">
+            Xóa tài khoản
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
       <ImagePickerModal
         visible={pickerVisible}
@@ -136,6 +229,17 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
         currentCount={0}
         maxItems={1}
         hideVideoOption={true}
+      />
+      <ConfirmModal
+        visible={showDeleteModal}
+        title="Xóa tài khoản"
+        message="Bạn có chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác."
+        confirmText="Xóa tài khoản"
+        cancelText="Hủy"
+        onConfirm={handleDeleteAccount}
+        onCancel={() => setShowDeleteModal(false)}
+        iconName="alert-triangle"
+        iconColor="#DC2626"
       />
     </SubLayout>
   );
