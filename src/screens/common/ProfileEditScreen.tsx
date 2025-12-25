@@ -23,7 +23,6 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
   const [name, setName] = useState(user?.name ?? '');
   const [email] = useState(user?.email ?? '');
   const [phone, setPhone] = useState(user?.phone ?? '');
-  const [address, setAddress] = useState(user?.address ?? '');
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(
     user?.avatar ?? undefined,
   );

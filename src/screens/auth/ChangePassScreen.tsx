@@ -11,15 +11,13 @@ import {
 import AppInput from '../../components/ui/AppInput';
 import AppButton from '../../components/ui/AppButton';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { setError, setLoading, setUser } from '../../store/slices/authSlice';
+
 import Toast from 'react-native-toast-message';
 import { changePassword } from '../../services/authService';
 
 const changePass = require('../../assets/images/changePass.png');
 export default function ChangePassScreen() {
-  const dispatch = useAppDispatch();
-  const auth = useAppSelector(s => s.auth);
+
   const newPasswordRef = useRef<TextInput | null>(null);
   const confirmPasswordRef = useRef<TextInput | null>(null);
   const [newPassword, setNewPassword] = useState('');
