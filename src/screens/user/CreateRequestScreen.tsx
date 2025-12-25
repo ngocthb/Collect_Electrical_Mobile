@@ -34,7 +34,6 @@ const CreateRequestScreen = () => {
   const categoryId = router?.params?.parentCategoryId;
   const user = useAppSelector(state => state.auth.user);
   const timeSlots: TimeSlot[] = useAppSelector(state => state.timeSlots.list);
-  const address = useAppSelector(state => state.address.current);
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
@@ -71,11 +70,10 @@ const CreateRequestScreen = () => {
   const isStep1Valid =
     selectedBrandId !== null &&
     selectedCategory !== null &&
-    selectedImages.length > 0;
-  // &&
-  // attributeValues.length > 0;
+    selectedImages.length > 0 &&
+    selectedTags.length > 0;
 
-  const isStep2Valid = address !== null && timeSlots.length > 0;
+  const isStep2Valid = selectedAddress !== null && timeSlots.length > 0;
 
   const handleAddImage = (assets: Asset[]) => {
     setSelectedImages(prev => [...prev, ...assets]);
