@@ -8,13 +8,16 @@ import {
   TouchableWithoutFeedback,
   ActivityIndicator,
 } from 'react-native';
-
+import appleAuth, {
+  AppleButton,
+} from '@invertase/react-native-apple-authentication';
 import { useNavigation } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { Platform } from 'react-native';
 
 import { setUser, setLoading } from '../../store/slices/authSlice';
 import Toast from 'react-native-toast-message';
-import { signInWithGoogle, fetchUserProfile } from '../../services/authService';
+import { signInWithGoogle, fetchUserProfile, signInWithApple } from '../../services/authService';
 
 const simpleLogin = require('../../assets/images/simplelogin.png');
 const google = require('../../assets/images/google.jpg');
@@ -24,6 +27,8 @@ export default function UserLoginScreen() {
   const auth = useAppSelector(s => s.auth);
 
   const navigation = useNavigation<any>();
+const isIOS = Platform.OS === 'ios';
+
 
   const handleGoogleLogin = async () => {
     try {
@@ -33,13 +38,9 @@ export default function UserLoginScreen() {
       const profileData: any = await fetchUserProfile();
       dispatch(setUser(profileData));
 
-      if (profileData.role === 'Collector') {
-        // @ts-ignore
-        globalThis.navigation?.replace('Dashboard');
-      } else {
-        // @ts-ignore
+       // @ts-ignore
         globalThis.navigation?.replace('MainTabs');
-      }
+      
 
       Toast.show({
         type: 'success',
@@ -47,15 +48,53 @@ export default function UserLoginScreen() {
         text2: 'Chào mừng bạn đến với ứng dụng',
       });
     } catch (error: any) {
-      Toast.show({
-        type: 'error',
-        text1: 'Đăng nhập thất bại',
-        text2: 'Tên đăng nhập hoặc mật khẩu không đúng',
-      });
+      console.log('Google login error', error);
     } finally {
       dispatch(setLoading(false));
     }
   };
+const handleAppleLogin = async () => {
+  try {
+    dispatch(setLoading(true));
+
+    // 1. Apple native popup
+    const appleResponse = await appleAuth.performRequest({
+      requestedOperation: appleAuth.Operation.LOGIN,
+      requestedScopes: [
+        appleAuth.Scope.EMAIL,
+        appleAuth.Scope.FULL_NAME,
+      ],
+    });
+
+    if (!appleResponse.identityToken) {
+      throw new Error('No identityToken');
+    }
+
+    // 2. Gửi token lên backend
+    await signInWithApple({
+      identityToken: appleResponse.identityToken,
+      firstName: appleResponse.fullName?.givenName || '',
+      lastName: appleResponse.fullName?.familyName || '',
+    });
+
+    // 3. Lấy profile
+    const profileData: any = await fetchUserProfile();
+    dispatch(setUser(profileData));
+
+     // @ts-ignore
+        globalThis.navigation?.replace('MainTabs');
+
+    Toast.show({
+      type: 'success',
+      text1: 'Đăng nhập thành công!',
+    });
+  } catch (error) {
+    console.log('Apple login error', error);
+   
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -91,6 +130,22 @@ export default function UserLoginScreen() {
         >
           {/* GOOGLE LOGIN BUTTON */}
           <View className="py-8 ">
+{/* APPLE LOGIN BUTTON (iOS only, no simulator) */}
+{isIOS  && (
+  <View className="mb-4">
+    <AppleButton
+      buttonType={AppleButton.Type.SIGN_IN}
+      buttonStyle={AppleButton.Style.WHITE}
+      style={{
+        width: '100%',
+        height: 52,
+        borderRadius: 16,
+      }}
+      onPress={handleAppleLogin}
+    />
+  </View>
+)}
+
             <TouchableOpacity
               onPress={handleGoogleLogin}
               disabled={auth.isLoading}
@@ -109,6 +164,7 @@ export default function UserLoginScreen() {
                 </>
               )}
             </TouchableOpacity>
+
 
             <View className="flex-row justify-center mt-6 ">
               <Text className="text-gray-700 text-base">

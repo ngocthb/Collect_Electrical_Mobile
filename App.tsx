@@ -17,11 +17,10 @@ import { useZegoService } from './src/hooks/useZegoService';
 import 'react-native-url-polyfill/auto';
 import './src/config/googleSignIn';
 
+
 function AppContent() {
-  useZegoService();
-
   const dispatch = useAppDispatch();
-
+    useZegoService();
   useEffect(() => {
     bootstrapApp(dispatch);
   }, [dispatch]);
@@ -33,6 +32,7 @@ function AppContent() {
     </>
   );
 }
+
 
 export default function App() {
   return (

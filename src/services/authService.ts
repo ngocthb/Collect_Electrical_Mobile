@@ -95,6 +95,30 @@ export const signIn = async (
     throw error;
   }
 };
+
+export const signInWithApple = async (appleData: {
+  identityToken: string;
+firstName: string;
+  lastName: string;
+
+}): Promise<any> => {
+  try {
+    const res = await axiosClient.post('/auth/login-apple', {
+      identityToken: appleData.identityToken,
+      firstName: appleData.firstName,
+      lastName: appleData.lastName,
+    });
+    const token: any = res;
+    if (token) {
+      await AsyncStorage.setItem('token', token);
+      axiosClient.defaults.headers.Authorization = `Bearer ${token}`;
+    }
+    return res;
+  } catch (error) {
+    console.error('[signInWithApple] Error:', error);
+    throw error;
+  }
+}
 // Hàm đăng xuất
 export const signOutGoogle = async (): Promise<void> => {
   try {
@@ -210,4 +234,5 @@ export default {
   fetchUserProfile,
   bootstrapAuth,
   signOut,
+  signInWithApple,
 };
