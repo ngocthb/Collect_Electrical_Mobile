@@ -3943,6 +3943,8 @@ PODS:
     - SocketRocket
     - Yoga
   - RecaptchaInterop (101.0.0)
+  - RNAppleAuthentication (2.5.0):
+    - React-Core
   - RNCAsyncStorage (2.2.0):
     - boost
     - DoubleConversion
@@ -4563,6 +4565,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - ReactNativeCameraKit (from `../node_modules/react-native-camera-kit`)
+  - "RNAppleAuthentication (from `../node_modules/@invertase/react-native-apple-authentication`)"
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
@@ -4583,7 +4586,6 @@ DEPENDENCIES:
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
   - "zego-uikit-prebuilt-call-rn (from `../node_modules/@zegocloud/zego-uikit-prebuilt-call-rn`)"
   - "zego-uikit-rn (from `../node_modules/@zegocloud/zego-uikit-rn`)"
-  - ZPNs
 
 SPEC REPOS:
   trunk:
@@ -4796,6 +4798,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativeCameraKit:
     :path: "../node_modules/react-native-camera-kit"
+  RNAppleAuthentication:
+    :path: "../node_modules/@invertase/react-native-apple-authentication"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNDeviceInfo:
@@ -4952,6 +4956,7 @@ SPEC CHECKSUMS:
   ReactCommon: 6087cb6198592a8dc52a37c0f3761644fead5c88
   ReactNativeCameraKit: f3642fd510ec0d6d5811bc48c0817e99da0f3809
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
+  RNAppleAuthentication: c088adfc7b371d44eb3da20c38d450d5543e5a0a
   RNCAsyncStorage: 8857fb173af29664cb90897903902dc8533e36cc
   RNDeviceInfo: 8b6fa8379062949dd79a009cf3d6b02a9c03ca59
   RNFBApp: 89523a4912396a34fc60727c39835c0473dccddd
@@ -4978,6 +4983,6 @@ SPEC CHECKSUMS:
   ZIM: 7a72983c32831bb57cd05edb180f060263733515
   ZPNs: 73bad0046a74e37315201053f9a0e7ac625d9436
 
-PODFILE CHECKSUM: 3adc4a04b01ee964fb6e83e5dc88633b26ae218e
+PODFILE CHECKSUM: a644acd8cc485d27584d5565787da41adcb26484
 
 COCOAPODS: 1.16.2
