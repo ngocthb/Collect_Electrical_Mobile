@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   ActivityIndicator,
 } from 'react-native';
+import { useState } from 'react';
 import appleAuth, {
   AppleButton,
 } from '@invertase/react-native-apple-authentication';
@@ -22,6 +23,7 @@ import {
   fetchUserProfile,
   signInWithApple,
 } from '../../services/authService';
+import AppButton from '../../components/ui/AppButton';
 
 const simpleLogin = require('../../assets/images/simplelogin.png');
 const google = require('../../assets/images/google.jpg');
@@ -29,7 +31,7 @@ const logo = require('../../assets/images/logo.png');
 export default function UserLoginScreen() {
   const dispatch = useAppDispatch();
   const auth = useAppSelector(s => s.auth);
-
+const [loadingApple , setLoadingApple] = useState(false);
   const navigation = useNavigation<any>();
   const isIOS = Platform.OS === 'ios';
 
@@ -57,13 +59,14 @@ export default function UserLoginScreen() {
   };
   const handleAppleLogin = async () => {
     try {
-      dispatch(setLoading(true));
-
+      setLoadingApple(true);
+console.log('Starting Apple login');
       // 1. Apple native popup
       const appleResponse = await appleAuth.performRequest({
         requestedOperation: appleAuth.Operation.LOGIN,
         requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
       });
+console.log('Apple response received', appleResponse);
 
       if (!appleResponse.identityToken) {
         throw new Error('No identityToken');
@@ -72,8 +75,8 @@ export default function UserLoginScreen() {
       // 2. Gửi token lên backend
       await signInWithApple({
         identityToken: appleResponse.identityToken,
-        firstName: appleResponse.fullName?.givenName || '',
-        lastName: appleResponse.fullName?.familyName || '',
+        firstName: appleResponse.fullName?.givenName || null,
+        lastName: appleResponse.fullName?.familyName || null,
       });
 
       // 3. Lấy profile
@@ -90,7 +93,7 @@ export default function UserLoginScreen() {
     } catch (error) {
       console.log('Apple login error', error);
     } finally {
-      dispatch(setLoading(false));
+     setLoadingApple(false);
     }
   };
 
@@ -130,23 +133,37 @@ export default function UserLoginScreen() {
           <View className="py-4 ">
             {/* APPLE LOGIN BUTTON (iOS only, no simulator) */}
             {isIOS && (
-              <View className="mb-6">
-                <AppleButton
-                  buttonType={AppleButton.Type.SIGN_IN}
-                  buttonStyle={AppleButton.Style.BLACK}
-                  style={{
-                    width: '100%',
-                    height: 52,
-                    borderRadius: 16,
-                  }}
-                  onPress={handleAppleLogin}
-                />
-              </View>
-            )}
+  <View className="mb-6">
+    <View style={{ position: 'relative' }}>
+     
+
+      {loadingApple ? (
+       <AppButton 
+        title=""
+        disabled={true }
+       color='#000'
+       loading={true}
+       />
+
+      ):( <AppleButton
+        buttonType={AppleButton.Type.SIGN_IN}
+        buttonStyle={AppleButton.Style.BLACK}
+        style={{
+          width: '100%',
+          height: 44,
+          borderRadius: 60
+        }}
+        onPress={handleAppleLogin}
+    
+      />)}
+    </View>
+  </View>
+)}
+
 
             <TouchableOpacity
               onPress={handleGoogleLogin}
-              disabled={auth.isLoading}
+              disabled={auth.isLoading || loadingApple}
               className={`flex-row items-center justify-center  py-4 bg-white rounded-2xl shadow-lg mb-4 ${
                 auth.isLoading && 'opacity-60'
               }`}

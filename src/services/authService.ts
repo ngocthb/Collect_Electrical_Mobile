@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import GoogleSignin from '../config/googleSignIn';
 import auth from '@react-native-firebase/auth';
 import { Profile, DeliveryLoginResponse } from '../types/Profile';
-
+import { Platform } from 'react-native';
 export const signInWithGoogle = async (): Promise<any> => {
   try {
     console.log('🚀 [1] Bắt đầu Google Sign In');
@@ -85,9 +85,9 @@ export const signIn = async (
     if (token) {
       await AsyncStorage.setItem('token', token);
 
-      try {
+      
         axiosClient.defaults.headers.Authorization = `Bearer ${token}`;
-      } catch (e) {}
+      
     }
     return res;
   } catch (error) {
@@ -98,19 +98,22 @@ export const signIn = async (
 
 export const signInWithApple = async (appleData: {
   identityToken: string;
-firstName: string;
-  lastName: string;
+firstName: string | null;
+  lastName: string| null;
 
 }): Promise<any> => {
   try {
-    const res = await axiosClient.post('/auth/login-apple', {
-      identityToken: appleData.identityToken,
-      firstName: appleData.firstName,
-      lastName: appleData.lastName,
-    });
-    const token: any = res;
+    console.log('Signing in with Apple data:', appleData);
+        const res = await (axiosClient.post('/auth/login-apple', {
+          identityToken: appleData.identityToken,
+          firstName: appleData.firstName,
+          lastName: appleData.lastName,
+        }) as any);
+
+    const token: any = res?.token?.accessToken ;
     if (token) {
       await AsyncStorage.setItem('token', token);
+      console.log('Apple sign-in token saved:', token);
       axiosClient.defaults.headers.Authorization = `Bearer ${token}`;
     }
     return res;
@@ -223,6 +226,7 @@ export const bootstrapAuth = async (): Promise<{
     return { success: true, profile: profileData, role };
   } catch (error) {
     await AsyncStorage.removeItem('token');
+    console.error('[bootstrapAuth] Error:', error);
     return { success: false };
   }
 };
