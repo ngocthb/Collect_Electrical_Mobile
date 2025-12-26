@@ -77,15 +77,21 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.mobile"
-    defaultConfig {
-        applicationId "com.mobile"
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
-        resValue "string", "build_config_package", "com.mobile"
-        versionCode 1
-        versionName "1.0"
+    namespace "com.ngocthb.ewise"
+  defaultConfig {
+    applicationId "com.ngocthb.ewise"
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
+    resValue "string", "build_config_package", "com.ngocthb.ewise"
+
+    ndk {
+        abiFilters "arm64-v8a"
     }
+
+    versionCode 2
+    versionName "1.0"
+}
+
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -102,7 +108,7 @@ android {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.debug
-            minifyEnabled enableProguardInReleaseBuilds
+              minifyEnabled false
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }

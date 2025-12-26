@@ -205,14 +205,14 @@ const UserConfirmScreen = () => {
                 {/* Bottom Button */}
                 <View className="flex-row flex-1 justify-between gap-2">
                   <View style={{ width: '48%' }}>
+                    <AppButton title="Từ chối " onPress={handleReject} />
+                  </View>
+                  <View style={{ width: '48%' }}>
                     <AppButton
                       title="Xác nhận "
                       onPress={handleConfirm}
                       color="#3366CC"
                     />
-                  </View>
-                  <View style={{ width: '48%' }}>
-                    <AppButton title="Từ chối " onPress={handleReject} />
                   </View>
                 </View>
 

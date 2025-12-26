@@ -55,89 +55,6 @@ const requestCameraPermission = async (): Promise<boolean> => {
 };
 
 /**
- * Request gallery permission for Android
- */
-const requestGalleryPermission = async (): Promise<boolean> => {
-  if (Platform.OS === 'android') {
-    try {
-      const androidVersion = Platform.Version;
-
-      // Android 13+ (API 33+) uses READ_MEDIA_IMAGES
-      if (androidVersion >= 33) {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-          {
-            title: 'Quyền truy cập Thư viện ảnh',
-            message: 'Ứng dụng cần quyền truy cập thư viện ảnh để chọn ảnh',
-            buttonNeutral: 'Hỏi lại sau',
-            buttonNegative: 'Từ chối',
-            buttonPositive: 'Đồng ý',
-          },
-        );
-        console.log('Gallery (API33) permission result:', granted);
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) return true;
-        if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-          toast.show({
-            type: 'confirm',
-            text1: 'Quyền bị chặn',
-            text2:
-              'Bạn đã chặn quyền truy cập Thư viện. Mở cài đặt để cấp quyền?',
-            autoHide: false,
-            props: {
-              button1: 'Hủy',
-              button2: 'Mở cài đặt',
-              onCancel: () => {
-                toast.hide();
-              },
-              onConfirm: () => Linking.openSettings(),
-            },
-          });
-          return false;
-        }
-        return false;
-      }
-
-      // Below Android 13 uses READ_EXTERNAL_STORAGE
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        {
-          title: 'Quyền truy cập Thư viện ảnh',
-          message: 'Ứng dụng cần quyền truy cập thư viện ảnh để chọn ảnh',
-          buttonNeutral: 'Hỏi lại sau',
-          buttonNegative: 'Từ chối',
-          buttonPositive: 'Đồng ý',
-        },
-      );
-      console.log('Gallery (legacy) permission result:', granted);
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) return true;
-      if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-        toast.show({
-          type: 'confirm',
-          text1: 'Quyền bị chặn',
-          text2:
-            'Bạn đã chặn quyền truy cập Thư viện. Mở cài đặt để cấp quyền?',
-          autoHide: false,
-          props: {
-            button1: 'Hủy',
-            button2: 'Mở cài đặt',
-            onCancel: () => {
-              toast.hide();
-            },
-            onConfirm: () => Linking.openSettings(),
-          },
-        });
-        return false;
-      }
-      return false;
-    } catch (err) {
-      console.warn('Gallery permission error:', err);
-      return false;
-    }
-  }
-  return true; // iOS handles permissions automatically
-};
-
-/**
  * Open camera to take a photo
  */
 export const openCamera = async (): Promise<ImagePickerResult> => {
@@ -200,33 +117,12 @@ export const openGallery = async (
   maxSelection: number = 5,
 ): Promise<ImagePickerResult> => {
   try {
-    const hasPermission = await requestGalleryPermission();
-
-    if (!hasPermission) {
-      toast.show({
-        type: 'confirm',
-        text1: 'Quyền truy cập bị từ chối',
-        text2:
-          'Vui lòng cấp quyền thư viện ảnh trong cài đặt để sử dụng tính năng này',
-        autoHide: false,
-        props: {
-          button1: 'Hủy',
-          button2: 'Mở cài đặt',
-          onCancel: () => {
-            toast.hide();
-          },
-          onConfirm: () => Linking.openSettings(),
-        },
-      });
-      return { success: false, error: 'Gallery permission denied' };
-    }
-
     const result: ImagePickerResponse = await launchImageLibrary({
       mediaType: 'photo',
+      selectionLimit: multiple ? maxSelection : 1,
       quality: 0.8,
       maxWidth: 1920,
       maxHeight: 1920,
-      selectionLimit: multiple ? maxSelection : 1,
       includeBase64: false,
     });
 
@@ -238,7 +134,7 @@ export const openGallery = async (
       return { success: false, error: result.errorMessage || 'Gallery error' };
     }
 
-    if (result.assets && result.assets.length > 0) {
+    if (result.assets?.length) {
       return { success: true, images: result.assets };
     }
 

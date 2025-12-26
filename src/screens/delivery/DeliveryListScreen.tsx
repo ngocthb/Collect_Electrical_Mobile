@@ -70,77 +70,36 @@ export default function DeliveryListScreen() {
     return date;
   }, []);
 
-  // Tách riêng việc tính distance - chạy ngầm không block UI
-  const calculateDistancesInBackground = useCallback(async (orders: any[]) => {
-    try {
-      const loc = await getCurrentLocation();
-      const [currLng, currLat] = loc || [106, 10];
-
-      if (!currLat || !currLng) {
-        return orders.map(o => ({ ...o, distanceMeters: 0, distanceText: '' }));
-      }
-
-      const mapped = orders.map(o => {
-        const lat = o?.lat ?? o?.iat ?? null;
-        const lng = o?.lng ?? o?.ing ?? null;
-
-        if (!lat || !lng) {
-          return { ...o, distanceMeters: 0, distanceText: '' };
-        }
-
-        const dist = calculateDistance(currLat, currLng, lat, lng);
-        const distanceText =
-          dist < 1000
-            ? `${Math.round(dist)} m`
-            : `${(dist / 1000).toFixed(1)} km`;
-
-        return { ...o, distanceMeters: dist, distanceText };
-      });
-
-      return mapped;
-    } catch (locError) {
-      console.warn('Failed to compute distances', locError);
-      return orders.map(o => ({ ...o, distanceMeters: 0, distanceText: '' }));
-    }
-  }, []);
-
-  const fetchOrdersForToday = useCallback(
-    async (userId: string) => {
+  const fetchOrdersByDate = useCallback(
+    async (userId: string, date: Date) => {
       setIsLoading(true);
       try {
-        const today = new Date();
-        const dateStr = formatAPIDate(today);
-
+        const dateStr = formatAPIDate(date);
         const res: any = await routeService.listByDate(userId, dateStr);
+
         const orders = Array.isArray(res) ? res : [];
-
-        // Set orders NGAY LẬP TỨC không có distance (hiển thị nhanh)
-        const ordersWithoutDistance = orders.map(o => ({
-          ...o,
-          distanceMeters: 0,
-          distanceText: '',
-        }));
-        setOrdersWithDistance(ordersWithoutDistance);
-        setIsLoading(false);
-
-        // Tính distance chạy ngầm KHÔNG block UI
-        calculateDistancesInBackground(orders).then(ordersWithDist => {
-          setOrdersWithDistance(ordersWithDist);
-        });
-      } catch (e: any) {
-        console.warn('Failed to load orders from API', e?.message ?? e);
+        setOrdersWithDistance(
+          orders.map(o => ({
+            ...o,
+            distanceMeters: 0,
+            distanceText: '',
+          })),
+        );
+      } catch (e) {
+        console.warn('Failed to load orders', e);
         setOrdersWithDistance([]);
+      } finally {
         setIsLoading(false);
       }
     },
-    [formatAPIDate, calculateDistancesInBackground],
+    [formatAPIDate],
   );
 
   useEffect(() => {
     if (userId) {
-      fetchOrdersForToday(userId);
+      fetchOrdersByDate(userId, selectedDate);
     }
-  }, [userId, fetchOrdersForToday]);
+  }, [userId, selectedDate, fetchOrdersByDate]);
 
   // Tối ưu: Dùng useMemo để cache kết quả filter và sort
   const filteredOrders = useMemo(() => {
@@ -237,6 +196,8 @@ export default function DeliveryListScreen() {
   }, [navigation]);
 
   const handleSelectDate = useCallback((d: Date) => {
+    setIsLoading(true); // 🔥 quan trọng
+    setOrdersWithDistance([]); // optional, để clear list
     setSelectedDate(d);
   }, []);
 

@@ -12,10 +12,6 @@ import IconIon from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 
-import {
-  getCurrentLocation,
-  calculateDistance,
-} from '../../services/mapboxService';
 import SubLayout from '../../layout/SubLayout';
 import { Warehouse } from '../../types/Warehouse';
 import { getWarehouses } from '../../services/warehouseService';
@@ -29,9 +25,6 @@ const WarehouseLocationScreen = () => {
   >([]);
   const [selectedRatingFilter, setSelectedRatingFilter] = useState('');
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
-  const [sortByDistance, setSortByDistance] = useState<'none' | 'asc' | 'desc'>(
-    'none',
-  );
 
   const ratingFilterOptions = [
     { value: '', label: 'Tất cả', color: 'gray' },
@@ -44,37 +37,13 @@ const WarehouseLocationScreen = () => {
     try {
       setLoading(true);
 
-      const [warehouseData, location] = await Promise.all([
-        getWarehouses(),
-        getCurrentLocation(),
-      ]);
+      const warehouseData = await getWarehouses();
+      const warehouseWithRating = warehouseData.map(wh => ({
+        ...wh,
+        rating: Math.random() * 2 + 3,
+      }));
 
-      const [currLng, currLat] = location || [null, null];
-
-      const updated = warehouseData.map(w => {
-        if (currLat == null || currLng == null) {
-          return { ...w, distanceMeters: 0, distanceText: '' };
-        }
-
-        const dist = calculateDistance(
-          currLat,
-          currLng,
-          w.latitude,
-          w.longitude,
-        );
-
-        return {
-          ...w,
-          distanceMeters: dist,
-          distanceText:
-            dist < 1000
-              ? `${Math.round(dist)} m`
-              : `${(dist / 1000).toFixed(1)} km`,
-          rating: 5,
-        };
-      });
-
-      setWarehousesWithDistance(updated);
+      setWarehousesWithDistance(warehouseWithRating);
     } catch (error) {
       console.warn('Error loading warehouses:', error);
     } finally {
@@ -95,14 +64,6 @@ const WarehouseLocationScreen = () => {
       : warehousesWithDistance.filter(
           w => w.rating >= parseFloat(selectedRatingFilter),
         );
-
-  if (sortByDistance !== 'none') {
-    filteredWarehouses = [...filteredWarehouses].sort((a, b) =>
-      sortByDistance === 'asc'
-        ? (a.distanceMeters ?? 0) - (b.distanceMeters ?? 0)
-        : (b.distanceMeters ?? 0) - (a.distanceMeters ?? 0),
-    );
-  }
 
   const getColorClass = (color: string) => {
     const classes: any = {
@@ -214,28 +175,6 @@ const WarehouseLocationScreen = () => {
               </>
             )}
           </View>
-
-          {/* SORT */}
-          <TouchableOpacity
-            onPress={() =>
-              setSortByDistance(prev => (prev === 'asc' ? 'desc' : 'asc'))
-            }
-            className={`flex-row items-center justify-center py-2 px-3 rounded-lg border ml-2 ${
-              sortByDistance !== 'none'
-                ? 'bg-primary-100 border-primary-100'
-                : 'bg-white border-gray-300'
-            }`}
-          >
-            <FontAwesome
-              name={
-                sortByDistance === 'asc'
-                  ? 'sort-amount-asc'
-                  : 'sort-amount-desc'
-              }
-              size={13}
-              color={sortByDistance === 'none' ? '#6B7280' : '#fff'}
-            />
-          </TouchableOpacity>
         </View>
       }
     >
@@ -279,15 +218,6 @@ const WarehouseLocationScreen = () => {
                           {wh?.rating?.toFixed(1)}
                         </Text>
                       </View>
-
-                      {wh.distanceText && (
-                        <Text className="text-sm text-gray-500 mt-1">
-                          Khoảng cách:{' '}
-                          <Text className="font-semibold">
-                            {wh.distanceText}
-                          </Text>
-                        </Text>
-                      )}
                     </View>
                   </View>
 

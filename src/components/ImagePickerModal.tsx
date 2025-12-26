@@ -29,9 +29,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
   const handlePickFromGallery = async () => {
     try {
       onClose();
-      await new Promise<void>(resolve =>
-                        setTimeout(() => resolve(), 300),
-                      );
+      await new Promise<void>(resolve => setTimeout(() => resolve(), 300));
       const allowed = Math.max(1, maxItems - currentCount);
       const result = await openGallery(true, allowed);
       if (result.success && result.images) {
@@ -69,9 +67,8 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
 
   const handleTakePhoto = async () => {
     try {
-      onClose();    await new Promise<void>(resolve =>
-                        setTimeout(() => resolve(), 300),
-                      );
+      onClose();
+      await new Promise<void>(resolve => setTimeout(() => resolve(), 300));
       const result = await openCamera();
       if (result.success && result.images) {
         if (!validateImageSize(result.images[0].fileSize, 10)) {
@@ -104,9 +101,8 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
 
   const handlePickVideo = async () => {
     try {
-      onClose();    await new Promise<void>(resolve =>
-                        setTimeout(() => resolve(), 300),
-                      );
+      onClose();
+      await new Promise<void>(resolve => setTimeout(() => resolve(), 300));
       const result = await launchImageLibrary({
         mediaType: 'video',
         videoQuality: 'high',
@@ -166,7 +162,6 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
             <TouchableOpacity
               onPress={() => {
                 handleTakePhoto();
-          
               }}
               className="flex-row items-center px-4 py-4 bg-gray-50 rounded-xl mb-3"
               activeOpacity={0.7}
@@ -188,7 +183,6 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
             <TouchableOpacity
               onPress={() => {
                 handlePickFromGallery();
-              
               }}
               className="flex-row items-center px-4 py-4 bg-gray-50 rounded-xl mb-3"
               activeOpacity={0.7}
@@ -211,7 +205,6 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
               <TouchableOpacity
                 onPress={() => {
                   handlePickVideo();
-                 
                 }}
                 className="flex-row items-center px-4 py-4 bg-gray-50 rounded-xl"
                 activeOpacity={0.7}

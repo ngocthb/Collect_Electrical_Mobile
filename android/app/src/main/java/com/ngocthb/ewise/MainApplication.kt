@@ -1,4 +1,4 @@
-package com.mobile
+package com.ngocthb.ewise
 
 import android.app.Application
 import com.facebook.react.PackageList

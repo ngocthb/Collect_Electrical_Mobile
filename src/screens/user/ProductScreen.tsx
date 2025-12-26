@@ -173,6 +173,7 @@ const ProductScreen = () => {
     </View>
   );
 
+  console.log('Rendered ProductScreen', filteredProducts);
   return (
     <MainLayout
       headerTitle="Yêu cầu của bạn"
