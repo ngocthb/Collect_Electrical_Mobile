@@ -88,7 +88,7 @@ android {
         abiFilters "arm64-v8a"
     }
 
-    versionCode 2
+    versionCode 4
     versionName "1.0"
 }
 

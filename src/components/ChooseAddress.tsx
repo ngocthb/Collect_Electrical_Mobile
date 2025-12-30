@@ -35,6 +35,8 @@ const ChooseAddress: React.FC<ChooseAddressProps> = ({
       const defaultAddr = addresses.find(a => a.isDefault);
       if (defaultAddr) {
         onSelectAddress(defaultAddr);
+      } else {
+        onSelectAddress(addresses[0]);
       }
     }
   }, [addresses, selectedAddress, onSelectAddress]);
