@@ -27,6 +27,7 @@ import create from '../../services/requestService';
 import { useAppDispatch } from '../../store/hooks';
 import { clearTimeSlot } from '../../store/slices/timeSlotSlice';
 import Icon from 'react-native-vector-icons/Feather';
+import ChooseAddress from '../../components/ChooseAddress';
 
 const CreateRequestScreen = () => {
   const router = useRoute<any>();
@@ -53,6 +54,12 @@ const CreateRequestScreen = () => {
   const [loading, setLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const dispatch = useAppDispatch();
+
+  // Reset brand when category changes
+  useEffect(() => {
+    setSelectedBrandId(null);
+  }, [selectedCategory]);
+
   const goToNextStep = () => {
     if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
@@ -157,6 +164,7 @@ const CreateRequestScreen = () => {
 
               {selectedCategory && (
                 <AppSearchableDropdown
+                  key={selectedCategory.id}
                   type="brand"
                   subCategoryId={selectedCategory?.id ?? ''}
                   onChange={(selectedItem: any | null) => {
@@ -227,7 +235,7 @@ const CreateRequestScreen = () => {
           </View>
 
           <View style={{ display: currentStep === 2 ? 'flex' : 'none' }}>
-            <AddressSelector
+            <ChooseAddress
               selectedAddress={selectedAddress}
               onSelectAddress={setSelectedAddress}
             />

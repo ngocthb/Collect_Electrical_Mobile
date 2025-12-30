@@ -4,47 +4,47 @@ import Geolocation from 'react-native-geolocation-service';
 import type { LineString } from 'geojson';
 
 import Config from '../config/env';
+import axios from 'axios';
 
 const MAPBOX_TOKEN = Config.MAPBOX_ACCESS_TOKEN;
+const US1_TOKEN = Config.US1_TOKEN;
 
-export async function searchLocation(
-  query: string,
-  currentLocation?: [number, number],
-) {
+export async function searchLocation(query: string) {
   if (!query.trim()) {
-    return { features: [] };
+    return [];
   }
-  const vietnamBbox = '102.14,8.18,109.46,23.39';
-  const proximity = currentLocation
-    ? `${currentLocation[0]},${currentLocation[1]}`
-    : '105.8342,21.0278';
-  const url =
-    `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-      query,
-    )}.json?` +
-    `access_token=${MAPBOX_TOKEN}` +
-    `&country=VN` +
-    `&bbox=${vietnamBbox}` +
-    `&proximity=${proximity}` +
-    `&language=vi` +
-    `&limit=5` +
-    `&types=poi,address,place,locality,neighborhood`;
-  const response = await fetch(url);
-  return await response.json();
+
+  const baseUrl = 'https://us1.locationiq.com/v1/search';
+
+  const params = new URLSearchParams({
+    key: US1_TOKEN,
+    q: query,
+    format: 'json',
+    addressdetails: '1',
+    limit: '5',
+    'accept-language': 'vi',
+    countrycodes: 'vn',
+  });
+  const url = `${baseUrl}?${params.toString()}`;
+  const response = await axios.get(url);
+  const data = response.data;
+  return data;
 }
 
-// Reverse geocode to get place name
 export async function reverseGeocode(longitude: number, latitude: number) {
-  const url =
-    `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?` +
-    `access_token=${MAPBOX_TOKEN}` +
-    `&language=vi` +
-    `&country=VN`;
-  const response = await fetch(url);
-  const data = await response.json();
-  const placeName = data.features?.[0]?.place_name || 'Vị trí đã chọn';
+  const url = `https://us1.locationiq.com/v1/reverse?key=${US1_TOKEN}&lat=${latitude}&lon=${longitude}&format=json&accept-language=vi`;
+  const res = await axios.get(url);
+  const data = res.data;
+  if (!data?.display_name) {
+    return {
+      name: 'Vị trí đã chọn',
+      latitude,
+      longitude,
+    };
+  }
+
   return {
-    name: placeName,
+    name: data?.display_name,
     latitude,
     longitude,
   };

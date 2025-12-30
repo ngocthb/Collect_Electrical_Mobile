@@ -1,11 +1,11 @@
 const timeSlots: Record<string, string[]> = {
-  T2: ['09:00 AM', '09:00 PM'],
-  T3: ['09:00 AM', '09:00 PM'],
-  T4: ['09:00 AM', '09:00 PM'],
-  T5: ['09:00 AM', '09:00 PM'],
-  T6: ['09:00 AM', '09:00 PM'],
-  T7: ['09:00 AM', '09:00 PM'],
-  CN: ['09:00 AM', '09:00 PM'],
+  T2: ['09:00', '17:00'],
+  T3: ['09:00', '17:00'],
+  T4: ['09:00', '17:00'],
+  T5: ['09:00', '17:00'],
+  T6: ['09:00', '17:00'],
+  T7: ['09:00', '17:00'],
+  CN: ['09:00', '17:00'],
 };
 
 export type Day = 'T2' | 'T3' | 'T4' | 'T5' | 'T6' | 'T7' | 'CN';
@@ -23,20 +23,20 @@ export interface PredefinedTimeSlot extends TimeSlot {
 
 export const predefinedTimeSlots: PredefinedTimeSlot[] = [
   {
-    label: 'Cả ngày',
-    times: ['00:00 AM', '24:00 PM'],
-    icon: 'sunny',
-    color: '#F59E0B',
-  },
-  {
     label: 'Giờ hành chính ',
-    times: ['09:00 AM', '05:00 PM'],
+    times: ['09:00', '17:00'],
     icon: 'briefcase',
     color: '#e85a4f',
   },
   {
+    label: 'Cả ngày',
+    times: ['00:00', '24:00'],
+    icon: 'sunny',
+    color: '#F59E0B',
+  },
+  {
     label: 'Chỉ buổi tối ',
-    times: ['05:00 PM', '09:00 PM'],
+    times: ['17:00', '21:00'],
     icon: 'moon',
     color: '#8B5CF6',
   },

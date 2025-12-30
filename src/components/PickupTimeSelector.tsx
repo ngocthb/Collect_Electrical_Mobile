@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import DaySelection from './DaySelection';
@@ -14,7 +14,6 @@ const PickupTimeSelector: React.FC = () => {
   const timeSlotRaw = useAppSelector(state => state.timeSlots.list);
   const dispatch = useDispatch();
 
-  // Sort timeSlot by actual date (pickUpDate) chronologically
   const timeSlot = [...timeSlotRaw].sort((a, b) => {
     if (!a.pickUpDate || !b.pickUpDate) return 0;
     return new Date(a.pickUpDate).getTime() - new Date(b.pickUpDate).getTime();
@@ -34,6 +33,28 @@ const PickupTimeSelector: React.FC = () => {
     if (slot.startTime || slot.endTime) return 'Giờ tự chọn';
 
     return 'Chưa chọn';
+  };
+
+  const formatTo24Hour = (time12h: string): string => {
+    if (!time12h) return '';
+
+    const cleaned = time12h.trim().toUpperCase();
+    if (!cleaned.includes('AM') && !cleaned.includes('PM')) {
+      return time12h;
+    }
+    const match = cleaned.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/);
+    if (!match) return time12h;
+
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2];
+    const period = match[3];
+    if (period === 'AM') {
+      if (hours === 12) hours = 0;
+    } else {
+      if (hours !== 12) hours += 12;
+    }
+
+    return `${hours.toString().padStart(2, '0')}:${minutes}`;
   };
 
   const [openForDay, setOpenForDay] = useState<string | null>(null);
@@ -68,7 +89,11 @@ const PickupTimeSelector: React.FC = () => {
   };
 
   const applyPredefined = (dayName: string, times: string[]) => {
-    const slots = { startTime: times[0] || '', endTime: times[1] || '' };
+    const slots = {
+      startTime: formatTo24Hour(times[0] || ''),
+      endTime: formatTo24Hour(times[1] || ''),
+    };
+
     dispatch(updateTimeSlot({ dayName, pickUpDate: '', slots } as TimeSlot));
     setOpenForDay(null);
     // Clear shared state to prevent contamination
@@ -95,7 +120,10 @@ const PickupTimeSelector: React.FC = () => {
       updateTimeSlot({
         dayName: editingDay,
         pickUpDate: '',
-        slots: { startTime: fromTime, endTime: toTime },
+        slots: {
+          startTime: formatTo24Hour(fromTime),
+          endTime: formatTo24Hour(toTime),
+        },
       } as TimeSlot),
     );
     setCustomModalVisible(false);
@@ -168,7 +196,7 @@ const PickupTimeSelector: React.FC = () => {
                   >
                     <Text className="text-xs text-gray-500">Từ</Text>
                     <Text className="text-sm text-text-main ">
-                      {customStart || timeSlot[0].slots.startTime || 'Chưa'}
+                      {formatTo24Hour(timeSlot[0].slots.startTime) || 'Chưa'}
                     </Text>
                   </TouchableOpacity>
 
@@ -180,7 +208,7 @@ const PickupTimeSelector: React.FC = () => {
                   >
                     <Text className="text-xs text-gray-500">Đến</Text>
                     <Text className="text-sm text-text-main">
-                      {customEnd || timeSlot[0].slots.endTime || 'Chưa'}
+                      {formatTo24Hour(timeSlot[0].slots.endTime) || 'Chưa'}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -222,79 +250,71 @@ const PickupTimeSelector: React.FC = () => {
         </View>
       ) : (
         <>
-          {timeSlot.length === 0 ? (
-            <View className="mb-3 flex-row justify-center items-center">
-              <Text className="text-gray-500 text-sm ">
-                Vui lòng chọn ngày để thiết lập khung giờ
-              </Text>
-            </View>
-          ) : (
-            timeSlot.map((day, index) => (
-              <View key={index} className="mb-3">
-                <View className="flex-row items-center gap-3">
-                  <Text className="text-gray-800 font-medium w-6">
-                    {day.dayName}
-                  </Text>
+          {timeSlot.map((day, index) => (
+            <View key={index} className="mb-3">
+              <View className="flex-row items-center gap-3">
+                <Text className="text-gray-800 font-medium w-6">
+                  {day.dayName}
+                </Text>
 
+                <TouchableOpacity
+                  className="flex-1 flex-row items-center justify-between px-2 py-3 border rounded-md border-gray-300 bg-white "
+                  onPress={() => openDropdown(day.dayName, day.slots)}
+                >
+                  <Text className="text-sm text-text-main flex-1">
+                    {getTimeSlotLabel(day.slots)}
+                  </Text>
+                  <Icon name={'chevron-down'} size={18} color="gray" />
+                </TouchableOpacity>
+
+                <View className="flex-row items-start">
                   <TouchableOpacity
-                    className="flex-1 flex-row items-center justify-between px-2 py-3 border rounded-md border-gray-300 bg-white "
-                    onPress={() => openDropdown(day.dayName, day.slots)}
+                    onPress={() => openCustomModal(day.dayName, day.slots)}
+                    className="w-24 mr-2 border border-gray-300 rounded-md px-3 py-1 h-12 bg-white"
                   >
-                    <Text className="text-sm text-text-main flex-1">
-                      {getTimeSlotLabel(day.slots)}
+                    <Text className="text-xs text-gray-500">Từ</Text>
+                    <Text className="text-sm text-text-main ">
+                      {formatTo24Hour(day.slots.startTime) || 'Chưa'}
                     </Text>
-                    <Icon name={'chevron-down'} size={18} color="gray" />
                   </TouchableOpacity>
 
-                  <View className="flex-row items-start">
-                    <TouchableOpacity
-                      onPress={() => openCustomModal(day.dayName, day.slots)}
-                      className="w-24 mr-2 border border-gray-300 rounded-md px-3 py-1 h-12 bg-white"
-                    >
-                      <Text className="text-xs text-gray-500">Từ</Text>
-                      <Text className="text-sm text-text-main ">
-                        {day.slots.startTime || 'Chưa'}
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      onPress={() => openCustomModal(day.dayName, day.slots)}
-                      className="w-24 border border-gray-300 rounded-md px-3 py-1 h-12 bg-white"
-                    >
-                      <Text className="text-xs text-gray-500">Đến</Text>
-                      <Text className="text-sm text-text-main ">
-                        {day.slots.endTime || 'Chưa'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
+                  <TouchableOpacity
+                    onPress={() => openCustomModal(day.dayName, day.slots)}
+                    className="w-24 border border-gray-300 rounded-md px-3 py-1 h-12 bg-white"
+                  >
+                    <Text className="text-xs text-gray-500">Đến</Text>
+                    <Text className="text-sm text-text-main ">
+                      {formatTo24Hour(day.slots.endTime) || 'Chưa'}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-
-                {openForDay === day.dayName && (
-                  <View className="mt-2 bg-white border border-gray-200 rounded-md p-2 shadow-md ml-6">
-                    {predefinedTimeSlots.map((ps, i) => (
-                      <TouchableOpacity
-                        key={i}
-                        className={`px-3 py-2 flex-row items-center rounded-md mb-1 ${
-                          selectedPresetLabel === ps.label
-                            ? 'bg-red-100 border border-primary-100'
-                            : 'bg-white'
-                        }`}
-                        onPress={() => applyPredefined(day.dayName, ps.times)}
-                      >
-                        <View
-                          className="w-2  h-2 rounded-full mr-2"
-                          style={{ backgroundColor: ps.color }}
-                        />
-                        <View>
-                          <Text className="text-sm">{ps.label}</Text>
-                        </View>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
               </View>
-            ))
-          )}
+
+              {openForDay === day.dayName && (
+                <View className="mt-2 bg-white border border-gray-200 rounded-md p-2 shadow-md ml-6">
+                  {predefinedTimeSlots.map((ps, i) => (
+                    <TouchableOpacity
+                      key={i}
+                      className={`px-3 py-2 flex-row items-center rounded-md mb-1 ${
+                        selectedPresetLabel === ps.label
+                          ? 'bg-red-100 border border-primary-100'
+                          : 'bg-white'
+                      }`}
+                      onPress={() => applyPredefined(day.dayName, ps.times)}
+                    >
+                      <View
+                        className="w-2  h-2 rounded-full mr-2"
+                        style={{ backgroundColor: ps.color }}
+                      />
+                      <View>
+                        <Text className="text-sm">{ps.label}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          ))}
         </>
       )}
       <CustomTimeModal

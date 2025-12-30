@@ -28,7 +28,6 @@ const AddressMap: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<RouteParams, 'AddressMap'>>();
   const dispatch = useAppDispatch();
-  const address = useAppSelector(s => s.address.current);
   const user = useAppSelector(s => s.auth.user);
 
   const mode = route.params?.mode || 'create';
@@ -57,7 +56,7 @@ const AddressMap: React.FC = () => {
           location.name,
           location.latitude,
           location.longitude,
-          addressData.isDefault,
+          true,
         );
 
         // Convert updated response to Address shape expected by store
@@ -85,7 +84,6 @@ const AddressMap: React.FC = () => {
           text1: 'Thành công',
           text2: 'Đã cập nhật địa chỉ',
         });
-        // wait a bit to reduce perceived lag before navigating back
 
         navigation.goBack();
       } catch (error) {
@@ -106,25 +104,8 @@ const AddressMap: React.FC = () => {
         location.name,
         location.latitude,
         location.longitude,
-        false,
+        true,
       );
-
-      // Convert created response to Address shape expected by store
-      const newAddr: Address = {
-        userAddressId:
-          (created as any).userAddressId ?? (created as any).id ?? '',
-        userId: user.userId,
-        address: (created as any).address ?? location.name,
-        iat:
-          (created as any).iat ??
-          (created as any).latitude ??
-          location.latitude,
-        ing:
-          (created as any).ing ??
-          (created as any).longitude ??
-          location.longitude,
-        isDefault: (created as any).isDefault ?? false,
-      };
 
       const addresses = await getUserAddresses(user.userId);
       dispatch(setAddressList(addresses || []));
@@ -144,14 +125,6 @@ const AddressMap: React.FC = () => {
         text1: 'Lỗi',
         text2: 'Không thể thêm địa chỉ. Vui lòng thử lại.',
       });
-      // Fallback: save to current so user doesn't lose selection
-      dispatch(
-        saveAddress({
-          address: location.name,
-          iat: location.latitude,
-          ing: location.longitude,
-        }),
-      );
 
       navigation.goBack();
     }
@@ -167,9 +140,9 @@ const AddressMap: React.FC = () => {
         <MapboxPicker
           onLocationSelect={handleLocationSelect}
           initialLocation={{
-            latitude: address.iat ?? 0,
-            longitude: address.ing ?? 0,
-            name: address.address ?? '',
+            latitude: addressData?.iat ?? 0,
+            longitude: addressData?.ing ?? 0,
+            name: addressData?.address ?? '',
           }}
           searchPlaceholder="Tìm kiếm địa điểm ..."
           confirmButtonText={

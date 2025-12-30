@@ -24,6 +24,8 @@ import {
   signInWithApple,
 } from '../../services/authService';
 import AppButton from '../../components/ui/AppButton';
+import { getUserAddresses } from '../../services/addressService';
+import { setAddressList } from '../../store/slices/addressSlice';
 
 const simpleLogin = require('../../assets/images/simplelogin.png');
 const google = require('../../assets/images/google.jpg');
@@ -31,7 +33,7 @@ const logo = require('../../assets/images/logo.png');
 export default function UserLoginScreen() {
   const dispatch = useAppDispatch();
   const auth = useAppSelector(s => s.auth);
-const [loadingApple , setLoadingApple] = useState(false);
+  const [loadingApple, setLoadingApple] = useState(false);
   const navigation = useNavigation<any>();
   const isIOS = Platform.OS === 'ios';
 
@@ -42,7 +44,8 @@ const [loadingApple , setLoadingApple] = useState(false);
 
       const profileData: any = await fetchUserProfile();
       dispatch(setUser(profileData));
-
+      const addresses = await getUserAddresses(profileData.userId);
+      dispatch(setAddressList(addresses || []));
       // @ts-ignore
       globalThis.navigation?.replace('MainTabs');
 
@@ -60,13 +63,13 @@ const [loadingApple , setLoadingApple] = useState(false);
   const handleAppleLogin = async () => {
     try {
       setLoadingApple(true);
-console.log('Starting Apple login');
+      console.log('Starting Apple login');
       // 1. Apple native popup
       const appleResponse = await appleAuth.performRequest({
         requestedOperation: appleAuth.Operation.LOGIN,
         requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
       });
-console.log('Apple response received', appleResponse);
+      console.log('Apple response received', appleResponse);
 
       if (!appleResponse.identityToken) {
         throw new Error('No identityToken');
@@ -93,7 +96,7 @@ console.log('Apple response received', appleResponse);
     } catch (error) {
       console.log('Apple login error', error);
     } finally {
-     setLoadingApple(false);
+      setLoadingApple(false);
     }
   };
 
@@ -133,33 +136,30 @@ console.log('Apple response received', appleResponse);
           <View className="py-4 ">
             {/* APPLE LOGIN BUTTON (iOS only, no simulator) */}
             {isIOS && (
-  <View className="mb-6">
-    <View style={{ position: 'relative' }}>
-     
-
-      {loadingApple ? (
-       <AppButton 
-        title=""
-        disabled={true }
-       color='#000'
-       loading={true}
-       />
-
-      ):( <AppleButton
-        buttonType={AppleButton.Type.SIGN_IN}
-        buttonStyle={AppleButton.Style.BLACK}
-        style={{
-          width: '100%',
-          height: 44,
-          borderRadius: 60
-        }}
-        onPress={handleAppleLogin}
-    
-      />)}
-    </View>
-  </View>
-)}
-
+              <View className="mb-6">
+                <View style={{ position: 'relative' }}>
+                  {loadingApple ? (
+                    <AppButton
+                      title=""
+                      disabled={true}
+                      color="#000"
+                      loading={true}
+                    />
+                  ) : (
+                    <AppleButton
+                      buttonType={AppleButton.Type.SIGN_IN}
+                      buttonStyle={AppleButton.Style.BLACK}
+                      style={{
+                        width: '100%',
+                        height: 44,
+                        borderRadius: 60,
+                      }}
+                      onPress={handleAppleLogin}
+                    />
+                  )}
+                </View>
+              </View>
+            )}
 
             <TouchableOpacity
               onPress={handleGoogleLogin}

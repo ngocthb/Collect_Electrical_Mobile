@@ -1,12 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { days, type Day } from '../data/timeSlots';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import {
-  saveTimeSlot,
-  removeTimeSlot,
-  clearTimeSlot,
-} from '../store/slices/timeSlotSlice';
+import { toggleSyncDays, clickDay } from '../store/slices/timeSlotSlice';
 
 // Cutoff hour (24-hour format): if current time >= this hour, start calendar from next day
 const CUTOFF_HOUR = 20;
@@ -21,25 +17,6 @@ const DaySelection: React.FC<DaySelectionProps> = ({
   setSelectedDays,
 }) => {
   const dispatch = useAppDispatch();
-  const timeSlot = useAppSelector(state => state.timeSlots.list);
-
-  // Sync selectedDays with Redux store
-  useEffect(() => {
-    const syncDays = () => {
-      if (timeSlot && timeSlot.length > 0) {
-        const updatedSelectedDays: Day[] = timeSlot.map(
-          slot => slot.dayName as Day,
-        );
-        setSelectedDays(updatedSelectedDays);
-      } else {
-        setSelectedDays([]);
-      }
-    };
-
-    // Defer state update to avoid updating parent during render
-    const timer = setTimeout(syncDays, 0);
-    return () => clearTimeout(timer);
-  }, [timeSlot, setSelectedDays]);
 
   // Get today's day name
   const getTodayDayName = (): Day => {
@@ -160,45 +137,37 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     return `${dd}/${mm}`;
   };
 
-  // Toggle a single day selection
   const toggleDaySelection = (day: Day) => {
-    setSelectedDays(prev => {
-      const isRemoving = prev.includes(day);
-      if (isRemoving) {
-        dispatch(removeTimeSlot(day));
-      } else {
-        const pickUpDate = getNextDateForDay(day);
-        dispatch(
-          saveTimeSlot({
-            dayName: day,
-            pickUpDate,
-            slots: { startTime: '00:00 AM', endTime: '24:00 PM' },
-          }),
-        );
-      }
-      return isRemoving ? prev.filter(d => d !== day) : [...prev, day];
-    });
+    if (selectedDays.includes(day)) {
+      setSelectedDays(prev => prev.filter(d => d !== day));
+    } else {
+      setSelectedDays(prev => [...prev, day]);
+    }
+
+    dispatch(
+      clickDay({
+        dayName: day,
+        pickUpDate: getNextDateForDay(day),
+        slots: { startTime: '09:00', endTime: '17:00' },
+      }),
+    );
   };
 
-  // Toggle all days selection
-  const isAllSelected = days.every(d => selectedDays.includes(d));
+  const isAllSelected = reorderedDays.every(day => selectedDays.includes(day));
   const toggleAll = () => {
     if (isAllSelected) {
+      // Bỏ chọn tất cả
       setSelectedDays([]);
-      dispatch(clearTimeSlot());
     } else {
-      setSelectedDays([...days]);
-      days.forEach(day => {
-        const pickUpDate = getNextDateForDay(day);
-        dispatch(
-          saveTimeSlot({
-            dayName: day,
-            pickUpDate,
-            slots: { startTime: '00:00 AM', endTime: '24:00 PM' },
-          }),
-        );
-      });
+      // Chọn tất cả
+      setSelectedDays(reorderedDays);
     }
+    const data = reorderedDays.map(day => ({
+      dayName: day,
+      pickUpDate: getNextDateForDay(day),
+      slots: { startTime: '09:00', endTime: '17:00' },
+    }));
+    dispatch(toggleSyncDays(data));
   };
 
   return (

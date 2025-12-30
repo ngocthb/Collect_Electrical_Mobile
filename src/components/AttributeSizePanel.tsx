@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import AppDropdown from './ui/AppDropdown';
 import DimensionInputs from './DimensionInputs';
 import type {
@@ -27,6 +32,7 @@ const AttributeSizePanel: React.FC<Props> = ({
   const [loadingOptions, setLoadingOptions] = useState(false);
   const [dimensions, setDimensions] = useState<Attribute[]>([]);
   const [fetchedAttributes, setFetchedAttributes] = useState<Attribute[]>([]);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   const handleGetAttributes = async () => {
     if (!subCategoryId) return;
@@ -82,47 +88,67 @@ const AttributeSizePanel: React.FC<Props> = ({
   }
 
   return (
-    <View>
-      <Text className="text-sm font-semibold mb-3 text-primary-100">
-        Kích thước
-        <Text className="text-red-500"> *</Text>
-      </Text>
-      {dimensions.length > 0 && (
-        <DimensionInputs attributes={dimensions} onChange={onChange} />
+    <>
+      {openDropdownId && (
+        <TouchableWithoutFeedback onPress={() => setOpenDropdownId(null)}>
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 40,
+            }}
+          />
+        </TouchableWithoutFeedback>
       )}
 
-      {attributeOptions && Object.keys(attributeOptions).length > 0 && (
-        <>
-          {Object.entries(attributeOptions).map(([attrId, options]) => {
-            const attribute =
-              fetchedAttributes.find(a => a.id === attrId) ||
-              fetchedAttributes.find(a => a.id === attrId);
-            if (!attribute) return null;
-            const selectedValue =
-              values?.attributeOptionId === attrId ? values : null;
-            return (
-              <AppDropdown
-                key={attrId}
-                inlineLabel={true}
-                size="sub"
-                compact={true}
-                title={attribute.name}
-                options={options as AttributeOption[]}
-                value={selectedValue as any}
-                onSelect={opt =>
-                  onChange &&
-                  onChange({
-                    attributeId: attribute.id,
-                    optionId: opt.attributeOptionId,
-                    value: null,
-                  })
-                }
-              />
-            );
-          })}
-        </>
-      )}
-    </View>
+      <View style={{ position: 'relative' }}>
+        <Text className="text-sm font-semibold mb-3 text-primary-100">
+          Kích thước
+          <Text className="text-red-500"> *</Text>
+        </Text>
+        {dimensions.length > 0 && (
+          <DimensionInputs attributes={dimensions} onChange={onChange} />
+        )}
+
+        {attributeOptions && Object.keys(attributeOptions).length > 0 && (
+          <>
+            {Object.entries(attributeOptions).map(([attrId, options]) => {
+              const attribute =
+                fetchedAttributes.find(a => a.id === attrId) ||
+                fetchedAttributes.find(a => a.id === attrId);
+              if (!attribute) return null;
+              const selectedValue =
+                values?.attributeOptionId === attrId ? values : null;
+              return (
+                <AppDropdown
+                  key={attrId}
+                  inlineLabel={true}
+                  size="sub"
+                  compact={true}
+                  title={attribute.name}
+                  options={options as AttributeOption[]}
+                  value={selectedValue as any}
+                  isOpen={openDropdownId === attrId}
+                  onToggle={isOpen => setOpenDropdownId(isOpen ? attrId : null)}
+                  onSelect={opt => {
+                    onChange &&
+                      onChange({
+                        attributeId: attribute.id,
+                        optionId: opt.attributeOptionId,
+                        value: null,
+                      });
+                    setOpenDropdownId(null);
+                  }}
+                />
+              );
+            })}
+          </>
+        )}
+      </View>
+    </>
   );
 };
 

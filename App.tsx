@@ -4,9 +4,9 @@ import './src/theme/font';
 import { Provider } from 'react-redux';
 import { store } from './src/store';
 import RootNavigator from './src/navigation/RootNavigator';
-import { useEffect } from 'react';
+
 import { useAppDispatch } from './src/store/hooks';
-import { bootstrapApp } from './src/services/bootstrapService';
+
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 // @ts-ignore
@@ -17,13 +17,8 @@ import { useZegoService } from './src/hooks/useZegoService';
 import 'react-native-url-polyfill/auto';
 import './src/config/googleSignIn';
 
-
 function AppContent() {
-  const dispatch = useAppDispatch();
-    useZegoService();
-  useEffect(() => {
-    bootstrapApp(dispatch);
-  }, [dispatch]);
+  useZegoService();
 
   return (
     <>
@@ -32,7 +27,6 @@ function AppContent() {
     </>
   );
 }
-
 
 export default function App() {
   return (

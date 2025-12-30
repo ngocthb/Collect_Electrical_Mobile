@@ -7,62 +7,64 @@ import { Platform } from 'react-native';
 export const signInWithGoogle = async (): Promise<any> => {
   try {
     console.log('🚀 [1] Bắt đầu Google Sign In');
-    
+
     if (Platform.OS === 'android') {
-      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      await GoogleSignin.hasPlayServices({
+        showPlayServicesUpdateDialog: true,
+      });
     }
-    
+
     console.log('🚀 [2] Sign out để clean state');
     await GoogleSignin.signOut();
-    
+
     console.log('🚀 [3] Mở Google Sign In UI');
     const userInfo = await GoogleSignin.signIn();
-    
+
     console.log('🚀 [4] UserInfo:', JSON.stringify(userInfo, null, 2));
-    
+
     // Handle cancelled
     if (userInfo.type === 'cancelled') {
       throw new Error('User cancelled the sign in');
     }
-    
+
     const idToken = userInfo.data?.idToken;
-    
+
     if (!idToken) {
       console.error('❌ Không có idToken');
       throw new Error('Không thể lấy ID token từ Google');
     }
-    
+
     console.log('🚀 [5] ID Token OK');
-    
+
     // Tạo credential
     const credential = auth.GoogleAuthProvider.credential(idToken);
     console.log('🚀 [6] Credential created');
-    
+
     console.log('🚀 [7] Đăng nhập Firebase...');
     // Gọi trực tiếp auth() - nó sẽ tự động init
     const userCredential = await auth().signInWithCredential(credential);
-    
+
     if (!userCredential.user) {
       throw new Error('Đăng nhập Firebase thất bại');
     }
-    
+
     console.log('🚀 [8] Firebase User:', userCredential.user.uid);
-    
+
     const firebaseIdToken = await userCredential.user.getIdToken();
     console.log('🚀 [9] Firebase ID Token OK');
-    
+
     console.log('🚀 [10] Gọi API backend...');
     const response = await getTokenByLoginGoogle(firebaseIdToken);
-    
+
     const _res: any = response;
     const token = _res?.token || _res?.accessToken || _res?.data?.token || null;
-    
+
     if (token) {
       await AsyncStorage.setItem('token', token);
       axiosClient.defaults.headers.Authorization = `Bearer ${token}`;
       console.log('🚀 [11] Token saved');
     }
-    
+
     return response;
   } catch (error: any) {
     console.error('❌ Error:', error);
@@ -76,7 +78,7 @@ export const signIn = async (
   password: string,
 ): Promise<DeliveryLoginResponse> => {
   try {
-      console.log(username,password);
+    console.log(username, password);
     const res = (await axiosClient.post('/auth/login', {
       username,
       password,
@@ -85,9 +87,7 @@ export const signIn = async (
     if (token) {
       await AsyncStorage.setItem('token', token);
 
-      
-        axiosClient.defaults.headers.Authorization = `Bearer ${token}`;
-      
+      axiosClient.defaults.headers.Authorization = `Bearer ${token}`;
     }
     return res;
   } catch (error) {
@@ -98,19 +98,18 @@ export const signIn = async (
 
 export const signInWithApple = async (appleData: {
   identityToken: string;
-firstName: string | null;
-  lastName: string| null;
-
+  firstName: string | null;
+  lastName: string | null;
 }): Promise<any> => {
   try {
     console.log('Signing in with Apple data:', appleData);
-        const res = await (axiosClient.post('/auth/login-apple', {
-          identityToken: appleData.identityToken,
-          firstName: appleData.firstName,
-          lastName: appleData.lastName,
-        }) as any);
+    const res = await (axiosClient.post('/auth/login-apple', {
+      identityToken: appleData.identityToken,
+      firstName: appleData.firstName,
+      lastName: appleData.lastName,
+    }) as any);
 
-    const token: any = res?.token?.accessToken ;
+    const token: any = res?.token?.accessToken;
     if (token) {
       await AsyncStorage.setItem('token', token);
       console.log('Apple sign-in token saved:', token);
@@ -121,7 +120,7 @@ firstName: string | null;
     console.error('[signInWithApple] Error:', error);
     throw error;
   }
-}
+};
 // Hàm đăng xuất
 export const signOutGoogle = async (): Promise<void> => {
   try {
@@ -206,37 +205,11 @@ export const changePassword = async (
   }
 };
 
-// Bootstrap auth: check token in AsyncStorage and fetch profile if exists
-export const bootstrapAuth = async (): Promise<{
-  success: boolean;
-  profile?: Profile;
-  role?: string;
-}> => {
-  try {
-    const token = await AsyncStorage.getItem('token');
-    if (!token) {
-      return { success: false };
-    }
-
-    const profileData: Profile = await fetchUserProfile();
-
-    const roleVal = (profileData?.role || '').toString().toLowerCase();
-    const role = roleVal === 'delivery' ? 'delivery' : 'user';
-
-    return { success: true, profile: profileData, role };
-  } catch (error) {
-    await AsyncStorage.removeItem('token');
-    console.error('[bootstrapAuth] Error:', error);
-    return { success: false };
-  }
-};
-
 export default {
   signInWithGoogle,
   signOutGoogle,
   getTokenByLoginGoogle,
   fetchUserProfile,
-  bootstrapAuth,
   signOut,
   signInWithApple,
 };

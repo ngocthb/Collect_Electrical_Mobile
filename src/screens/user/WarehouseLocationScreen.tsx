@@ -201,23 +201,26 @@ const WarehouseLocationScreen = () => {
                 className="bg-white border-2 border-red-200 rounded-xl p-4 mb-3 shadow-sm"
               >
                 {/* HEADER */}
-                <View className="flex-row items-start mb-3">
-                  <View className="w-12 h-12 rounded-full bg-red-100 items-center justify-center mr-3">
-                    <Icon name="package" size={22} color="#e85a4f" />
+                <View className="flex-row items-start">
+                  <View className="flex-row w-12 h-12 rounded-full bg-red-100 items-center justify-center mr-3">
+                    <Text className="text-xs text-gray-600">
+                      {wh?.rating?.toFixed(1)}
+                    </Text>
+                    <FontAwesome name="star" size={12} color="#F59E0B" />
                   </View>
 
                   <View className="flex-1">
                     <Text className="text-base font-bold text-primary-100 mb-1">
                       {wh.name}
                     </Text>
-
-                    <View className="flex-row items-center justify-between mb-2">
-                      <View className="flex-row items-center">
-                        {renderStars(wh.rating)}
-                        <Text className="text-sm text-gray-600 ml-2">
-                          {wh?.rating?.toFixed(1)}
+                    <View className="flex-row items-center">
+                      <Icon name="clock" size={16} color="#6B7280" />
+                      <Text className="text-sm text-gray-600 ml-2">
+                        Giờ mở cửa:{' '}
+                        <Text className="font-semibold text-gray-900">
+                          {wh.openTime}
                         </Text>
-                      </View>
+                      </Text>
                     </View>
                   </View>
 
@@ -235,25 +238,6 @@ const WarehouseLocationScreen = () => {
                   >
                     <Icon name="navigation" size={18} color="#fff" />
                   </TouchableOpacity>
-                </View>
-
-                {/* ADDRESS */}
-                <View className="flex-row items-start mb-2">
-                  <Icon name="map-pin" size={16} color="#6B7280" />
-                  <Text className="text-sm text-gray-600 ml-2 flex-1">
-                    {wh.address}
-                  </Text>
-                </View>
-
-                {/* OPENING HOURS */}
-                <View className="flex-row items-center">
-                  <Icon name="clock" size={16} color="#6B7280" />
-                  <Text className="text-sm text-gray-600 ml-2">
-                    Giờ mở cửa:{' '}
-                    <Text className="font-semibold text-gray-900">
-                      {wh.openTime}
-                    </Text>
-                  </Text>
                 </View>
               </View>
             ))

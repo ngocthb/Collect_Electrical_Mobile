@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import toast from 'react-native-toast-message';
 import SubLayout from '../../layout/SubLayout';
 import AddressSelector from '../../components/AddressSelector';
@@ -18,69 +18,6 @@ const DefaultAddressScreen: React.FC = () => {
   const user = useAppSelector(s => s.auth.user);
 
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
-
-  const handleSave = () => {
-    (async () => {
-      if (!selectedAddress) {
-        toast.show({
-          type: 'error',
-          text1: 'Lỗi',
-          text2: 'Vui lòng chọn một địa chỉ',
-        });
-        return;
-      }
-
-      if (!user?.userId) {
-        toast.show({
-          type: 'error',
-          text1: 'Lỗi',
-          text2: 'Bạn cần đăng nhập để lưu địa chỉ mặc định',
-        });
-        return;
-      }
-
-      try {
-        // Set selected address as default on server
-        await updateAddress(
-          selectedAddress.userAddressId,
-          user.userId,
-          selectedAddress.address,
-          selectedAddress.iat,
-          selectedAddress.ing,
-          true,
-        );
-
-        // Refresh address list from server
-        const updatedList = await getUserAddresses(user.userId);
-        dispatch(setAddressList(updatedList));
-
-        // Find and set the newly default address
-        const newDefaultAddress =
-          updatedList.find(addr => addr.isDefault) || null;
-        setSelectedAddress(newDefaultAddress);
-
-        // Update local user address field with the new default address
-        const updated = {
-          ...user,
-          address: newDefaultAddress?.address || selectedAddress.address,
-        } as any;
-        dispatch(setUser(updated));
-
-        toast.show({
-          type: 'success',
-          text1: 'Thành công',
-          text2: 'Đã lưu thành địa chỉ mặc định',
-        });
-      } catch (error) {
-        console.error('Failed to set default address:', error);
-        toast.show({
-          type: 'error',
-          text1: 'Lỗi',
-          text2: 'Không thể lưu địa chỉ mặc định. Vui lòng thử lại.',
-        });
-      }
-    })();
-  };
 
   const addresses = useAppSelector(s => s.address.list);
 
@@ -122,20 +59,6 @@ const DefaultAddressScreen: React.FC = () => {
           selectedAddress={selectedAddress}
           onSelectAddress={setSelectedAddress}
         />
-
-        {
-          <View className="py-4">
-            <AppButton
-              title="Lưu làm địa chỉ mặc định"
-              onPress={handleSave}
-              disabled={
-                selectedAddress?.isDefault ||
-                addresses.length < 0 ||
-                selectedAddress === null
-              }
-            />
-          </View>
-        }
       </View>
     </SubLayout>
   );

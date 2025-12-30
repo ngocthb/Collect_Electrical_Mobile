@@ -66,6 +66,41 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
       setShowPassword(!showPassword);
     };
 
+    // Handle numeric input with min/max validation
+    const handleNumericChange = (text: string) => {
+      if (!onChangeText) return;
+
+      // Allow empty string
+      if (text === '') {
+        onChangeText('');
+        return;
+      }
+
+      // Remove non-numeric characters except decimal point
+      const numericValue = text.replace(/[^0-9.]/g, '');
+
+      // Parse as number
+      const parsedValue = parseFloat(numericValue);
+
+      // Check if it's a valid number
+      if (isNaN(parsedValue)) {
+        return;
+      }
+
+      // Apply min/max constraints
+      if (min !== undefined && parsedValue < min) {
+        onChangeText(min.toString());
+        return;
+      }
+
+      if (max !== undefined && parsedValue > max) {
+        onChangeText(max.toString());
+        return;
+      }
+
+      onChangeText(numericValue);
+    };
+
     const containerPaddingClass = compact
       ? 'px-2  rounded-md'
       : 'px-3 py-1 rounded-lg';
@@ -88,22 +123,23 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
             disabled ? 'text-text-muted' : 'text-text-main'
           }`}
           value={value}
-          onChangeText={onChangeText}
+          onChangeText={isNumeric ? handleNumericChange : onChangeText}
           placeholder={placeholder}
           placeholderTextColor={disabled ? '#D1D5DB' : '#9CA3AF'}
           secureTextEntry={displaySecure}
           keyboardType={
             isNumeric ? 'numeric' : isPhone ? 'phone-pad' : props.keyboardType
-          } // Updated logic
+          }
           editable={!disabled}
           onFocus={handleFocus}
           onBlur={handleBlur}
-                                                    multiline={ numberOfLines > 1 } // Enable multiline if numberOfLines > 1
-                                                        style={{
-                                                          minHeight: compact ? 30 : 40, // đặt chiều cao tối thiểu
-                                                          paddingVertical: compact ? 4 : 8,
-                                                          lineHeight: compact ? 16 : 20,
-                                                        }}          numberOfLines={numberOfLines} // Pass the number of lines to TextInput
+          multiline={numberOfLines > 1} // Enable multiline if numberOfLines > 1
+          style={{
+            minHeight: compact ? 30 : 40, // đặt chiều cao tối thiểu
+            paddingVertical: compact ? 4 : 8,
+            lineHeight: compact ? 16 : 20,
+          }}
+          numberOfLines={numberOfLines} // Pass the number of lines to TextInput
           {...props}
         />
 
@@ -167,5 +203,3 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
 AppInput.displayName = 'AppInput';
 
 export default AppInput;
-
- 

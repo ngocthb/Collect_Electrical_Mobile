@@ -71,6 +71,7 @@ const DimensionInputs: React.FC<Props> = ({
                   compact
                   showStepper
                   min={0}
+                  max={99999}
                   placeholder={getShortLabel(attr.name)}
                   required
                   isNumeric

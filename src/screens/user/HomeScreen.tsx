@@ -15,7 +15,6 @@ export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const { user } = useAppSelector(s => s.auth);
   const dispatch = useAppDispatch();
-  const isUser = String(user?.role).toLowerCase() === 'user';
 
   const onRefresh = useCallback(async () => {
     try {
@@ -59,35 +58,8 @@ export default function HomeScreen() {
   return (
     <MainLayout hideHeader={true} onRefresh={onRefresh}>
       <View className="flex-1 px-6 bg-background-50 ">
-        <View className="flex-row items-center mb-6 mt-10">
-          <View className="relative bg-primary-100 rounded-full p-1">
-            <AppAvatar
-              name={user?.name}
-              uri={user?.avatar ?? null}
-              size={80}
-              style={{ borderWidth: 4, borderColor: '#fff' }}
-            />
-          </View>
-
-          <View className="flex ml-4 justify-center">
-            <Text className="text-lg font-bold text-gray-800">
-              {user?.name ?? 'Khách hàng'}
-            </Text>
-            <Text className="text-sm text-gray-500">{user?.email ?? '—'}</Text>
-
-            <View className="flex-row items-center mt-2">
-              <Text className="text-base font-bold text-primary-100 mr-2">
-                {(user?.points ?? 0).toLocaleString()}
-              </Text>
-              <View className=" items-center justify-center">
-                <Text className="text-lg">🪙</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
         {/* Promotional banner above menu */}
-        <View className="mb-4">
+        <View className="mb-4 mt-10">
           <View className="rounded-2xl p-4 bg-primary-100 border border-gray-200 ">
             <View className="flex-row items-center">
               <View className="flex-1">
@@ -99,22 +71,13 @@ export default function HomeScreen() {
                   bền vững.
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={() => {
-                  try {
-                    navigation.navigate('Promotions');
-                  } catch (e) {
-                    console.warn('Promotions route not found', e);
-                  }
-                }}
-                className="rounded-full overflow-hidden"
-              >
+              <View>
                 <Image
                   source={homepage}
                   style={{ width: 72, height: 72, borderRadius: 24 }}
                   resizeMode="cover"
                 />
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>

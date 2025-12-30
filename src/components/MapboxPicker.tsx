@@ -17,11 +17,16 @@ import {
   reverseGeocode as reverseGeocodeService,
 } from '../services/mapboxService';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import type { LocationData, MapboxFeature } from '../types/MapboxPicker';
+import type {
+  LocationData,
+  LocationIQResult,
+  MapboxFeature,
+} from '../types/MapboxPicker';
 import type { Feature } from 'geojson';
 import Config from '../config/env';
 import { ScrollView } from 'react-native-gesture-handler';
 import AppButton from './ui/AppButton';
+
 MapboxGL.setAccessToken(Config.MAPBOX_ACCESS_TOKEN);
 
 interface MapboxPickerProps {
@@ -42,104 +47,118 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
   showSearchBar = true,
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<MapboxFeature[]>([]);
+  const [searchResults, setSearchResults] = useState<LocationIQResult[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(
     null,
   );
   const [markerCoordinate, setMarkerCoordinate] = useState<
     [number, number] | null
-  >(
-    initialLocation
-      ? [initialLocation.longitude, initialLocation.latitude]
-      : null,
-  );
-  const [currentLocation, setCurrentLocation] = useState<
-    [number, number] | null
   >(null);
-  const [showCurrentLocation, setShowCurrentLocation] = useState<boolean>(true);
+  const [initialCamera, setInitialCamera] = useState<{
+    centerCoordinate: [number, number];
+    zoomLevel: number;
+  } | null>(null);
+
   const [confirmLoading, setConfirmLoading] = useState<boolean>(false);
 
   const mapRef = useRef<MapboxGL.MapView>(null);
   const cameraRef = useRef<MapboxGL.Camera>(null);
   const searchTimeoutRef = useRef<number | null>(null);
+  const hasInitialized = useRef(false);
 
+  // Set initial camera position based on initialLocation
   useEffect(() => {
-    (async () => {
-      const granted = await checkAndRequestLocationPermission();
-      if (granted === true) {
-        try {
-          const coords = await getCurrentLocation();
-          setCurrentLocation(coords);
-
-          // Tự động zoom vào vị trí hiện tại khi lần đầu lấy được
-          cameraRef.current?.setCamera({
-            centerCoordinate: coords,
-            zoomLevel: 16,
-            animationDuration: 1000,
-          });
-        } catch (err) {
-          console.warn('Lỗi lấy vị trí:', err);
-        }
+    if (initialLocation && !hasInitialized.current) {
+      if (initialLocation?.latitude === 0 && initialLocation?.longitude === 0) {
+        // Will use current location in handleMapReady
+        setInitialCamera({
+          centerCoordinate: [106.6297, 10.8231],
+          zoomLevel: 10,
+        });
+      } else {
+        const coords: [number, number] = [
+          initialLocation.longitude,
+          initialLocation.latitude,
+        ];
+        setInitialCamera({
+          centerCoordinate: coords,
+          zoomLevel: 16,
+        });
+        setMarkerCoordinate(coords);
+        setSelectedLocation({
+          name: initialLocation.name || '',
+          latitude: initialLocation.latitude,
+          longitude: initialLocation.longitude,
+        });
       }
-    })();
-  }, []);
-
-  // If initialLocation is supplied/updated asynchronously (for example when
-  // editing an existing address), update marker + selected location and
-  // move the camera to that coordinate so the user sees the address on map.
-  useEffect(() => {
-    if (!initialLocation) return;
-
-    const { latitude, longitude } = initialLocation;
-    const coord: [number, number] = [longitude, latitude];
-
-    setSelectedLocation(initialLocation);
-    setMarkerCoordinate(coord);
-    // Move camera to the provided location
-    cameraRef.current?.setCamera({
-      centerCoordinate: coord,
-      zoomLevel: 16,
-      animationDuration: 700,
-    });
+      hasInitialized.current = true;
+    }
   }, [initialLocation]);
+
+  const handleMapReady = async () => {
+    const granted = await checkAndRequestLocationPermission();
+    if (granted === true) {
+      try {
+        if (
+          initialLocation?.latitude === 0 &&
+          initialLocation?.longitude === 0
+        ) {
+          const coords = await getCurrentLocation();
+
+          setMarkerCoordinate(coords);
+          const name = await reverseGeocodeService(coords[0], coords[1]);
+          setSelectedLocation({
+            name: name.name,
+            latitude: coords[1],
+            longitude: coords[0],
+          });
+
+          // Delay để đảm bảo camera đã sẵn sàng
+          setTimeout(() => {
+            cameraRef.current?.setCamera({
+              centerCoordinate: coords,
+              zoomLevel: 16,
+              animationDuration: 1000,
+            });
+          }, 300);
+        }
+      } catch (err) {
+        console.warn('Lỗi lấy vị trí:', err);
+      }
+    }
+  };
 
   const searchLocation = async (query: string): Promise<void> => {
     setLoading(true);
     try {
-      const results = await searchLocationService(
-        query,
-        currentLocation ?? undefined,
-      );
-      setSearchResults(results.features || []);
+      const results = await searchLocationService(query);
+      setSearchResults(results || []);
     } catch (error) {
       setSearchResults([]);
-      toast.show({
-        type: 'error',
-        text1: 'Lỗi',
-        text2: 'Không thể tìm kiếm địa điểm. Vui lòng thử lại.',
-      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSelectLocation = (feature: MapboxFeature): void => {
+  const handleSelectLocation = (item: LocationIQResult): void => {
     Keyboard.dismiss();
-    const [longitude, latitude] = feature.center;
+    const [longitude, latitude] =
+      item.lon && item.lat
+        ? [parseFloat(item.lon), parseFloat(item.lat)]
+        : [0, 0];
 
     const location: LocationData = {
-      name: feature.place_name,
+      name: item.display_name,
       latitude,
       longitude,
     };
 
     setSelectedLocation(location);
     setMarkerCoordinate([longitude, latitude]);
-    // Clear search results and search input after selecting a result
+
     setSearchResults([]);
     setSearchQuery('');
-    setShowCurrentLocation(false);
 
     cameraRef.current?.setCamera({
       centerCoordinate: [longitude, latitude],
@@ -160,20 +179,20 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
   };
 
   const reverseGeocode = async (longitude: number, latitude: number) => {
+    // Set marker trước để hiển thị ngay
+    setMarkerCoordinate([longitude, latitude]);
+
     try {
       const location = await reverseGeocodeService(longitude, latitude);
-      setMarkerCoordinate([longitude, latitude]);
       setSelectedLocation(location);
-      setShowCurrentLocation(false);
     } catch (error) {
+      console.warn('Reverse geocode error:', error);
       const fallbackLocation: LocationData = {
         name: 'Vị trí đã chọn',
         latitude,
         longitude,
       };
-      setMarkerCoordinate([longitude, latitude]);
       setSelectedLocation(fallbackLocation);
-      setShowCurrentLocation(false);
     }
   };
 
@@ -184,7 +203,6 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
       try {
         await onLocationSelect(selectedLocation);
       } catch (err) {
-        // propagate or handle if needed
         console.warn('onLocationSelect error', err);
       } finally {
         setConfirmLoading(false);
@@ -197,15 +215,16 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
     if (granted === true) {
       try {
         const coords = await getCurrentLocation();
-        setCurrentLocation(coords);
+
         cameraRef.current?.setCamera({
           centerCoordinate: coords,
           zoomLevel: 16,
           animationDuration: 1000,
         });
-        setShowCurrentLocation(true);
-        setMarkerCoordinate(null);
-        setSelectedLocation(null);
+
+        // Tự động chọn vị trí hiện tại
+        const [longitude, latitude] = coords;
+        await reverseGeocode(longitude, latitude);
         setSearchQuery('');
       } catch (err) {
         console.warn('Lỗi lấy vị trí:', err);
@@ -226,13 +245,9 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
             value={searchQuery}
             onChangeText={text => {
               setSearchQuery(text);
-
-              // Clear previous timeout
               if (searchTimeoutRef.current) {
                 clearTimeout(searchTimeoutRef.current);
               }
-
-              // Clear results if input is empty
               if (text.trim().length === 0) {
                 setSearchResults([]);
                 return;
@@ -288,7 +303,7 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
             <View>
               {searchResults.map(item => (
                 <TouchableOpacity
-                  key={item.id}
+                  key={item.place_id}
                   className="flex-row items-center px-4 py-3 border-b border-gray-100"
                   onPress={() => handleSelectLocation(item)}
                 >
@@ -302,7 +317,7 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
                     className="flex-1 text-sm text-gray-800"
                     numberOfLines={2}
                   >
-                    {item.place_name}
+                    {item.display_name}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -324,47 +339,16 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
         style={{ flex: 1 }}
         styleURL={MapboxGL.StyleURL.Street}
         onPress={handleMapPress}
+        onDidFinishLoadingMap={handleMapReady}
         compassEnabled={true}
         logoEnabled={false}
       >
         <MapboxGL.Camera
           ref={cameraRef}
-          zoomLevel={initialLocation ? 16 : 5}
-          centerCoordinate={
-            initialLocation
-              ? [initialLocation.longitude, initialLocation.latitude]
-              : [105.8342, 16.0]
-          }
+          zoomLevel={initialCamera?.zoomLevel || 5}
+          centerCoordinate={initialCamera?.centerCoordinate || [105.8342, 16.0]}
           animationDuration={0}
         />
-
-        {/* Current Location Marker */}
-        {currentLocation && showCurrentLocation && (
-          <MapboxGL.PointAnnotation
-            id="currentLocation"
-            coordinate={currentLocation}
-          >
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'white',
-                borderRadius: 20,
-                borderWidth: 2,
-                borderColor: '#e85a4f',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.25,
-                shadowRadius: 4,
-                elevation: 5,
-              }}
-            >
-              <Icon name="my-location" size={24} color="#e85a4f" />
-            </View>
-          </MapboxGL.PointAnnotation>
-        )}
 
         {/* Selected Location Marker */}
         {markerCoordinate && (
@@ -391,6 +375,9 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
             borderRadius: 28,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 5,
           }}
           onPress={handleMyLocation}
           activeOpacity={0.7}

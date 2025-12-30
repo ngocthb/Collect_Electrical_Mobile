@@ -23,7 +23,7 @@ const menuItems = [
   { id: 3, title: 'Ví của tôi', icon: 'credit-card', color: '#F59E0B' },
   { id: 4, title: 'Lịch thu gom mặc định', icon: 'calendar', color: '#e85a4f' },
   { id: 5, title: 'Thống kê', icon: 'bar-chart-2', color: '#F97316' },
-  { id: 6, title: 'Địa chỉ mặc định', icon: 'map-pin', color: '#059669' },
+  { id: 6, title: 'Thông tin địa chỉ', icon: 'map-pin', color: '#059669' },
 ];
 
 const ProfileScreen = () => {
