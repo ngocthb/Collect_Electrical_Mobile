@@ -65,12 +65,16 @@ export const initZegoService = async (
           incomingCallFileName: 'zego_incoming.wav',
           outgoingCallFileName: 'zego_incoming.wav',
         },
-        notifyWhenAppRunningInBackgroundOrQuit: false, // ✅ Tắt auto-show khi app background
+        notifyWhenAppRunningInBackgroundOrQuit: true , // ✅ Tắt auto-show khi app background
         isIOSSandboxEnvironment: false,
         androidNotificationConfig: {
           channelID: 'thu_gom',
           channelName: 'thu_gom',
         },
+        iOSCallKit: {
+      enabled: true,
+      appName: 'Ewise',
+    },
         innerText: {
           incomingCallPageDeclineButton: 'Từ chối',
           incomingCallPageAcceptButton: 'Chấp nhận',
