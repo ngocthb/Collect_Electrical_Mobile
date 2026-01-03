@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Dimensions,
+} from 'react-native';
 import toast from 'react-native-toast-message';
 import SubLayout from '../../layout/SubLayout';
 import AppButton from '../../components/ui/AppButton';
@@ -15,7 +21,7 @@ import { uploadImageToCloudinary } from '../../config/cloudinary';
 import { setUser } from '../../store/slices/authSlice';
 import { logout } from '../../store/slices/authSlice';
 import { signOut } from '../../services/authService';
-
+const { width, height } = Dimensions.get('window');
 const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
   const user = useAppSelector(s => s.auth.user);
   const dispatch = useAppDispatch();
@@ -137,8 +143,15 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
   };
 
   return (
-    <SubLayout title="Hồ sơ của tôi" onBackPress={() => navigation.goBack()}>
-      <ScrollView className="flex-1  bg-background-50 px-6 pt-6">
+    <SubLayout
+      noScroll
+      title="Hồ sơ của tôi"
+      onBackPress={() => navigation.goBack()}
+    >
+      <View
+        className="flex-1  bg-background-50 px-6 "
+        style={{ paddingBottom: 20 * (height / 812) }}
+      >
         <View className="items-center mb-6">
           <View>
             <View className="relative bg-primary-100 rounded-full p-1">
@@ -161,8 +174,8 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
             >
               <View
                 style={{
-                  width: 40,
-                  height: 40,
+                  width: 40 * (width / 375),
+                  height: 40 * (width / 375),
                   borderRadius: 20,
                   backgroundColor: '#e85a4f',
                   alignItems: 'center',
@@ -220,7 +233,7 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
             Xóa tài khoản
           </Text>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
       <ImagePickerModal
         visible={pickerVisible}
         onClose={handlePickerClose}

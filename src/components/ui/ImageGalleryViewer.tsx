@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
+  Dimensions,
 } from 'react-native';
 import ImageModal from './ImageModal';
 
@@ -14,7 +15,7 @@ interface ImageGalleryViewerProps {
   imageSpacing?: number;
   borderRadius?: number;
 }
-
+const { width, height } = Dimensions.get('window');
 const ImageGalleryViewer: React.FC<ImageGalleryViewerProps> = ({
   images,
   imageSize = 84,
@@ -55,8 +56,8 @@ const ImageGalleryViewer: React.FC<ImageGalleryViewerProps> = ({
             <Image
               source={{ uri: img }}
               style={{
-                width: imageSize,
-                height: imageSize,
+                width: (imageSize * height) / 812,
+                height: imageSize * (height / 812),
                 borderRadius: borderRadius,
                 marginRight: i < images.length - 1 ? imageSpacing : 0,
               }}

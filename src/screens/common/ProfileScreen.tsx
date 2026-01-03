@@ -5,6 +5,7 @@ import {
   SafeAreaView,
   ScrollView,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import MainLayout from '../../layout/MainLayout';
@@ -17,6 +18,7 @@ import { uninitZegoService } from '../../config/zego';
 import { logout } from '../../store/slices/authSlice';
 import { signOut } from '../../services/authService';
 import { useAppDispatch } from '../../store/hooks';
+import Toast from 'react-native-toast-message';
 const menuItems = [
   { id: 1, title: 'Hồ sơ của tôi', icon: 'user', color: '#3366FF' },
   { id: 2, title: 'QR của tôi', icon: 'maximize', color: '#7C3AED' },
@@ -26,12 +28,14 @@ const menuItems = [
   { id: 6, title: 'Thông tin địa chỉ', icon: 'map-pin', color: '#059669' },
 ];
 
+const { width, height } = Dimensions.get('window');
 const ProfileScreen = () => {
   const { user } = useAppSelector(s => s.auth);
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const isUser = String(user?.role ?? '').toLowerCase() === 'user';
   const dispatch = useAppDispatch();
+  console.log(user);
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -70,7 +74,16 @@ const ProfileScreen = () => {
         navigation.navigate('EditProfile');
         break;
       case 2:
-        navigation.navigate('MyQr');
+        if (user?.phone != null && user?.phone !== '') {
+          navigation.navigate('MyQr');
+        } else {
+          Toast.show({
+            type: 'info',
+            text1: 'Vui lòng cập nhật số điện thoại để sử dụng tính năng này.',
+            visibilityTime: 1500,
+          });
+          navigation.navigate('EditProfile');
+        }
         break;
       case 3:
         navigation.navigate('Wallet');
@@ -108,7 +121,10 @@ const ProfileScreen = () => {
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           {/* Profile Header Card */}
           <View className="px-6 pt-12 pb-6">
-            <View className="bg-primary-100 rounded-3xl p-6 border-2 border-red-200">
+            <View
+              className="bg-primary-100 rounded-3xl  border-2 border-red-200"
+              style={{ padding: (18 * height) / 812 }}
+            >
               <View className="flex-row items-center">
                 <View className="relative mr-4">
                   <AppAvatar
@@ -131,7 +147,7 @@ const ProfileScreen = () => {
                   </Text>
 
                   {isUser && (
-                    <View className="mt-3 bg-white/20 rounded-full px-4 py-2 self-start mr-6">
+                    <View className="mt-3 bg-white/20 rounded-full px-4 py-2 self-start">
                       <View className="flex-row items-center">
                         <Text className="text-white font-bold text-base mr-2">
                           {isUser &&

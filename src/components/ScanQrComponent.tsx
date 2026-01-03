@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Dimensions } from 'react-native';
 import { Camera, CameraType } from 'react-native-camera-kit';
 
 import AppButton from './ui/AppButton';
@@ -11,7 +11,7 @@ interface ScanQrComponentProps {
   subtitle?: string;
   instruction?: string;
 }
-
+const { width, height } = Dimensions.get('window');
 const ScanQrComponent: React.FC<ScanQrComponentProps> = ({
   onClose,
   onScan,
@@ -39,7 +39,10 @@ const ScanQrComponent: React.FC<ScanQrComponentProps> = ({
   };
 
   return (
-    <View className="flex-1 bg-background-50 px-4 pt-8 items-center">
+    <View
+      className="flex-1 bg-background-50 px-4  items-center"
+      style={{ paddingTop: (20 * height) / 812 }}
+    >
       <Text className="text-xl font-bold mb-2 text-primary-700 text-center">
         {title}
       </Text>

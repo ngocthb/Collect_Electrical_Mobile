@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-
+import { View, Text, Image, StyleSheet, Dimensions } from 'react-native';
+const { width, height } = Dimensions.get('window');
 type Props = {
   name?: string | null;
   uri?: string | null;
@@ -26,7 +26,11 @@ const AppAvatar: React.FC<Props> = ({ name, uri, size = 80, style }) => {
       <Image
         source={{ uri }}
         style={[
-          { width: size, height: size, borderRadius },
+          {
+            width: (size * height) / 812,
+            height: (size * height) / 812,
+            borderRadius,
+          },
           styles.image,
           style,
         ]}
@@ -38,7 +42,12 @@ const AppAvatar: React.FC<Props> = ({ name, uri, size = 80, style }) => {
   return (
     <View
       style={[
-        { width: size, height: size, borderRadius, backgroundColor: '#E98074' },
+        {
+          width: (size * height) / 812,
+          height: size * (height / 812),
+          borderRadius,
+          backgroundColor: '#E98074',
+        },
         styles.container,
         style,
       ]}

@@ -1,7 +1,7 @@
 import React, { useState, forwardRef } from 'react';
 import { View, TextInput, Text, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { TextInputProps } from 'react-native';
+import { TextInputProps, Dimensions } from 'react-native';
 
 interface AppInputProps extends TextInputProps {
   label?: string;
@@ -21,7 +21,7 @@ interface AppInputProps extends TextInputProps {
   compact?: boolean; // nếu true thì render input nhỏ hơn (padding, font-size giảm)
   numberOfLines?: number; // New prop to specify the number of lines
 }
-
+const { width, height } = Dimensions.get('window');
 const AppInput = forwardRef<TextInput, AppInputProps>(
   (
     {
@@ -135,7 +135,7 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
           onBlur={handleBlur}
           multiline={numberOfLines > 1} // Enable multiline if numberOfLines > 1
           style={{
-            minHeight: compact ? 30 : 40, // đặt chiều cao tối thiểu
+            minHeight: compact ? (30 * height) / 812 : (40 * height) / 812,
             paddingVertical: compact ? 4 : 8,
             lineHeight: compact ? 16 : 20,
           }}

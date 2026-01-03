@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Image } from 'react-native';
+import { View, Text, ScrollView, Image, Dimensions } from 'react-native';
 import toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Feather';
 import routeService from '../../services/routeService';
@@ -10,7 +10,7 @@ import AppAvatar from '../../components/ui/AppAvatar';
 import ImageGalleryViewer from '../../components/ui/ImageGalleryViewer';
 import SubLayout from '../../layout/SubLayout';
 import { useSelector } from 'react-redux';
-
+const { width, height } = Dimensions.get('window');
 interface DeliveryScanQrScreenProps {
   navigation: any;
   route: any;
@@ -141,11 +141,15 @@ const DeliveryScanQrScreen = ({
     <SubLayout
       title="Xác thực sản phẩm"
       onBackPress={() => navigation.goBack()}
+      noScroll={true}
     >
       <View className="flex-1 bg-background-50">
         <View className="flex-1 px-6 pb-8">
           {!shipperId && (
-            <View className="items-center pt-12">
+            <View
+              className="items-center"
+              style={{ marginTop: (20 * height) / 812 }}
+            >
               <View className="w-20 h-20 bg-red-50 rounded-full items-center justify-center ">
                 <Icon name="box" size={40} color="#e85a4f" />
               </View>

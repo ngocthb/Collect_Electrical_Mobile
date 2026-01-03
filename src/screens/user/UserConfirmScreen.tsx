@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Dimensions,
+} from 'react-native';
 import toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Feather';
 import ScanQrComponent from '../../components/ScanQrComponent';
@@ -10,7 +17,7 @@ import { useNavigation } from '@react-navigation/core';
 import routeService from '../../services/routeService';
 import ImageModal from '../../components/ui/ImageModal';
 import ImageGalleryViewer from '../../components/ui/ImageGalleryViewer';
-
+const { width, height } = Dimensions.get('window');
 const UserConfirmScreen = () => {
   const [shipperId, setShipperId] = useState<string | null>(null);
   const [shipperInfo, setShipperInfo] = useState<any | null>(null);
@@ -116,10 +123,13 @@ const UserConfirmScreen = () => {
       onBackPress={() => navigation.goBack()}
     >
       <ScrollView className="flex-1 bg-background-50">
-        <View className="flex-1 px-6  pb-8">
+        <View className="flex-1 px-6">
           {/* Header Icon - Only show when not scanned */}
           {!shipperId && !shipperInfo && (
-            <View className="items-center mb-6">
+            <View
+              className="items-center"
+              style={{ marginTop: (20 * height) / 812 }}
+            >
               <View className="w-20 h-20 bg-red-50 rounded-full items-center justify-center">
                 <Icon name="user" size={40} color="#e85a4f" />
               </View>

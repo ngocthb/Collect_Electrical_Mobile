@@ -6,6 +6,7 @@ import {
   Text,
   ActivityIndicator,
   Keyboard,
+  Dimensions,
 } from 'react-native';
 import toast from 'react-native-toast-message';
 
@@ -29,7 +30,7 @@ import ConfirmModal from './ConfirmModal';
 interface CreateAddressProps {
   onLocationSelect: (location: LocationData) => Promise<void> | void;
 }
-
+const { width, height } = Dimensions.get('window');
 const CreateAddress: React.FC<CreateAddressProps> = ({ onLocationSelect }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<
@@ -185,7 +186,11 @@ const CreateAddress: React.FC<CreateAddressProps> = ({ onLocationSelect }) => {
 
       {/* Search Results */}
       {searchQuery.length > 0 && !loading && (
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          className="flex-1"
+          style={{ maxHeight: height - 200 }}
+        >
           {searchResults.length > 0 ? (
             <View className="mt-2">
               {searchResults.map((item, index) => (

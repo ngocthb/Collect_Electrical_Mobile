@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Modal,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 import toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
@@ -25,7 +26,7 @@ interface DeliveryQrModalProps {
   onAccept?: () => void;
   onSkip?: () => void;
 }
-
+const { width, height } = Dimensions.get('window');
 const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
   visible,
   onClose,
@@ -256,7 +257,10 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
               <View className="bg-gray-50 p-6 rounded-2xl mb-2 items-center">
                 {product ? (
                   <>
-                    <QRCode value={JSON.stringify(confirmPayload)} size={220} />
+                    <QRCode
+                      value={JSON.stringify(confirmPayload)}
+                      size={(220 * height) / 812}
+                    />
                     <Text className="mt-6 text-xs font-bold tracking-widest text-primary-100 text-center">
                       {product?.collectionRouteId}
                     </Text>

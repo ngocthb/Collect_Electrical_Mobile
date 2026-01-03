@@ -229,7 +229,7 @@ const DeliveryPhotoConfirmScreen = () => {
                 <AppButton
                   title="Tiếp tục"
                   onPress={handleProceedAnyway}
-                  color="#22c55e"
+                  color="#3366CC"
                 />
               </View>
             </View>

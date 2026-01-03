@@ -176,7 +176,7 @@ const PickupTimeSelector: React.FC = () => {
             <View>
               <View className="flex-row items-center justify-between">
                 <TouchableOpacity
-                  className="flex-1 flex-row items-center justify-between px-2 py-3 border rounded-md border-gray-300 bg-white mr-2"
+                  className="flex-1 flex-row items-center justify-between px-2 py-3 border rounded-md border-gray-300 bg-white mr-2 h-12"
                   onPress={() =>
                     openDropdown(timeSlot[0].dayName, timeSlot[0].slots)
                   }
@@ -192,7 +192,7 @@ const PickupTimeSelector: React.FC = () => {
                     onPress={() =>
                       openCustomModal(timeSlot[0].dayName, timeSlot[0].slots)
                     }
-                    className="w-28 mr-2 border border-gray-300 bg-white rounded-md px-3 py-1 h-12"
+                    className="w-24 mr-2 border border-gray-300 bg-white rounded-md px-3 py-1 h-12"
                   >
                     <Text className="text-xs text-gray-500">Từ</Text>
                     <Text className="text-sm text-text-main ">
@@ -204,7 +204,7 @@ const PickupTimeSelector: React.FC = () => {
                     onPress={() =>
                       openCustomModal(timeSlot[0].dayName, timeSlot[0].slots)
                     }
-                    className="w-28 border border-gray-300 bg-white rounded-md px-3 py-1 h-12"
+                    className="w-24 border border-gray-300 bg-white rounded-md px-3 py-1 h-12"
                   >
                     <Text className="text-xs text-gray-500">Đến</Text>
                     <Text className="text-sm text-text-main">
@@ -258,7 +258,7 @@ const PickupTimeSelector: React.FC = () => {
                 </Text>
 
                 <TouchableOpacity
-                  className="flex-1 flex-row items-center justify-between px-2 py-3 border rounded-md border-gray-300 bg-white "
+                  className="flex-1 flex-row items-center justify-between px-2 py-3 border rounded-md border-gray-300 bg-white h-12"
                   onPress={() => openDropdown(day.dayName, day.slots)}
                 >
                   <Text className="text-sm text-text-main flex-1">
@@ -270,7 +270,7 @@ const PickupTimeSelector: React.FC = () => {
                 <View className="flex-row items-start">
                   <TouchableOpacity
                     onPress={() => openCustomModal(day.dayName, day.slots)}
-                    className="w-24 mr-2 border border-gray-300 rounded-md px-3 py-1 h-12 bg-white"
+                    className="w-20 mr-2 border border-gray-300 rounded-md px-3 py-1 h-12 bg-white"
                   >
                     <Text className="text-xs text-gray-500">Từ</Text>
                     <Text className="text-sm text-text-main ">
@@ -280,7 +280,7 @@ const PickupTimeSelector: React.FC = () => {
 
                   <TouchableOpacity
                     onPress={() => openCustomModal(day.dayName, day.slots)}
-                    className="w-24 border border-gray-300 rounded-md px-3 py-1 h-12 bg-white"
+                    className="w-20 border border-gray-300 rounded-md px-3 py-1 h-12 bg-white"
                   >
                     <Text className="text-xs text-gray-500">Đến</Text>
                     <Text className="text-sm text-text-main ">

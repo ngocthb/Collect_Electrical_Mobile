@@ -7,6 +7,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { useState } from 'react';
 import appleAuth, {
@@ -26,7 +27,7 @@ import {
 import AppButton from '../../components/ui/AppButton';
 import { getUserAddresses } from '../../services/addressService';
 import { setAddressList } from '../../store/slices/addressSlice';
-
+const { width, height } = Dimensions.get('window');
 const simpleLogin = require('../../assets/images/simplelogin.png');
 const google = require('../../assets/images/google.jpg');
 const logo = require('../../assets/images/logo.png');
@@ -107,14 +108,20 @@ export default function UserLoginScreen() {
         <View className="flex-1 items-center justify-center px-6">
           <Image
             source={logo}
-            className="w-24 h-24 mb-12"
+            style={{
+              width: width * 0.2,
+              height: width * 0.2,
+              marginBottom: height * 0.04,
+            }}
             resizeMode="contain"
           />
 
-          {/* Banner lớn */}
           <Image
             source={simpleLogin}
-            className="w-72 h-72"
+            style={{
+              width: width * 0.6,
+              height: width * 0.6,
+            }}
             resizeMode="contain"
           />
 

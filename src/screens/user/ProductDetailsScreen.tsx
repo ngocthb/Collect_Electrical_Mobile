@@ -358,7 +358,7 @@ const ProductDetailsScreen = () => {
 
             {renderAttributesOrCondition()}
 
-            {showVerifyButton  && (
+            {showVerifyButton && (
               <View className="mt-4 mb-4">
                 <View className="flex-row">
                   <View style={{ width: '48%', marginRight: '4%' }}>
