@@ -8,6 +8,7 @@ interface SizeOptionsProps {
   selectedOptions: string[];
   onToggle: (option: string) => void;
   emptyText?: string;
+  singleSelect?: boolean;
 }
 
 const SizeOptions: React.FC<SizeOptionsProps> = ({
@@ -16,7 +17,22 @@ const SizeOptions: React.FC<SizeOptionsProps> = ({
   selectedOptions,
   onToggle,
   emptyText = 'Không có dữ liệu',
+  singleSelect = true,
 }) => {
+  const handleToggle = (option: string) => {
+    if (singleSelect) {
+      if (selectedOptions.includes(option)) {
+        onToggle(option);
+      } else {
+        selectedOptions.forEach(selected => onToggle(selected));
+
+        onToggle(option);
+      }
+    } else {
+      onToggle(option);
+    }
+  };
+
   return (
     <View className="mb-4">
       <Text className="text-sm font-semibold mb-3 text-primary-100">
@@ -32,7 +48,7 @@ const SizeOptions: React.FC<SizeOptionsProps> = ({
                 selectedOptions.includes(option) ? 'bg-primary-100' : 'bg-white'
               }`}
               style={{ borderColor: '#F2B7AC' }}
-              onPress={() => onToggle(option)}
+              onPress={() => handleToggle(option)}
             >
               <Text
                 className={`text-sm font-semibold ${

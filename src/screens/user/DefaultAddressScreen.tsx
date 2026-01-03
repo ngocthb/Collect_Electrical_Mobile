@@ -3,12 +3,11 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import toast from 'react-native-toast-message';
 import SubLayout from '../../layout/SubLayout';
 import AddressSelector from '../../components/AddressSelector';
-import AppButton from '../../components/ui/AppButton';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { setUser } from '../../store/slices/authSlice';
+
 import type { Address } from '../../types/Address';
 import { useNavigation } from '@react-navigation/native';
-import { getUserAddresses, updateAddress } from '../../services/addressService';
+import { getUserAddresses } from '../../services/addressService';
 
 import { setAddressList } from '../../store/slices/addressSlice';
 
@@ -50,7 +49,7 @@ const DefaultAddressScreen: React.FC = () => {
 
   return (
     <SubLayout
-      title="Địa chỉ mặc định"
+      title="Thông tin địa chỉ"
       onBackPress={() => navigation.goBack()}
       onRefresh={handleRefresh}
     >

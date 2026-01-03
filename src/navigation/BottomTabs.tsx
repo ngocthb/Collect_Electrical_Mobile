@@ -13,6 +13,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import DeliveryHomeScreen from '../screens/delivery/DeliveryHomeScreen';
 import NotificationScreen from '../screens/user/NotificationScreen';
 import CategoryPickerModal from '../components/CategoryPickerModal';
+import Toast from 'react-native-toast-message';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -30,6 +31,7 @@ function BottomTabs() {
   const role = user?.user?.role.toLocaleLowerCase();
   const navigation = useNavigation<any>();
   const [catModalVisible, setCatModalVisible] = useState(false);
+  const isHaveAddress = useAppSelector(s => s.address.list.length > 0);
 
   const userTabs = (
     <Tab.Navigator
@@ -65,7 +67,19 @@ function BottomTabs() {
           tabBarButton: (props: any) => (
             <CenterPlusButton
               {...props}
-              onPress={() => setCatModalVisible(true)}
+              onPress={() => {
+                if (!isHaveAddress) {
+                  Toast.show({
+                    type: 'info',
+                    text1: 'Vui lòng thêm địa chỉ trước khi tạo yêu cầu',
+                    visibilityTime: 1500,
+                  });
+                  navigation.navigate('DefaultAddress');
+                  return;
+                }
+
+                setCatModalVisible(true);
+              }}
             />
           ),
         }}

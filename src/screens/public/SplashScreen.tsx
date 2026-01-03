@@ -9,12 +9,11 @@ interface SplashScreenProps {
 
 export default function SplashScreen({ onFinish }: SplashScreenProps) {
   const scaleCircle = useRef(new Animated.Value(0)).current;
-  const fadeCircle = useRef(new Animated.Value(1)).current; // 👈 opacity circle
+  const fadeCircle = useRef(new Animated.Value(1)).current;
   const fadeLogo = useRef(new Animated.Value(0)).current;
   const scaleLogo = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
-    // 1️⃣ Circle lớn dần
     Animated.timing(scaleCircle, {
       toValue: 1.3,
       duration: 300,
@@ -57,8 +56,8 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
         style={{
           position: 'absolute',
           top: '42%',
-          width: 50,
-          height: 50,
+          width: 30,
+          height: 30,
           borderRadius: 60,
           backgroundColor: '#e85a4f',
           transform: [{ scale: scaleCircle }],

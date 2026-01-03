@@ -2,7 +2,7 @@ import React from 'react';
 import { SafeAreaView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import SubLayout from '../../layout/SubLayout';
-import MapboxPicker from '../../components/MapboxPicker';
+import CreateAddress from '../../components/CreateAddress';
 import { LocationData } from '../../types/MapboxPicker';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
@@ -137,19 +137,7 @@ const AddressMap: React.FC = () => {
       enableRefresh={true}
     >
       <SafeAreaView className="flex-1 bg-white">
-        <MapboxPicker
-          onLocationSelect={handleLocationSelect}
-          initialLocation={{
-            latitude: addressData?.iat ?? 0,
-            longitude: addressData?.ing ?? 0,
-            name: addressData?.address ?? '',
-          }}
-          searchPlaceholder="Tìm kiếm địa điểm ..."
-          confirmButtonText={
-            mode === 'edit' ? 'Cập nhật địa chỉ' : 'Thêm địa chỉ mới'
-          }
-          showMyLocationButton={true}
-        />
+        <CreateAddress onLocationSelect={handleLocationSelect} />
       </SafeAreaView>
     </SubLayout>
   );

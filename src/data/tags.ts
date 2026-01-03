@@ -1,3 +1,3 @@
-const tags: string[] = ['Đã hỏng', 'Có thể sửa', 'Không hoạt động'];
+const tags: string[] = ['Đã hỏng', 'Hoạt động'];
 
 export default tags;

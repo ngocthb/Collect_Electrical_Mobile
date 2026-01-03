@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, ScrollView, Image, RefreshControl } from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  RefreshControl,
+  TouchableOpacity,
+} from 'react-native';
+
 import AppButton from './ui/AppButton';
 import AppAvatar from './ui/AppAvatar';
 import ImageGalleryViewer from './ui/ImageGalleryViewer';
@@ -8,7 +15,7 @@ import DeliveryQrModal from '../components/DeliveryQrModal';
 // @ts-ignore
 import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import axiosClient from '../config/axios';
-
+import { Linking } from 'react-native';
 const ARRIVAL_DISTANCE_THRESHOLD = 1500; // meters
 
 type Props = {
@@ -186,6 +193,29 @@ const DeliveryMapPanel: React.FC<Props> = ({
     };
   }, [onRefresh]);
 
+  const handleDirections = async () => {
+    const lat = normalizedRequest?.iat;
+    const lng = normalizedRequest?.ing;
+
+    if (!lat || !lng) {
+      console.warn('No coordinates available for directions');
+      return;
+    }
+
+    try {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        const fallbackUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+        await Linking.openURL(fallbackUrl);
+      }
+    } catch (e) {
+      console.warn('Cannot open Google Maps', e);
+    }
+  };
+
   console.log(normalizedRequest);
   return (
     <ScrollView
@@ -225,9 +255,11 @@ const DeliveryMapPanel: React.FC<Props> = ({
                     <Text className="text-white font-semibold text-base mb-1">
                       {normalizedRequest?.sender?.name ?? 'Người gửi'}
                     </Text>
-                    <Text className="text-sm text-white">
-                      {normalizedRequest?.address || '—'}
-                    </Text>
+                    <TouchableOpacity onPress={handleDirections}>
+                      <Text className="text-sm text-white">
+                        {normalizedRequest?.address || '—'}
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                   <ZegoSendCallInvitationButton
                     invitees={invitees}

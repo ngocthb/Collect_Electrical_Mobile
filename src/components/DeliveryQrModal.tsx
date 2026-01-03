@@ -184,7 +184,6 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
       }
     };
   }, [product?.collectionRouteId, navigation]);
-  console.log(product);
   const confirmPayload = {
     code: product?.collectionRouteId,
     shipper: {

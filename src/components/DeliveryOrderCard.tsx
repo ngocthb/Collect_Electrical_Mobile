@@ -96,81 +96,49 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
       </View>
 
       {/* Order card */}
-      <View className="flex-1">
-        <View className="flex-row justify-between mb-1">
-          <View className="flex-col flex-1">
-            <View className="flex-row items-center mb-1">
-              <View>
+      <View className="flex-1 flex-row items-center">
+        <TouchableOpacity
+          onPress={handleEyePress}
+          disabled={!isSelectedDateToday || actionsDisabled}
+          className="flex-1"
+        >
+          <View className="flex-row justify-between items-center mb-1">
+            <View className="flex-col flex-1">
+              <View className="flex-row items-center mb-1">
                 <Text className="text-sm font-bold text-text-main">
                   {order?.sender?.name}
                 </Text>
               </View>
+              <Text className="text-xs text-text-main">
+                {order?.estimatedTime}
+              </Text>
             </View>
-            <Text className="text-xs text-text-main">
-              <Icon name="clock" size={10} color="#e85a4f" />{' '}
-              {order?.estimatedTime}
-            </Text>
-          </View>
 
-          <View className="flex-row gap-3 items-start">
-            <TouchableOpacity
-              onPress={() =>
-                isSelectedDateToday && !actionsDisabled && handleEyePress()
-              }
-              className="bg-gray-100 rounded-full p-2"
-              disabled={!isSelectedDateToday || actionsDisabled}
-              style={{
-                opacity: !isSelectedDateToday || actionsDisabled ? 0.4 : 1,
-              }}
-            >
-              <Icon name="eye" size={26} color="#3366CC" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() =>
-                isSelectedDateToday && !actionsDisabled && handleDirections()
-              }
-              className="bg-gray-100 rounded-full p-2"
-              disabled={!isSelectedDateToday || actionsDisabled}
-              style={{
-                opacity: !isSelectedDateToday || actionsDisabled ? 0.4 : 1,
-              }}
-            >
-              <Icon name="directions" size={26} color="#3366CC" />
-            </TouchableOpacity>
-
-            {invitees.length > 0 && isSelectedDateToday && !actionsDisabled ? (
-              <ZegoSendCallInvitationButton
-                invitees={invitees}
-                isVideoCall={false}
-                resourceID="thugom_data"
-              />
-            ) : invitees.length > 0 ? (
-              <View
-                className="bg-gray-100 rounded-full p-2"
-                style={{ opacity: 0.4 }}
-              >
-                <Icon name="phone-in-talk" size={26} color="#3366CC" />
-              </View>
-            ) : (
-              <View>
-                <Text style={{ color: 'red', fontSize: 10 }}>
-                  No receiver ID
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-
-        <View className="bg-white rounded-xl p-3 mb-3 border border-red-200 flex-row items-center justify-between">
-          <Text className="flex-1 text-sm font-medium text-text-main">
-            {order?.address}
-          </Text>
-
-          <View className="bg-red-50 px-3 py-1 rounded-lg ">
             <Text className="text-primary-100 font-bold text-lg">
               {order?.distanceKm || '---'} km
             </Text>
           </View>
+        </TouchableOpacity>
+
+        <View className="ml-3">
+          {invitees.length > 0 && isSelectedDateToday && !actionsDisabled ? (
+            <ZegoSendCallInvitationButton
+              invitees={invitees}
+              isVideoCall={false}
+              resourceID="thugom_data"
+            />
+          ) : invitees.length > 0 ? (
+            <View
+              className="bg-gray-100 rounded-full p-2"
+              style={{ opacity: 0.4 }}
+            >
+              <Icon name="phone-in-talk" size={26} color="#3366CC" />
+            </View>
+          ) : (
+            <View>
+              <Text style={{ color: 'red', fontSize: 10 }}>No receiver ID</Text>
+            </View>
+          )}
         </View>
       </View>
     </View>

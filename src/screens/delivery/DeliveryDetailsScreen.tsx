@@ -13,7 +13,6 @@ const DeliveryDetailsScreen = () => {
 
   const [distanceInMeters, setDistanceInMeters] = useState<number>(0);
 
-  // Fetch distance once on mount
   useEffect(() => {
     const fetchInitialDistance = async () => {
       const lat = normalizedRequest?.iat ?? normalizedRequest?.sender?.iat;

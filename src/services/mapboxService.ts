@@ -2,54 +2,92 @@ import { Platform, PermissionsAndroid, Linking } from 'react-native';
 import toast from 'react-native-toast-message';
 import Geolocation from 'react-native-geolocation-service';
 import type { LineString } from 'geojson';
-
+import type { ResolvedLocation } from '../types/MapboxPicker';
 import Config from '../config/env';
 import axios from 'axios';
 
 const MAPBOX_TOKEN = Config.MAPBOX_ACCESS_TOKEN;
-const US1_TOKEN = Config.US1_TOKEN;
+const OPEN_MAP_TOKEN = Config.OPEN_MAP_TOKEN;
 
 export async function searchLocation(query: string) {
-  if (!query.trim()) {
+  if (!query.trim() || query.length < 2) {
     return [];
   }
 
-  const baseUrl = 'https://us1.locationiq.com/v1/search';
+  const url = 'https://mapapis.openmap.vn/v1/place/autocomplete';
 
-  const params = new URLSearchParams({
-    key: US1_TOKEN,
-    q: query,
-    format: 'json',
-    addressdetails: '1',
-    limit: '5',
-    'accept-language': 'vi',
-    countrycodes: 'vn',
-  });
-  const url = `${baseUrl}?${params.toString()}`;
-  const response = await axios.get(url);
-  const data = response.data;
-  return data;
+  const params = {
+    input: query,
+    location: '10.8231,106.6297', // ưu tiên HCM
+    radius: 80, // bao HCM + BD + DN
+    admin_v2: true, // địa giới mới
+    apikey: OPEN_MAP_TOKEN,
+  };
+
+  const res = await axios.get(url, { params });
+  const results = res.data?.predictions ?? [];
+
+  return results;
+}
+
+export async function resolvePlace(placeId: string) {
+  try {
+    const res = await axios.get('https://mapapis.openmap.vn/v1/place', {
+      params: {
+        ids: placeId,
+        admin_v2: true,
+        format: 'google',
+        apikey: OPEN_MAP_TOKEN,
+      },
+    });
+
+    const result = res.data?.result;
+    return {
+      name: result.formatted_address,
+      latitude: result.geometry.location.lat,
+      longitude: result.geometry.location.lng,
+    };
+  } catch (e) {
+    console.warn('resolvePlace failed', e);
+    return null;
+  }
 }
 
 export async function reverseGeocode(longitude: number, latitude: number) {
-  const url = `https://us1.locationiq.com/v1/reverse?key=${US1_TOKEN}&lat=${latitude}&lon=${longitude}&format=json&accept-language=vi`;
-  const res = await axios.get(url);
-  const data = res.data;
-  if (!data?.display_name) {
+  try {
+    const url = 'https://mapapis.openmap.vn/v1/geocode/reverse';
+
+    const params = {
+      latlng: `${latitude},${longitude}`, // ⚠️ lat,lng
+      admin_v2: true,
+      apikey: OPEN_MAP_TOKEN,
+    };
+
+    const res = await axios.get(url, { params });
+    const data = res.data;
+    const result = data?.results?.[0];
+
+    if (!result) {
+      return {
+        name: 'Vị trí đã chọn',
+        latitude,
+        longitude,
+      };
+    }
+
+    return {
+      name: result.formatted_address || 'Vị trí đã chọn',
+      latitude,
+      longitude,
+    };
+  } catch (error) {
     return {
       name: 'Vị trí đã chọn',
       latitude,
       longitude,
     };
   }
-
-  return {
-    name: data?.display_name,
-    latitude,
-    longitude,
-  };
 }
-
 export interface NavigationStep {
   instruction: string;
   distance: number;

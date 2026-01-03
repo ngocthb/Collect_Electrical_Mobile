@@ -8,7 +8,7 @@ import { Swipeable } from 'react-native-gesture-handler';
 import type { Address } from '../types/Address';
 import { deleteAddress } from '../services/addressService';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { saveAddress, setAddressList } from '../store/slices/addressSlice';
+import { setAddressList } from '../store/slices/addressSlice';
 import ConfirmModal from './ConfirmModal';
 
 interface AddressSelectorProps {
@@ -84,6 +84,11 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
       });
     }
   };
+  const closeAllSwipers = () => {
+    swipeableRefs.current.forEach(ref => {
+      ref?.close();
+    });
+  };
 
   const renderRightActions = (addr: Address) => {
     return (
@@ -104,16 +109,22 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
   };
 
   return (
-    <View className="mb-4">
+    <TouchableOpacity
+      activeOpacity={1}
+      onPress={closeAllSwipers}
+      className="flex-1"
+    >
       {isLoading ? (
         <ActivityIndicator size="large" color="#e85a4f" />
       ) : (
         <>
           <View className="flex-row justify-between mb-3 items-center">
             <Text className="text-sm font-semibold text-primary-100">
-              Chọn địa chỉ<Text className="text-red-500"> *</Text>
+              Danh sách địa chỉ<Text className="text-red-500"> *</Text>
             </Text>
-            <Text className="text-xs text-gray-500">Vuốt trái để xóa</Text>
+            {addresses.length > 1 && (
+              <Text className="text-xs text-gray-500">Vuốt trái để xóa</Text>
+            )}
           </View>
 
           {addresses.map(addr => (
@@ -129,17 +140,20 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
                 renderRightActions={() => renderRightActions(addr)}
                 overshootRight={false}
                 friction={2}
+                enabled={addresses.length > 1}
+                onSwipeableWillOpen={() => {
+                  swipeableRefs.current.forEach((ref, id) => {
+                    if (id !== addr.userAddressId) {
+                      ref?.close();
+                    }
+                  });
+                }}
               >
                 <TouchableOpacity
                   className={
                     'px-4 py-3 rounded-xl  flex-row items-center justify-between bg-white border-2 border-red-200'
                   }
-                  onPress={() =>
-                    navigation.navigate('AddressMap', {
-                      mode: 'edit',
-                      address: addr,
-                    })
-                  }
+                  disabled={true}
                   activeOpacity={0.7}
                 >
                   <View className="flex-1 mr-2">
@@ -157,28 +171,22 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
             </View>
           ))}
 
-          <TouchableOpacity
-            className="px-4 py-3 rounded-xl border-2 border-dashed border-primary-100 bg-red-50/30 flex-row items-center justify-center mt-1"
-            onPress={() => {
-              if (addresses.length >= 5) {
-                toast.show({
-                  type: 'warning',
-                  text1: 'Giới hạn địa chỉ',
-                  text2: 'Đã đạt giới hạn tối đa. Vui lòng xóa bớt địa chỉ cũ.',
-                });
-                return;
-              }
-              handleCreateNewAddress();
-            }}
-            activeOpacity={0.7}
-          >
-            <View className="w-6 h-6 bg-primary-100 rounded-full items-center justify-center mr-2">
-              <Icon name="plus" size={14} color="#fff" />
-            </View>
-            <Text className="text-sm font-semibold text-primary-100">
-              Tạo địa chỉ mới
-            </Text>
-          </TouchableOpacity>
+          {addresses.length < 5 && (
+            <TouchableOpacity
+              className="px-4 py-3 rounded-xl border-2 border-dashed border-primary-100 bg-red-50/30 flex-row items-center justify-center mt-1"
+              onPress={() => {
+                handleCreateNewAddress();
+              }}
+              activeOpacity={0.7}
+            >
+              <View className="w-6 h-6 bg-primary-100 rounded-full items-center justify-center mr-2">
+                <Icon name="plus" size={14} color="#fff" />
+              </View>
+              <Text className="text-sm font-semibold text-primary-100">
+                Tạo địa chỉ mới
+              </Text>
+            </TouchableOpacity>
+          )}
         </>
       )}
 
@@ -196,7 +204,7 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
         iconName="trash-2"
         iconColor="#ef4444"
       />
-    </View>
+    </TouchableOpacity>
   );
 };
 

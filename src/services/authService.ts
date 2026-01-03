@@ -2,6 +2,7 @@ import axiosClient from '../config/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import GoogleSignin from '../config/googleSignIn';
 import auth from '@react-native-firebase/auth';
+import messaging from '@react-native-firebase/messaging';
 import { Profile, DeliveryLoginResponse } from '../types/Profile';
 import { Platform } from 'react-native';
 export const signInWithGoogle = async (): Promise<any> => {
@@ -28,7 +29,9 @@ export const signInWithGoogle = async (): Promise<any> => {
     }
 
     const idToken = userInfo.data?.idToken;
+    const fcmToken = await messaging().getToken();
 
+    console.log('📍📍📍📍fcmToken', fcmToken);
     if (!idToken) {
       console.error('❌ Không có idToken');
       throw new Error('Không thể lấy ID token từ Google');
@@ -205,6 +208,30 @@ export const changePassword = async (
   }
 };
 
+export const bootstrapAuth = async (): Promise<{
+  success: boolean;
+  profile?: Profile;
+  role?: string;
+}> => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      return { success: false };
+    }
+
+    const profileData: Profile = await fetchUserProfile();
+
+    const roleVal = (profileData?.role || '').toString().toLowerCase();
+    const role = roleVal === 'delivery' ? 'delivery' : 'user';
+
+    return { success: true, profile: profileData, role };
+  } catch (error) {
+    await AsyncStorage.removeItem('token');
+    console.error('[bootstrapAuth] Error:', error);
+    return { success: false };
+  }
+};
+
 export default {
   signInWithGoogle,
   signOutGoogle,
@@ -212,4 +239,5 @@ export default {
   fetchUserProfile,
   signOut,
   signInWithApple,
+  bootstrapAuth,
 };

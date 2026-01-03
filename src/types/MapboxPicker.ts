@@ -12,33 +12,79 @@ export interface MapboxFeature {
     coordinates: [number, number];
   };
 }
-
-export interface LocationIQAddress {
-  name?: string;
-  road?: string;
-  neighbourhood?: string;
-  suburb?: string;
-  city?: string;
-  county?: string;
-  state?: string;
-  country?: string;
-  country_code?: string;
+export interface OpenMapAddressComponent {
+  long_name: string;
+  short_name?: string;
+  types: string[];
+}
+export interface OpenMapGeometry {
+  location: {
+    lat: number;
+    lng: number;
+  };
 }
 
-export interface LocationIQResult {
+export interface OpenMapResult {
   place_id: string;
-  osm_id: string;
-  osm_type: 'node' | 'way' | 'relation';
 
-  lat: string;
-  lon: string;
+  name?: string;
 
-  display_name: string;
-  importance?: number;
+  address: string; // địa chỉ ngắn
+  formatted_address: string; // địa chỉ đầy đủ để hiển thị
 
-  boundingbox?: [string, string, string, string];
+  address_components: OpenMapAddressComponent[];
 
-  address: LocationIQAddress;
+  geometry: OpenMapGeometry;
 
-  licence?: string;
+  types?: string[];
+
+  zipcode?: string;
+
+  forcodes?: string;
+}
+export interface OpenMapTerm {
+  offset: number;
+  value: string;
+}
+export interface OpenMapStructuredFormatting {
+  main_text: string;
+  main_text_matched_substrings: OpenMapMatchedSubstring[];
+
+  secondary_text: string;
+  secondary_text_matched_substrings: OpenMapMatchedSubstring[];
+}
+export interface OpenMapMatchedSubstring {
+  offset: number;
+  length: number;
+}
+
+export interface OpenMapAutocompleteResult {
+  place_id: string;
+
+  description: string;
+
+  structured_formatting: OpenMapStructuredFormatting;
+
+  terms: OpenMapTerm[];
+
+  types?: string[];
+
+  distance_meters?: number | null;
+
+  has_child?: boolean;
+
+  matched_substrings?: OpenMapMatchedSubstring[];
+}
+
+export interface AutocompleteItem {
+  place_id: string;
+  description: string;
+}
+
+export interface ResolvedLocation {
+  place_id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  address: string;
 }

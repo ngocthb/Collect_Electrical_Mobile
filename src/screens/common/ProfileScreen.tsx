@@ -96,7 +96,7 @@ const ProfileScreen = () => {
       await uninitZegoService();
       // Clear token and sign out from services first
       await signOut();
-      // Then reset redux auth state
+
       dispatch(logout());
     } catch (e) {
       // ignore

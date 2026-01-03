@@ -16,9 +16,16 @@ import Toast from 'react-native-toast-message';
 import { useZegoService } from './src/hooks/useZegoService';
 import 'react-native-url-polyfill/auto';
 import './src/config/googleSignIn';
+import { useEffect } from 'react';
+import { bootstrapApp } from './src/services/bootstrapService';
 
 function AppContent() {
+  const dispatch = useAppDispatch();
   useZegoService();
+
+  useEffect(() => {
+    bootstrapApp(dispatch);
+  }, [dispatch]);
 
   return (
     <>
