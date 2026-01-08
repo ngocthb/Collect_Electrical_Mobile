@@ -4,7 +4,40 @@ import GoogleSignin from '../config/googleSignIn';
 import auth from '@react-native-firebase/auth';
 import messaging from '@react-native-firebase/messaging';
 import { Profile, DeliveryLoginResponse } from '../types/Profile';
-import { Platform } from 'react-native';
+import { Platform, PermissionsAndroid } from 'react-native';
+
+export const requestAndroidNotificationPermission = async (): Promise<void> => {
+  if (Platform.OS === 'android' && Platform.Version >= 33) {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+    );
+
+    console.log('🔔 Notification permission:', granted);
+  }
+};
+
+export const registerFcmToken = async (
+  userId: String,
+): Promise<string | null> => {
+  try {
+    await requestAndroidNotificationPermission();
+    await messaging().requestPermission();
+    const fcmToken = await messaging().getToken();
+    const platform = Platform.OS;
+
+    const response = await axiosClient.post('/notifications/register-device', {
+      fcmToken,
+      platform,
+      userId,
+    });
+    console.log(response);
+    return fcmToken;
+  } catch (error) {
+    console.error('❌ Lỗi lấy FCM token:', error);
+    return null;
+  }
+};
+
 export const signInWithGoogle = async (): Promise<any> => {
   try {
     console.log('🚀 [1] Bắt đầu Google Sign In');
@@ -29,9 +62,7 @@ export const signInWithGoogle = async (): Promise<any> => {
     }
 
     const idToken = userInfo.data?.idToken;
-    const fcmToken = await messaging().getToken();
 
-    console.log('📍📍📍📍fcmToken', fcmToken);
     if (!idToken) {
       console.error('❌ Không có idToken');
       throw new Error('Không thể lấy ID token từ Google');
@@ -58,9 +89,9 @@ export const signInWithGoogle = async (): Promise<any> => {
 
     console.log('🚀 [10] Gọi API backend...');
     const response = await getTokenByLoginGoogle(firebaseIdToken);
-
+    console.log('response', response);
     const _res: any = response;
-    const token = _res?.token || _res?.accessToken || _res?.data?.token || null;
+    const token = _res.token.accessToken;
 
     if (token) {
       await AsyncStorage.setItem('token', token);
@@ -158,6 +189,7 @@ const getTokenByLoginGoogle = async (token: string) => {
 export const fetchUserProfile = async (): Promise<any> => {
   try {
     const response = await axiosClient.get<Profile>('/users/profile');
+
     return response;
   } catch (error) {
     console.error('[fetchUserProfile] Error:', error);

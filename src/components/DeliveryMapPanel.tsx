@@ -16,6 +16,7 @@ import DeliveryQrModal from '../components/DeliveryQrModal';
 import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import axiosClient from '../config/axios';
 import { Linking } from 'react-native';
+import { sendNotification } from '../services/notificationServices';
 const ARRIVAL_DISTANCE_THRESHOLD = 1500; // meters
 
 type Props = {
@@ -43,7 +44,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
   const hasShownQrModalRef = React.useRef(false);
   const hasNotifiedArrivalRef = React.useRef(false);
   const hasReceivedSocketConfirmationRef = React.useRef(false);
-
+  const [isSendNoti, setIsSendNoti] = useState(false);
   // Reset QR modal flag when resetQrTrigger changes (manual refresh only)
   useEffect(() => {
     if (resetQrTrigger && resetQrTrigger > 0) {
@@ -65,6 +66,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
           distanceInMeters,
         );
         setShowQrModal(true);
+        handleSendNoti();
         hasShownQrModalRef.current = true;
 
         if (normalizedRequest?.productId) {
@@ -106,6 +108,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
         distanceInMeters,
       );
       setShowQrModal(true);
+      handleSendNoti();
       hasShownQrModalRef.current = true;
     }
   }, [distanceInMeters, resetQrTrigger]);
@@ -153,6 +156,19 @@ const DeliveryMapPanel: React.FC<Props> = ({
   // pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
   const isRefreshingRef = React.useRef(false);
+
+  const handleSendNoti = async () => {
+    if (isSendNoti) return;
+    if (!normalizedRequest?.productId) return;
+    try {
+      setIsSendNoti(true);
+      const response = sendNotification(normalizedRequest.productId);
+      console.log('📍 Notify arrival called:', response);
+    } catch (err) {
+      console.warn('Failed to notify arrival:', err);
+      setIsSendNoti(false);
+    }
+  };
 
   const handleRefreshInternal = async () => {
     if (!onRefresh) return;
@@ -217,6 +233,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
   };
 
   console.log(normalizedRequest);
+  console.log(distanceInMeters);
   return (
     <ScrollView
       className="flex-1 bg-background-50"

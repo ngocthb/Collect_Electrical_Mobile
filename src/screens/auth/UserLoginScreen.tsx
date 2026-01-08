@@ -23,6 +23,7 @@ import {
   signInWithGoogle,
   fetchUserProfile,
   signInWithApple,
+  registerFcmToken,
 } from '../../services/authService';
 import AppButton from '../../components/ui/AppButton';
 import { getUserAddresses } from '../../services/addressService';
@@ -50,11 +51,7 @@ export default function UserLoginScreen() {
       // @ts-ignore
       globalThis.navigation?.replace('MainTabs');
 
-      Toast.show({
-        type: 'success',
-        text1: 'Đăng nhập thành công!',
-        text2: 'Chào mừng bạn đến với ứng dụng',
-      });
+      await registerFcmToken(profileData.userId);
     } catch (error: any) {
       console.log('Google login error', error);
     } finally {
@@ -90,10 +87,7 @@ export default function UserLoginScreen() {
       // @ts-ignore
       globalThis.navigation?.replace('MainTabs');
 
-      Toast.show({
-        type: 'success',
-        text1: 'Đăng nhập thành công!',
-      });
+      await registerFcmToken(profileData.userId);
     } catch (error) {
       console.log('Apple login error', error);
     } finally {

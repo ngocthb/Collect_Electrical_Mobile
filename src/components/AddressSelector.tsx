@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
@@ -28,9 +29,10 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [addressToDelete, setAddressToDelete] = useState<Address | null>(null);
+  const [tapCount, setTapCount] = useState(0);
   const swipeableRefs = useRef<Map<string, Swipeable>>(new Map());
+  const tapTimeoutRef = useRef<number | null>(null);
 
-  // Auto-select default address when component mounts or addresses change
   useEffect(() => {
     if (!selectedAddress && addresses && addresses.length > 0) {
       const defaultAddr = addresses.find(a => a.isDefault);
@@ -39,6 +41,48 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
       }
     }
   }, [addresses, selectedAddress, onSelectAddress]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (tapTimeoutRef.current) {
+        clearTimeout(tapTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleTapTitle = async () => {
+    const newCount = tapCount + 1;
+    setTapCount(newCount);
+
+    if (tapTimeoutRef.current) {
+      clearTimeout(tapTimeoutRef.current);
+    }
+
+    if (newCount >= 5) {
+      try {
+        const currentValue = await AsyncStorage.getItem('enable_map_mode');
+        const isCurrentlyEnabled = currentValue === 'true';
+        const newValue = isCurrentlyEnabled ? 'false' : 'true';
+
+        await AsyncStorage.setItem('enable_map_mode', newValue);
+        toast.show({
+          type: 'info',
+          text1: isCurrentlyEnabled
+            ? 'Đã tắt chế độ bản đồ'
+            : 'Đã bật chế độ bản đồ',
+          visibilityTime: 1000,
+        });
+        setTapCount(0);
+      } catch (error) {
+        console.error('Error saving to AsyncStorage:', error);
+      }
+    } else {
+      tapTimeoutRef.current = setTimeout(() => {
+        setTapCount(0);
+      }, 1000);
+    }
+  };
 
   const handleCreateNewAddress = async () => {
     onSelectAddress(null);
@@ -119,9 +163,11 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
       ) : (
         <>
           <View className="flex-row justify-between mb-3 items-center">
-            <Text className="text-sm font-semibold text-primary-100">
-              Danh sách địa chỉ<Text className="text-red-500"> *</Text>
-            </Text>
+            <TouchableOpacity onPress={handleTapTitle} activeOpacity={0.8}>
+              <Text className="text-sm font-semibold text-primary-100">
+                Danh sách địa chỉ<Text className="text-red-500"> *</Text>
+              </Text>
+            </TouchableOpacity>
             {addresses.length > 1 && (
               <Text className="text-xs text-gray-500">Vuốt trái để xóa</Text>
             )}

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import SubLayout from '../../layout/SubLayout';
 import CreateAddress from '../../components/CreateAddress';
+import MapboxPicker from '../../components/MapboxPicker';
 import { LocationData } from '../../types/MapboxPicker';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
@@ -17,6 +18,8 @@ import {
   createAddress,
   updateAddress as updateAddressService,
 } from '../../services/addressService';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 type RouteParams = {
   AddressMap: {
     mode?: 'create' | 'edit';
@@ -32,6 +35,21 @@ const AddressMap: React.FC = () => {
 
   const mode = route.params?.mode || 'create';
   const addressData = route.params?.address;
+
+  const [enableMapMode, setEnableMapMode] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkMapMode = async () => {
+      try {
+        const value = await AsyncStorage.getItem('enable_map_mode');
+        setEnableMapMode(value === 'true');
+      } catch (error) {
+        console.error('Error reading AsyncStorage:', error);
+        setEnableMapMode(false);
+      }
+    };
+    checkMapMode();
+  }, []);
 
   const handleLocationSelect = async (location: LocationData) => {
     // If no logged-in user, just save to current address and go back
@@ -137,7 +155,23 @@ const AddressMap: React.FC = () => {
       enableRefresh={true}
     >
       <SafeAreaView className="flex-1 bg-white">
-        <CreateAddress onLocationSelect={handleLocationSelect} />
+        {enableMapMode ? (
+          <MapboxPicker
+            onLocationSelect={handleLocationSelect}
+            initialLocation={{
+              latitude: addressData?.iat ?? 0,
+              longitude: addressData?.ing ?? 0,
+              name: addressData?.address ?? '',
+            }}
+            searchPlaceholder="Tìm kiếm địa điểm ..."
+            confirmButtonText={
+              mode === 'edit' ? 'Cập nhật địa chỉ' : 'Thêm địa chỉ mới'
+            }
+            showMyLocationButton={true}
+          />
+        ) : (
+          <CreateAddress onLocationSelect={handleLocationSelect} />
+        )}
       </SafeAreaView>
     </SubLayout>
   );

@@ -123,7 +123,7 @@ const CreateAddress: React.FC<CreateAddressProps> = ({ onLocationSelect }) => {
   return (
     <View className="flex-1 bg-gray-50">
       <View className="">
-        <View className="mx-4 mb-3 flex-row items-center bg-gray-100  border-2 border-red-200 rounded-2xl px-4 py-3">
+        <View className="mx-4 mb-3 flex-row items-center  border-2 border-red-200 rounded-2xl px-4 py-1">
           <Icon name="search" size={22} color="#e85a4f" />
           <TextInput
             className="flex-1 ml-3 text-base text-gray-900 font-medium"

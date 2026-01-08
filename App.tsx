@@ -18,10 +18,14 @@ import 'react-native-url-polyfill/auto';
 import './src/config/googleSignIn';
 import { useEffect } from 'react';
 import { bootstrapApp } from './src/services/bootstrapService';
+import { navigationRef } from './src/navigation/navigationService';
+import { useNotificationHandler } from './src/hooks/useNotificationHandler';
 
 function AppContent() {
   const dispatch = useAppDispatch();
+
   useZegoService();
+  useNotificationHandler();
 
   useEffect(() => {
     bootstrapApp(dispatch);
@@ -39,7 +43,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
           <AppContent />
         </NavigationContainer>
         <Toast config={toastConfig} />

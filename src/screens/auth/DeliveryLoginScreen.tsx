@@ -17,6 +17,7 @@ import Toast from 'react-native-toast-message';
 import { fetchUserProfile } from '../../services/authService';
 import { signIn } from '../../services/authService';
 import type { DeliveryLoginResponse } from '../../types/Profile';
+import { registerFcmToken } from '../../services/authService';
 const logo = require('../../assets/images/logo.png');
 
 export default function DeliveryLoginScreen() {
@@ -48,13 +49,8 @@ export default function DeliveryLoginScreen() {
       if (userProfile.role === 'Collector') {
         // @ts-ignore
         globalThis.navigation?.replace('Dashboard');
-
-        Toast.show({
-          type: 'success',
-          text1: 'Đăng nhập thành công!',
-          text2: `Chào mừng ${userProfile.name || userProfile.email}`,
-        });
       }
+      await registerFcmToken(userProfile.userId);
     } catch (error) {
       Toast.show({
         type: 'error',
