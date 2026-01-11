@@ -40,8 +40,7 @@ axiosClient.interceptors.response.use(
         text1: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
       });
     }
-
-    return Promise.reject(error);
+    return Promise.reject(error.response || error.message);
   },
 );
 

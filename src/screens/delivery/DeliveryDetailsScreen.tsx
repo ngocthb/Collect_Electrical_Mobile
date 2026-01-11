@@ -4,19 +4,21 @@ import SubLayout from '../../layout/SubLayout';
 import DeliveryMapPanel from '../../components/DeliveryMapPanel';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getCurrentLocationDistance } from '../../services/mapboxService';
+import { CollectionRouteWithDistance } from '../../types/Collector';
 
 const DeliveryDetailsScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
 
-  const normalizedRequest = route.params?.normalizedRequest;
+  const normalizedRequest: CollectionRouteWithDistance =
+    route.params?.normalizedRequest;
 
   const [distanceInMeters, setDistanceInMeters] = useState<number>(0);
 
   useEffect(() => {
     const fetchInitialDistance = async () => {
-      const lat = normalizedRequest?.iat ?? normalizedRequest?.sender?.iat;
-      const lng = normalizedRequest?.ing ?? normalizedRequest?.sender?.ing;
+      const lat = normalizedRequest?.iat;
+      const lng = normalizedRequest?.ing;
 
       if (!lat || !lng) {
         console.log('Location not available');
@@ -34,12 +36,7 @@ const DeliveryDetailsScreen = () => {
     };
 
     fetchInitialDistance();
-  }, [
-    normalizedRequest?.iat,
-    normalizedRequest?.ing,
-    normalizedRequest?.sender?.iat,
-    normalizedRequest?.sender?.ing,
-  ]);
+  }, [normalizedRequest?.iat, normalizedRequest?.ing]);
 
   const handleConfirm = useCallback(() => {
     navigation.navigate('DeliveryPhotoConfirm', {
@@ -57,8 +54,8 @@ const DeliveryDetailsScreen = () => {
   const [resetQrTrigger, setResetQrTrigger] = useState(0);
 
   const handleRefresh = useCallback(async () => {
-    const lat = normalizedRequest?.iat ?? normalizedRequest?.sender?.iat;
-    const lng = normalizedRequest?.ing ?? normalizedRequest?.sender?.ing;
+    const lat = normalizedRequest?.iat;
+    const lng = normalizedRequest?.ing;
 
     if (!lat || !lng) {
       return;
@@ -74,12 +71,7 @@ const DeliveryDetailsScreen = () => {
     } catch (err) {
       console.warn('Refresh failed:', err);
     }
-  }, [
-    normalizedRequest?.iat,
-    normalizedRequest?.ing,
-    normalizedRequest?.sender?.iat,
-    normalizedRequest?.sender?.ing,
-  ]);
+  }, [normalizedRequest?.iat, normalizedRequest?.ing]);
 
   return (
     <SubLayout

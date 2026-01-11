@@ -9,11 +9,12 @@ import {
 import Icon from 'react-native-vector-icons/Feather';
 import ImageGalleryViewer from '../../components/ui/ImageGalleryViewer';
 import {
-  getStatusBadgeClass,
+  getStatusBgClass,
   shortDayLabel,
   groupTimeSlots,
   parseProductAttributes,
-} from '../../utils/productDetailHelper';
+  getStatusLabel,
+} from '../../utils/productHelper';
 import SubLayout from '../../layout/SubLayout';
 import { useNavigation } from '@react-navigation/core';
 import { useRoute } from '@react-navigation/native';
@@ -21,13 +22,17 @@ import { useRoute } from '@react-navigation/native';
 import AppAvatar from '../../components/ui/AppAvatar';
 import AppButton from '../../components/ui/AppButton';
 import routeService from '../../services/routeService';
-import { getProductById } from '../../services/productService';
+import { getProductById, cancelProduct } from '../../services/productService';
+import ConfirmModal from '../../components/ConfirmModal';
+import { isCanCancelProduct } from '../../utils/productHelper';
+
 import {
   connectShippingHub,
   joinRouteGroup,
   disconnect,
 } from '../../services/signalrService';
 import { ProductDetail } from '../../types/Product';
+import Toast from 'react-native-toast-message';
 
 const ProductDetailsScreen = () => {
   const navigation = useNavigation<any>();
@@ -40,6 +45,8 @@ const ProductDetailsScreen = () => {
   const [showVerifyButton, setShowVerifyButton] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
   const [product, setProduct] = useState<ProductDetail>();
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
     if (!productId) return;
@@ -213,6 +220,33 @@ const ProductDetailsScreen = () => {
     }
   };
 
+  const handleCancelProduct = async () => {
+    if (!productId) return;
+    setIsCancelling(true);
+    try {
+      await cancelProduct(productId);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Hủy yêu cầu thành công',
+      });
+      setShowCancelConfirm(false);
+      setTimeout(() => {
+        navigation.goBack();
+      }, 800);
+    } catch (error: any) {
+      console.error('Cancel product error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Hủy yêu cầu thất bại',
+        text2: error?.message || 'Vui lòng thử lại sau.',
+      });
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  console.log('====', product?.status);
   return (
     <SubLayout
       title="Thông tin giao hàng"
@@ -275,12 +309,12 @@ const ProductDetailsScreen = () => {
                   </Text>
                 )}
                 <View
-                  className={`${getStatusBadgeClass(
-                    product?.status ?? '',
+                  className={`${getStatusBgClass(
+                    product?.status,
                   )} px-3 py-1 rounded-lg `}
                 >
                   <Text className="text-xs font-medium text-white">
-                    {product?.status ?? 'Đang xử lý'}
+                    {getStatusLabel(product?.status)}
                   </Text>
                 </View>
               </View>
@@ -381,9 +415,31 @@ const ProductDetailsScreen = () => {
                 </View>
               </View>
             )}
+
+            {isCanCancelProduct(product?.status) && (
+              <View className="mt-4 mb-4">
+                <AppButton
+                  title="Hủy yêu cầu"
+                  onPress={() => setShowCancelConfirm(true)}
+                />
+              </View>
+            )}
           </View>
         </View>
       )}
+
+      <ConfirmModal
+        loading={isCancelling}
+        visible={showCancelConfirm}
+        onCancel={() => setShowCancelConfirm(false)}
+        onConfirm={handleCancelProduct}
+        title="Xác nhận hủy yêu cầu"
+        message="Bạn có chắc chắn muốn hủy yêu cầu này không? Hành động này không thể hoàn tác."
+        confirmText="Hủy yêu cầu"
+        cancelText="Quay lại"
+        iconName="x-octagon"
+        iconColor="#DC2626"
+      />
     </SubLayout>
   );
 };

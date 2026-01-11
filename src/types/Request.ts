@@ -1,7 +1,7 @@
 import { TimeSlot } from '../types/TimeSlot';
 import { AttributeOptionData } from './Category';
 
-export type CreateRequestPayload = {
+export interface CreateRequestPayload {
   senderId?: string;
   name?: string;
   description?: string;
@@ -15,6 +15,6 @@ export type CreateRequestPayload = {
     brandId?: string;
     attributes?: AttributeOptionData[];
   };
-};
+}
 
 export * from './Request';

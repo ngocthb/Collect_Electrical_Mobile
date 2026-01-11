@@ -203,7 +203,7 @@ const WarehouseLocationScreen = () => {
                 {/* HEADER */}
                 <View className="flex-row items-start">
                   <View className="flex-row w-12 h-12 rounded-full bg-red-100 items-center justify-center mr-3">
-                    <Text className="text-xs text-gray-600">
+                    <Text className="text-xs text-gray-600 ">
                       {wh?.rating?.toFixed(1)}
                     </Text>
                     <FontAwesome name="star" size={12} color="#F59E0B" />
@@ -214,8 +214,8 @@ const WarehouseLocationScreen = () => {
                       {wh.name}
                     </Text>
                     <View className="flex-row items-center">
-                      <Icon name="clock" size={16} color="#6B7280" />
-                      <Text className="text-sm text-gray-600 ml-2">
+                      <Icon name="clock" size={12} color="#6B7280" />
+                      <Text className="text-sm text-gray-600 ml-1">
                         Giờ mở cửa:{' '}
                         <Text className="font-semibold text-gray-900">
                           {wh.openTime}

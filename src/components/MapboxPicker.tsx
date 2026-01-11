@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Keyboard,
   Platform,
+  Dimensions,
 } from 'react-native';
 import toast from 'react-native-toast-message';
 import MapboxGL from '@rnmapbox/maps';
@@ -39,6 +40,7 @@ interface MapboxPickerProps {
   showSearchBar?: boolean;
 }
 
+const { width, height } = Dimensions.get('window');
 const MapboxPicker: React.FC<MapboxPickerProps> = ({
   onLocationSelect,
   initialLocation,
@@ -311,7 +313,7 @@ const MapboxPicker: React.FC<MapboxPickerProps> = ({
             backgroundColor: '#F9FAFB',
             zIndex: 10,
             position: 'absolute',
-            top: 63,
+            top: height * 0.075,
             left: 0,
             right: 0,
             borderBottomWidth: 1,

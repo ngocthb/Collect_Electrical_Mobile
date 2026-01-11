@@ -15,8 +15,10 @@ const DimensionInputs: React.FC<Props> = ({
   initialValues = {},
 }) => {
   const initialMap: Record<string, string> = {};
-  for (const a of attributes)
-    initialMap[a.id] = String(initialValues[a.id] ?? '');
+  for (const a of attributes) {
+    console.log(a);
+    initialMap[a.id] = String(initialValues[a.id] ?? a.minValue);
+  }
 
   const [valuesMap, setValuesMap] =
     useState<Record<string, string>>(initialMap);
@@ -44,7 +46,27 @@ const DimensionInputs: React.FC<Props> = ({
       onChange({ attributeId, optionId: null, value: isNaN(num) ? 0 : num });
     }
   };
+  const handleBlur = (attribute: Attribute) => {
+    const value = Number(valuesMap[attribute.id]);
+    let adjustedValue = value;
 
+    if (value < attribute.minValue) {
+      adjustedValue = attribute.minValue;
+      setValuesMap(prev => ({
+        ...prev,
+        [attribute.id]: attribute.minValue.toString(),
+      }));
+    } else if (value > 99999) {
+      adjustedValue = 99999;
+      setValuesMap(prev => ({ ...prev, [attribute.id]: '99999' }));
+    }
+
+    // Trả về giá trị đã điều chỉnh
+    if (onChange && adjustedValue !== value) {
+      const attributeId = attribute.id;
+      onChange({ attributeId, optionId: null, value: adjustedValue });
+    }
+  };
   if (!attributes || attributes.length === 0) return null;
 
   const commonUnit = getUnit(attributes[0].name || '');
@@ -70,13 +92,12 @@ const DimensionInputs: React.FC<Props> = ({
                 <AppInput
                   compact
                   showStepper
-                  min={0}
-                  max={99999}
                   placeholder={getShortLabel(attr.name)}
                   required
                   isNumeric
-                  value={valuesMap[attr.id] || ''}
+                  value={valuesMap[attr.id]}
                   onChangeText={t => handleChange(attr.id, String(t ?? ''))}
+                  onBlur={() => handleBlur(attr)}
                 />
               </View>
             ))}

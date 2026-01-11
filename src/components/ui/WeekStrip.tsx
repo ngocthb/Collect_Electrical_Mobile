@@ -44,10 +44,7 @@ const WeekStrip: React.FC<Props> = ({
           <Icon name="chevron-left" size={20} color="#e85a4f" />
         </TouchableOpacity> */}
 
-      <View
-          className="flex-row jutify-between"
-   
-      >
+      <View className="flex-row jutify-between">
         {days.map((d, idx) => {
           const isSelected = d.toDateString() === selectedDate.toDateString();
           const isToday = d.toDateString() === new Date().toDateString();
@@ -91,4 +88,3 @@ const WeekStrip: React.FC<Props> = ({
 };
 
 export default WeekStrip;
-

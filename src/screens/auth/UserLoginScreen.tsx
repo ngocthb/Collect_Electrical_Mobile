@@ -45,6 +45,7 @@ export default function UserLoginScreen() {
       await signInWithGoogle();
 
       const profileData: any = await fetchUserProfile();
+      console.log(profileData);
       dispatch(setUser(profileData));
       const addresses = await getUserAddresses(profileData.userId);
       dispatch(setAddressList(addresses || []));

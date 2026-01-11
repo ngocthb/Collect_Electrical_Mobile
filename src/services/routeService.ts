@@ -1,10 +1,15 @@
 import axiosClient from '../config/axios';
 import { checkImageResponse } from '../types/Routers';
+import { CollectionRouteResponse } from '../types/Collector';
 
-const listByDate = async (userId: string, dateStr: string) => {
+const listByDate = async (
+  userId: string,
+  dateStr: string,
+): Promise<CollectionRouteResponse> => {
   try {
     const res = await axiosClient.get(`/routes/${dateStr}/collector/${userId}`);
-    return res;
+
+    return res as any;
   } catch (e) {
     throw e;
   }

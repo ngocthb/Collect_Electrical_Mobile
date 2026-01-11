@@ -18,4 +18,13 @@ export function formatTimestamp(input?: string | Date | null): string {
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
 
-export default { formatTimestamp };
+export function formatDate(dateStr?: string | null): string {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+
+  const [year, month, day] = parts;
+  return `${day}/${month}/${year}`;
+}
+
+export default { formatTimestamp, formatDate };

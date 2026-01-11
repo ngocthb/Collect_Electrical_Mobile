@@ -16,4 +16,16 @@ export async function getProductById(
   return resp || null;
 }
 
-export default { getProductsByUser, getProductById };
+export async function cancelProduct(productId: string): Promise<void> {
+  try {
+    console.log(productId);
+    await axiosClient.put(`/products/cancel/${productId}`, {
+      reason: 'Cancelled by user',
+    });
+  } catch (error) {
+    console.error('Error cancelling product:', error);
+    throw error;
+  }
+}
+
+export default { getProductsByUser, getProductById, cancelProduct };

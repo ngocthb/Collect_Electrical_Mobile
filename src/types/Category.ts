@@ -1,34 +1,35 @@
-export type SubCategory = {
+export interface SubCategory {
   id: string;
   name: string;
   parentCategoryId: string;
-};
+}
 
-export type SizeTier = {
+export interface SizeTier {
   id: string;
   name: string;
-};
+}
 
-export type Attribute = {
+export interface Attribute {
   id: string;
   name: string;
-};
+  minValue: number;
+}
 
-export type Category = {
+export interface Category {
   id: string;
   name: string;
   parentCategoryId: string | null;
-};
+}
 
-export type AttributeOptionData = {
+export interface AttributeOptionData {
   attributeId: string;
   optionId: string | null;
   value: number | null;
-};
+}
 
-export type AttributeOption = {
+export interface AttributeOption {
   attributeOptionId: string;
   optionName: string;
-};
+}
 
 export * from './Category';

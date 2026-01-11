@@ -1,4 +1,6 @@
+import Toast from 'react-native-toast-message';
 import axiosClient from '../config/axios';
+import { AxiosError } from 'axios';
 import { CreateRequestPayload } from '../types/Request';
 
 const create = async (payload: CreateRequestPayload) => {
@@ -6,6 +8,13 @@ const create = async (payload: CreateRequestPayload) => {
     const response = await axiosClient.post('posts', payload);
     return response;
   } catch (error) {
+    const axiosError = error as AxiosError;
+    if (axiosError.status === 400) {
+      Toast.show({
+        type: 'error',
+        text1: 'Dữ liệu không hợp lệ.. Vui lòng kiểm tra lại thông tin.',
+      });
+    }
     throw error;
   }
 };

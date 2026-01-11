@@ -17,6 +17,7 @@ import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-cal
 import axiosClient from '../config/axios';
 import { Linking } from 'react-native';
 import { sendNotification } from '../services/notificationServices';
+import { formatDate } from '../utils/dateUtils';
 const ARRIVAL_DISTANCE_THRESHOLD = 1500; // meters
 
 type Props = {
@@ -232,8 +233,6 @@ const DeliveryMapPanel: React.FC<Props> = ({
     }
   };
 
-  console.log(normalizedRequest);
-  console.log(distanceInMeters);
   return (
     <ScrollView
       className="flex-1 bg-background-50"
@@ -306,7 +305,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
                   <View className="flex-row justify-between py-2">
                     <Text className="text-sm text-gray-500">Ngày thu gom</Text>
                     <Text className="text-sm font-semibold text-gray-900">
-                      {normalizedRequest?.collectionDate || '—'}
+                      {formatDate(normalizedRequest?.collectionDate) || '—'}
                     </Text>
                   </View>
                   <View className="flex-row justify-between py-2">

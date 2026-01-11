@@ -1,3 +1,3 @@
-export type checkImageResponse = {
+export interface checkImageResponse {
   areSimilar: boolean;
-};
+}

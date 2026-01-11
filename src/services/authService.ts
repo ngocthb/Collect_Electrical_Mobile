@@ -178,7 +178,9 @@ export const signOut = async (): Promise<void> => {
 
 const getTokenByLoginGoogle = async (token: string) => {
   try {
+    console.log(token);
     const res = await axiosClient.post('/auth/login-google', { token: token });
+    console.log(res);
     return res;
   } catch (e) {
     throw e;

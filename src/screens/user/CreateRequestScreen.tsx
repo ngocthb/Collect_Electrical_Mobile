@@ -70,6 +70,7 @@ const CreateRequestScreen = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     } else {
+      dispatch(clearTimeSlot());
       navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     }
   };
@@ -117,32 +118,33 @@ const CreateRequestScreen = () => {
       const urls = await handleUploadImages(selectedImages);
 
       const payload: CreateRequestPayload = {
-        senderId: user?.userId || '',
+        senderId: user?.userId,
         description: selectedTags.join(', '),
-        address: selectedAddress?.address || '',
+        address: selectedAddress?.address,
         images: urls,
         collectionSchedule: timeSlots || [],
         product: {
           parentCategoryId: categoryId,
-          subCategoryId: selectedCategory?.id || '',
+          subCategoryId: selectedCategory?.id,
           brandId: selectedBrandId || '',
           attributes: attributeValues || null,
         },
       };
-      const data = await create.create(payload);
+      console.log(JSON.stringify(payload, null, 2));
 
+      const data = await create.create(payload);
       toast.show({
         type: 'success',
         text1: 'Thành công',
         text2: 'Yêu cầu đã được tạo thành công.',
       });
-
-      dispatch(clearTimeSlot());
-
-      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (error) {
       console.error('Error creating request:', error);
       setLoading(false);
+    } finally {
+      setLoading(false);
+      dispatch(clearTimeSlot());
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     }
   };
 
@@ -193,9 +195,7 @@ const CreateRequestScreen = () => {
                 />
               </View>
 
-              {isLoadingAttributes ? (
-                <ActivityIndicator size="small" color="#e85a4f" />
-              ) : selectedCategory ? (
+              {selectedCategory && (
                 <View>
                   <AttributeSizePanel
                     subCategoryId={selectedCategory.id}
@@ -214,13 +214,6 @@ const CreateRequestScreen = () => {
                       });
                     }}
                   />
-                </View>
-              ) : (
-                <View className="mt-4 flex items-center justify-center">
-                  <Icon name="inbox" size={40} color="#E98074" />
-                  <Text className="text-sm text-gray-600">
-                    Vui lòng chọn danh mục
-                  </Text>
                 </View>
               )}
 

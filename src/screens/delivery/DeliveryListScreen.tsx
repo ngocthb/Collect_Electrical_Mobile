@@ -26,20 +26,19 @@ import {
 import SubLayout from '../../layout/SubLayout';
 import StatusFilter from '../../components/ui/StatusFilter';
 import { useAppSelector } from '../../store/hooks';
-import {
-  getCurrentLocation,
-  calculateDistance,
-} from '../../services/mapboxService';
+import { CollectionRouteWithDistance } from '../../types/Collector';
 
 export default function DeliveryListScreen() {
   const navigation = useNavigation<any>();
   const listRef = useRef(null);
   const lastItemRef = useRef(null);
-  const [lineHeight, setLineHeight] = useState(0);
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showWeekCalendar, setShowWeekCalendar] = useState(false);
-  const [ordersWithDistance, setOrdersWithDistance] = useState<any[]>([]);
+  const [ordersWithDistance, setOrdersWithDistance] = useState<
+    CollectionRouteWithDistance[]
+  >([]);
+  const [dateSever, setDateServer] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
 
   const user = useAppSelector(s => s.auth.user);
@@ -49,10 +48,10 @@ export default function DeliveryListScreen() {
   const isSelectedDateToday = useMemo(() => {
     const selected = new Date(selectedDate);
     selected.setHours(0, 0, 0, 0);
-    const today = new Date();
+    const today = dateSever ? new Date(dateSever) : new Date();
     today.setHours(0, 0, 0, 0);
     return selected.getTime() === today.getTime();
-  }, [selectedDate]);
+  }, [selectedDate, dateSever]);
 
   const formatAPIDate = useCallback((date: Date) => {
     const yyyy = date.getFullYear();
@@ -75,11 +74,12 @@ export default function DeliveryListScreen() {
       setIsLoading(true);
       try {
         const dateStr = formatAPIDate(date);
-        const res: any = await routeService.listByDate(userId, dateStr);
-
-        const orders = Array.isArray(res) ? res : [];
+        const res = await routeService.listByDate(userId, dateStr);
+        console.log(res);
+        setDateServer(res.serverDate);
+        const orders = Array.isArray(res.data) ? res.data : [];
         setOrdersWithDistance(
-          orders.map(o => ({
+          orders?.map(o => ({
             ...o,
             distanceMeters: 0,
             distanceText: '',
@@ -144,28 +144,6 @@ export default function DeliveryListScreen() {
     return filtered;
   }, [ordersWithDistance, selectedDate, selectedStatus]);
 
-  // Tối ưu: Dùng onLayout thay vì measure + setTimeout
-  const handleListLayout = useCallback(() => {
-    if (filteredOrders.length > 0 && listRef.current && lastItemRef.current) {
-      // @ts-ignore
-      listRef.current.measure((x, y, w, h) => {
-        // @ts-ignore
-        lastItemRef.current.measure((lx, ly, lw, lh) => {
-          const newHeight = h - lh - 15;
-          setLineHeight(newHeight);
-        });
-      });
-    } else {
-      setLineHeight(0);
-    }
-  }, [filteredOrders.length]);
-
-  useEffect(() => {
-    // Delay nhỏ để đảm bảo layout đã render xong
-    const timer = setTimeout(handleListLayout, 50);
-    return () => clearTimeout(timer);
-  }, [handleListLayout]);
-
   const changeWeek = useCallback((weeks: number) => {
     setSelectedDate(prevDate => {
       const newDate = new Date(prevDate);
@@ -205,6 +183,7 @@ export default function DeliveryListScreen() {
     setSelectedStatus(status);
   }, []);
 
+  console.log(dateSever);
   return (
     <SubLayout
       title="Đơn hàng"
@@ -260,17 +239,13 @@ export default function DeliveryListScreen() {
               </Text>
             </View>
           ) : (
-            <View
-              className="flex-row relative"
-              ref={listRef}
-              onLayout={handleListLayout}
-            >
+            <View className="flex-row relative" ref={listRef}>
               <View className="flex-1">
                 {filteredOrders.map((order, idx) => {
                   const isLast = idx === filteredOrders.length - 1;
                   return (
                     <View
-                      key={order.id || idx}
+                      key={order.collectionRouteId || idx}
                       ref={isLast ? lastItemRef : null}
                     >
                       <DeliveryOrderCard

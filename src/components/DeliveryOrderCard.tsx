@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import { CollectionRouteWithDistance } from '../types/Collector';
 import {
   getOrderAddress,
   resolveStatus,
@@ -16,8 +16,7 @@ const cleanUserIdForZego = (userId: string) => {
 };
 
 type Props = {
-  order: any;
-
+  order: CollectionRouteWithDistance;
   isSelectedDateToday: boolean;
 };
 
@@ -47,29 +46,6 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
       pickupLocationName: getOrderAddress(order),
       isRouteLoading: false,
     });
-  };
-
-  const handleDirections = async () => {
-    const lat = order?.iat ?? order?.lat;
-    const lng = order?.ing ?? order?.lng;
-
-    if (!lat || !lng) {
-      console.warn('No coordinates available for directions');
-      return;
-    }
-
-    try {
-      const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        const fallbackUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-        await Linking.openURL(fallbackUrl);
-      }
-    } catch (e) {
-      console.warn('Cannot open Google Maps', e);
-    }
   };
 
   return (

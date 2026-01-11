@@ -67,7 +67,7 @@ const ProductScreen = () => {
   );
 
   const openProduct = (prod: any) => {
-    if (!isCompletedStatus(prod.status) || prod.status === 'Đã Từ Chối') {
+    if (!isCompletedStatus(prod.status)) {
       navigation.navigate('ProductDetails', { productId: prod.productId });
     } else {
       navigation.navigate('Timeline', {

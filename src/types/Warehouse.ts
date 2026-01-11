@@ -1,4 +1,4 @@
-export type Warehouse = {
+export interface Warehouse {
   id: string;
   name: string;
   address: string;
@@ -10,4 +10,4 @@ export type Warehouse = {
   rating: number;
   distanceMeters?: number | 0;
   distanceText?: string | '';
-};
+}

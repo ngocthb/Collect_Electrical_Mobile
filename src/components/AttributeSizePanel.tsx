@@ -80,11 +80,7 @@ const AttributeSizePanel: React.FC<Props> = ({
   if (loadingOptions) return <ActivityIndicator size="small" color="#e85a4f" />;
 
   if (!fetchedAttributes || fetchedAttributes.length === 0) {
-    return (
-      <View className="mt-4 flex-row items-center justify-center">
-        <Text className="text-sm text-gray-600">Chưa có dữ liệu</Text>
-      </View>
-    );
+    return;
   }
 
   return (

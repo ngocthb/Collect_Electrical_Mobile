@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  Modal,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 
 interface ConfirmModalProps {
@@ -12,6 +18,7 @@ interface ConfirmModalProps {
   onCancel: () => void;
   iconName?: string;
   iconColor?: string;
+  loading?: boolean;
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -24,6 +31,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   onCancel,
   iconName = 'alert-circle',
   iconColor = '#e85a4f',
+  loading = false,
 }) => {
   return (
     <Modal
@@ -47,6 +55,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             <TouchableOpacity
               onPress={onCancel}
               className="flex-1 py-3 rounded-lg border border-gray-300 bg-white"
+              disabled={loading}
             >
               <Text className="text-center text-gray-500 font-semibold">
                 {cancelText}
@@ -55,10 +64,15 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             <TouchableOpacity
               onPress={onConfirm}
               className="flex-1 py-3 rounded-lg bg-primary-100"
+              disabled={loading}
             >
-              <Text className="text-center text-white font-semibold">
-                {confirmText}
-              </Text>
+              {loading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text className="text-center text-white font-semibold">
+                  {confirmText}
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
