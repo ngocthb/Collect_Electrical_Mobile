@@ -16,12 +16,25 @@ const DimensionInputs: React.FC<Props> = ({
 }) => {
   const initialMap: Record<string, string> = {};
   for (const a of attributes) {
-    console.log(a);
     initialMap[a.id] = String(initialValues[a.id] ?? a.minValue);
   }
 
   const [valuesMap, setValuesMap] =
     useState<Record<string, string>>(initialMap);
+
+  // Gọi onChange với giá trị ban đầu khi component mount
+  useEffect(() => {
+    if (onChange && attributes.length > 0) {
+      attributes.forEach(attr => {
+        const value = Number(valuesMap[attr.id]);
+        onChange({
+          attributeId: attr.id,
+          optionId: null,
+          value: isNaN(value) ? attr.minValue : value,
+        });
+      });
+    }
+  }, []);
 
   const getShortLabel = (name = '') => {
     if (/chiều\s+dài/i.test(name)) return 'Dài';

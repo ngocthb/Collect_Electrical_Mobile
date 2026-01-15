@@ -3,3 +3,8 @@ export interface Option {
   label: string;
   value?: any;
 }
+
+export interface ServerTime {
+  serverTime: string;
+  serverDate: string;
+}

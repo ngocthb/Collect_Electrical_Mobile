@@ -6,7 +6,6 @@ import {
   AttributeOption,
 } from '../types/Category';
 import axiosClient from '../config/axios';
-import axios from 'axios';
 export const getParentCategories = async (): Promise<Category[]> => {
   const res = (await axiosClient.get('/categories/parents')) as any;
   return res || [];
@@ -42,8 +41,8 @@ export const searchSubCategories = async (
   searchQuery: string,
 ): Promise<SubCategory[]> => {
   const encodedQuery = encodeURIComponent(searchQuery);
-  const res = await axios.get(
-    `http://160.187.1.125:5000/subCategory?parentId=${parentId}&name=${encodedQuery}`,
+  const res = await axiosClient.get(
+    `/subCategory?parentId=${parentId}&name=${encodedQuery}`,
   );
   return res.data || [];
 };

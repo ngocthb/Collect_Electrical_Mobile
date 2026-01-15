@@ -27,4 +27,16 @@ export function formatDate(dateStr?: string | null): string {
   return `${day}/${month}/${year}`;
 }
 
-export default { formatTimestamp, formatDate };
+export function formatTime(input?: string | Date | null): string {
+  if (!input) return '';
+  const d = typeof input === 'string' ? new Date(input) : new Date(input);
+  if (Number.isNaN(d.getTime())) return '';
+
+  const hours = pad2(d.getHours());
+  const minutes = pad2(d.getMinutes());
+  const second = pad2(d.getSeconds());
+
+  return `${hours}:${minutes}:${second}`;
+}
+
+export default { formatTimestamp, formatDate, formatTime };

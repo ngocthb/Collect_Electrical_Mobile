@@ -27,7 +27,8 @@ import SubLayout from '../../layout/SubLayout';
 import StatusFilter from '../../components/ui/StatusFilter';
 import { useAppSelector } from '../../store/hooks';
 import { CollectionRouteWithDistance } from '../../types/Collector';
-
+import { getTimeSever } from '../../services/systemServe';
+import { ServerTime } from './../../types/common';
 export default function DeliveryListScreen() {
   const navigation = useNavigation<any>();
   const listRef = useRef(null);
@@ -40,7 +41,7 @@ export default function DeliveryListScreen() {
   >([]);
   const [dateSever, setDateServer] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
-
+  const [serverDate, setServerDate] = useState<ServerTime>();
   const user = useAppSelector(s => s.auth.user);
   const userId = user?.userId;
 
@@ -75,7 +76,6 @@ export default function DeliveryListScreen() {
       try {
         const dateStr = formatAPIDate(date);
         const res = await routeService.listByDate(userId, dateStr);
-        console.log(res);
         setDateServer(res.serverDate);
         const orders = Array.isArray(res.data) ? res.data : [];
         setOrdersWithDistance(
@@ -101,7 +101,6 @@ export default function DeliveryListScreen() {
     }
   }, [userId, selectedDate, fetchOrdersByDate]);
 
-  // Tối ưu: Dùng useMemo để cache kết quả filter và sort
   const filteredOrders = useMemo(() => {
     const selectedStart = new Date(selectedDate);
     selectedStart.setHours(0, 0, 0, 0);
@@ -183,7 +182,23 @@ export default function DeliveryListScreen() {
     setSelectedStatus(status);
   }, []);
 
-  console.log(dateSever);
+  const getDateTimeSever = async () => {
+    try {
+      const serverTime = await getTimeSever();
+      setServerDate(serverTime);
+      // Set selectedDate theo server date lần đầu
+      if (serverTime?.serverDate) {
+        setSelectedDate(new Date(serverTime.serverDate));
+      }
+    } catch (error) {
+      console.error('Failed to get server time:', error);
+    }
+  };
+
+  useEffect(() => {
+    getDateTimeSever();
+  }, []);
+
   return (
     <SubLayout
       title="Đơn hàng"
@@ -210,6 +225,7 @@ export default function DeliveryListScreen() {
       />
 
       <WeekStrip
+        serverDate={serverDate}
         selectedDate={selectedDate}
         onSelectDate={handleSelectDate}
         onPrevWeek={() => changeWeek(-1)}

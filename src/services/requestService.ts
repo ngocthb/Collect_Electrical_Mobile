@@ -9,12 +9,12 @@ const create = async (payload: CreateRequestPayload) => {
     return response;
   } catch (error) {
     const axiosError = error as AxiosError;
-    if (axiosError.status === 400) {
-      Toast.show({
-        type: 'error',
-        text1: 'Dữ liệu không hợp lệ.. Vui lòng kiểm tra lại thông tin.',
-      });
-    }
+    // if (axiosError.status === 400) {
+    //   Toast.show({
+    //     type: 'error',
+    //     text1: 'Dữ liệu không hợp lệ.. Vui lòng kiểm tra lại thông tin.',
+    //   });
+    // }
     throw error;
   }
 };

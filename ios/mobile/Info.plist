@@ -47,18 +47,27 @@
 	<key>NSAllowsArbitraryLoads</key>
 	<false/>
 	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>160.187.1.125</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-			</dict>
-		</dict>
-	</dict>
+<dict>
+    <key>NSExceptionDomains</key>
+    <dict>
+        <key>160.187.1.125</key>
+        <dict>
+            <key>NSExceptionAllowsInsecureHTTPLoads</key>
+            <true/>
+            <key>NSIncludesSubdomains</key>
+            <true/>
+        </dict>
+
+        <key>ezbill.site</key>
+        <dict>
+            <key>NSExceptionAllowsInsecureHTTPLoads</key>
+            <true/>
+            <key>NSIncludesSubdomains</key>
+            <true/>
+        </dict>
+    </dict>
+</dict>
+
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>Ứng dụng cần quyền Bluetooth để kết nối với các thiết bị ngoại vi.</string>
 	<key>NSCameraUsageDescription</key>

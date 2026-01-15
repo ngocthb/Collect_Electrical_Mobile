@@ -395,6 +395,14 @@ const ProductDetailsScreen = () => {
             {showVerifyButton && (
               <View className="mt-4 mb-4">
                 <View className="flex-row">
+                  <View style={{ width: '48%' }}>
+                    <AppButton
+                      title={'Bỏ qua xác thực'}
+                      onPress={handleSkip}
+                      disabled={isSkipping}
+                      loading={isSkipping}
+                    />
+                  </View>
                   <View style={{ width: '48%', marginRight: '4%' }}>
                     <AppButton
                       title="Xác thực nhân viên"
@@ -402,14 +410,6 @@ const ProductDetailsScreen = () => {
                       onPress={() => {
                         navigation.navigate('UserConfirm');
                       }}
-                    />
-                  </View>
-                  <View style={{ width: '48%' }}>
-                    <AppButton
-                      title={'Bỏ qua xác thực'}
-                      onPress={handleSkip}
-                      disabled={isSkipping}
-                      loading={isSkipping}
                     />
                   </View>
                 </View>

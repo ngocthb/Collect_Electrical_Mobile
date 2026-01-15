@@ -1,12 +1,13 @@
 import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ServerTime } from '../../types/common';
 
 interface Props {
   selectedDate: Date;
   onSelectDate: (d: Date) => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  serverDate?: ServerTime;
 }
 
 const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
@@ -31,6 +32,7 @@ const WeekStrip: React.FC<Props> = ({
   onSelectDate,
   onPrevWeek,
   onNextWeek,
+  serverDate,
 }) => {
   const weekStart = useMemo(() => startOfWeek(selectedDate), [selectedDate]);
   const days = useMemo(
@@ -38,6 +40,14 @@ const WeekStrip: React.FC<Props> = ({
     [weekStart],
   );
 
+  const today = useMemo(() => {
+    if (serverDate?.serverDate) {
+      return new Date(serverDate.serverDate);
+    }
+    return new Date();
+  }, [serverDate]);
+
+  console.log(serverDate);
   return (
     <View className="flex-row items-center p-1 bg-red-50">
       {/* <TouchableOpacity onPress={onPrevWeek} className="p-2">
@@ -47,7 +57,7 @@ const WeekStrip: React.FC<Props> = ({
       <View className="flex-row jutify-between">
         {days.map((d, idx) => {
           const isSelected = d.toDateString() === selectedDate.toDateString();
-          const isToday = d.toDateString() === new Date().toDateString();
+          const isToday = d.toDateString() === today.toDateString();
           return (
             <TouchableOpacity
               key={idx}

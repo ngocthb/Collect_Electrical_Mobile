@@ -59,7 +59,7 @@ const ProductScreen = () => {
     return () => {
       isMounted.current = false;
     };
-  }, [isFocused]);
+  }, []);
 
   const filteredProducts = filterProductsByStatusGroup(
     products,
@@ -202,6 +202,7 @@ const ProductScreen = () => {
                 key={prod.productId}
                 className="flex-row items-center bg-white border-2 border-red-200 rounded-xl p-3 mb-3 shadow-sm"
                 onPress={() => openProduct(prod)}
+                activeOpacity={0.7}
               >
                 {/* Image */}
                 <View className="w-16 h-16 rounded-lg overflow-hidden bg-red-200">
