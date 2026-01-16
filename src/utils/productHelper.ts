@@ -78,7 +78,6 @@ export const getStatusBgClass = (status?: string) => {
 };
 
 export const statusGroupOptions = [
-  { value: '', label: 'Tất cả', color: 'gray' },
   { value: 'incomplete', label: 'Đang xử lý', color: 'yellow' },
   { value: 'completed', label: 'Hoàn thành', color: 'green' },
   { value: 'rejected', label: 'Từ chối / hủy', color: 'red' },
@@ -86,7 +85,7 @@ export const statusGroupOptions = [
 
 export const getColorClass = (color: string) => {
   const colorMap: Record<string, string> = {
-    gray: 'bg-gray-400',
+    gray: 'bg-gray-200',
     blue: 'bg-blue-500',
     yellow: 'bg-amber-500',
     red: 'bg-red-500',
@@ -100,7 +99,6 @@ export const filterProductsByStatusGroup = (
   products: any[],
   statusGroup: string,
 ) => {
-  console.log(products, statusGroup);
   if (!statusGroup) return products;
 
   return products.filter(p => {

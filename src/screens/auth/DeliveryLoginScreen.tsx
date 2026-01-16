@@ -7,6 +7,8 @@ import {
   TextInput,
   Keyboard,
   TouchableWithoutFeedback,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import AppInput from '../../components/ui/AppInput';
 import AppButton from '../../components/ui/AppButton';
@@ -30,6 +32,15 @@ export default function DeliveryLoginScreen() {
   const navigation = useNavigation<any>();
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      Toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Vui lòng nhập đầy đủ thông tin',
+      });
+      return;
+    }
+
     try {
       dispatch(setLoading(true));
 
@@ -63,87 +74,92 @@ export default function DeliveryLoginScreen() {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-      <View className="flex-1 bg-white px-6 items-center justify-center">
-        {/* Logo */}
-        <View className="w-28 h-28 items-center justify-center mb-8">
-          <Image source={logo} className="w-24 h-24" resizeMode="contain" />
-        </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      className="flex-1"
+    >
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <View className="flex-1 bg-white px-6 items-center justify-center">
+          {/* Logo */}
+          <View className="w-28 h-28 items-center justify-center mb-8">
+            <Image source={logo} className="w-24 h-24" resizeMode="contain" />
+          </View>
 
-        {/* Welcome text */}
-        <Text className="text-center text-2xl font-bold text-text-main mb-2">
-          Chào mừng <Text className="text-primary-100">trở lại!</Text>
-        </Text>
-        <Text className="text-center text-sm text-text-muted mb-8">
-          Tham gia với chúng tôi ngay
-        </Text>
-
-        {/* Input fields */}
-        <View style={{ width: '100%', gap: 16 }}>
-          <AppInput
-            ref={emailRef}
-            label="Tên đăng nhập hoặc email"
-            placeholder="Nhập tên đăng nhập hoặc email"
-            value={email}
-            onChangeText={t => {
-              setEmail(t);
-              dispatch(setError(null));
-            }}
-            required
-            returnKeyType="next"
-            onSubmitEditing={() => passwordRef.current?.focus()}
-          />
-
-          <AppInput
-            ref={passwordRef}
-            label="Mật khẩu"
-            placeholder="Nhập mật khẩu"
-            value={password}
-            onChangeText={t => {
-              setPassword(t);
-              dispatch(setError(null));
-            }}
-            secureTextEntry
-            required
-            returnKeyType="done"
-            onSubmitEditing={handleLogin}
-          />
-        </View>
-
-        {/* Forgot password */}
-        <View className="w-full mt-2 items-end mb-4">
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('ForgotPass', { type: 'forgot_password' })
-            }
-          >
-            <Text className="text-text-muted text-xs">Quên mật khẩu?</Text>
-          </TouchableOpacity>
-        </View>
-
-        <AppButton
-          title="Đăng nhập"
-          onPress={handleLogin}
-          loading={auth.isLoading}
-          disabled={auth.isLoading || !email || !password}
-        />
-
-        {/* Register link */}
-        <View className="flex-row justify-center mt-6">
-          <Text className="text-base font-normal text-text-muted">
-            Bạn là khách hàng ?
+          {/* Welcome text */}
+          <Text className="text-center text-2xl font-bold text-text-main mb-2">
+            Chào mừng <Text className="text-primary-100">trở lại!</Text>
           </Text>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('UserLogin');
-            }}
-          >
-            <Text className="text-primary-100 text-base font-bold ml-2 ">
-              Đăng nhập
+          <Text className="text-center text-sm text-text-muted mb-8">
+            Tham gia với chúng tôi ngay
+          </Text>
+
+          {/* Input fields */}
+          <View style={{ width: '100%', gap: 16 }}>
+            <AppInput
+              ref={emailRef}
+              label="Tên đăng nhập hoặc email"
+              placeholder="Nhập tên đăng nhập hoặc email"
+              value={email}
+              onChangeText={t => {
+                setEmail(t);
+                dispatch(setError(null));
+              }}
+              required
+              returnKeyType="next"
+              onSubmitEditing={() => passwordRef.current?.focus()}
+            />
+
+            <AppInput
+              ref={passwordRef}
+              label="Mật khẩu"
+              placeholder="Nhập mật khẩu"
+              value={password}
+              onChangeText={t => {
+                setPassword(t);
+                dispatch(setError(null));
+              }}
+              secureTextEntry
+              required
+              returnKeyType="done"
+              onSubmitEditing={handleLogin}
+            />
+          </View>
+
+          {/* Forgot password */}
+          <View className="w-full mt-2 items-end mb-4">
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('ForgotPass', { type: 'forgot_password' })
+              }
+            >
+              <Text className="text-text-muted text-xs">Quên mật khẩu?</Text>
+            </TouchableOpacity>
+          </View>
+
+          <AppButton
+            title="Đăng nhập"
+            onPress={handleLogin}
+            loading={auth.isLoading}
+            disabled={auth.isLoading || !email || !password}
+          />
+
+          {/* Register link */}
+          <View className="flex-row justify-center mt-6">
+            <Text className="text-base font-normal text-text-muted">
+              Bạn là khách hàng ?
             </Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('UserLogin');
+              }}
+            >
+              <Text className="text-primary-100 text-base font-bold ml-2 ">
+                Đăng nhập
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </TouchableWithoutFeedback>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }

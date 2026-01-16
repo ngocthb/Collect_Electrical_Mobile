@@ -98,7 +98,11 @@ const ProductScreen = () => {
     <View className="relative">
       <TouchableOpacity
         onPress={() => setFilterDropdownOpen(!filterDropdownOpen)}
-        className="flex-row items-center px-3 py-1.5 rounded-lg border border-gray-200 bg-primary-100"
+        className={`flex-row items-center px-3 py-1.5 rounded-lg border ${
+          selectedStatusGroup === ''
+            ? 'border-red-200 bg-white'
+            : 'border-gray-200 bg-primary-100'
+        }`}
       >
         <View
           className={`w-2 h-2 rounded-full mr-1.5 ${
@@ -107,15 +111,22 @@ const ProductScreen = () => {
               : getColorClass(selectedOption?.color || 'gray')
           }`}
         />
-        <Text className="text-xs font-medium text-white mr-2">
+        <Text
+          className={`text-xs font-medium mr-2 ${
+            selectedStatusGroup === '' ? 'text-primary-100' : 'text-white'
+          }`}
+        >
           {selectedOption?.label || 'Tất cả'}
         </Text>
-        <IconIon name="funnel-outline" size={16} color="#fff" />
+        <IconIon
+          name="funnel-outline"
+          size={16}
+          color={selectedStatusGroup === '' ? '#e85a4f' : '#fff'}
+        />
       </TouchableOpacity>
 
       {filterDropdownOpen && (
         <>
-          {/* Overlay - bấm vào đây sẽ đóng dropdown */}
           <TouchableOpacity
             style={{
               position: 'absolute',

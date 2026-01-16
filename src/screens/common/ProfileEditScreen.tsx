@@ -5,6 +5,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import toast from 'react-native-toast-message';
 import SubLayout from '../../layout/SubLayout';
@@ -114,6 +116,10 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
     setPickerVisible(false);
   };
 
+  const hasChanges =
+    name !== (user?.name ?? '') ||
+    phone !== (user?.phone ?? '') ||
+    selectedImage !== null;
   const handleDeleteAccount = async () => {
     setShowDeleteModal(false);
     try {
@@ -148,92 +154,95 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
       title="Hồ sơ của tôi"
       onBackPress={() => navigation.goBack()}
     >
-      <View
-        className="flex-1  bg-background-50 px-6 "
-        style={{ paddingBottom: 20 * (height / 812) }}
-      >
-        <View className="items-center mb-6">
-          <View>
-            <View className="relative bg-primary-100 rounded-full p-1">
-              <AppAvatar
-                name={name}
-                uri={avatarUrl}
-                size={120}
-                style={{ borderWidth: 4, borderColor: '#fff' }}
-              />
-            </View>
-            <TouchableOpacity
-              onPress={handleChangeAvatar}
-              disabled={saving}
-              style={{
-                position: 'absolute',
-                right: -6,
-                bottom: -6,
-                opacity: saving ? 0.5 : 1,
-              }}
-            >
-              <View
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View
+          className="flex-1  bg-background-50 px-6 "
+          style={{ paddingBottom: 20 * (height / 812) }}
+        >
+          <View className="items-center mb-6">
+            <View>
+              <View className="relative bg-primary-100 rounded-full p-1">
+                <AppAvatar
+                  name={name}
+                  uri={avatarUrl}
+                  size={120}
+                  style={{ borderWidth: 4, borderColor: '#fff' }}
+                />
+              </View>
+              <TouchableOpacity
+                onPress={handleChangeAvatar}
+                disabled={saving}
                 style={{
-                  width: 40 * (width / 375),
-                  height: 40 * (width / 375),
-                  borderRadius: 20,
-                  backgroundColor: '#e85a4f',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  shadowColor: '#000',
-                  shadowOpacity: 0.1,
-                  shadowOffset: { width: 0, height: 2 },
-                  elevation: 3,
+                  position: 'absolute',
+                  right: -6,
+                  bottom: -6,
+                  opacity: saving ? 0.5 : 1,
                 }}
               >
-                <Icon name="camera" size={18} color="#FFFF" />
-              </View>
-            </TouchableOpacity>
+                <View
+                  style={{
+                    width: 40 * (width / 375),
+                    height: 40 * (width / 375),
+                    borderRadius: 20,
+                    backgroundColor: '#e85a4f',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    shadowColor: '#000',
+                    shadowOpacity: 0.1,
+                    shadowOffset: { width: 0, height: 2 },
+                    elevation: 3,
+                  }}
+                >
+                  <Icon name="camera" size={18} color="#FFFF" />
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
 
-        <View className="bg-white rounded-2xl p-4 mb-4 border-2 border-red-200">
-          <AppInput
-            label="Họ và tên"
-            placeholder="Họ và tên"
-            value={name}
-            onChangeText={setName}
-            editable={!saving}
-          />
+          <View className="bg-white rounded-2xl p-4 mb-4 border-2 border-red-200">
+            <AppInput
+              label="Họ và tên"
+              placeholder="Họ và tên"
+              value={name}
+              onChangeText={setName}
+              editable={!saving}
+            />
 
-          <AppInput label="Email" value={email} disabled />
+            <AppInput label="Email" value={email} disabled />
 
-          <AppInput
-            label="Số điện thoại"
-            placeholder="Số điện thoại"
-            value={phone}
-            onChangeText={setPhone}
-            isPhone
-            editable={!saving}
-          />
+            <AppInput
+              label="Số điện thoại"
+              placeholder="Số điện thoại"
+              value={phone}
+              onChangeText={setPhone}
+              isPhone
+              editable={!saving}
+            />
 
-          <AppButton
-            title={saving ? 'Đang lưu...' : 'Lưu'}
-            onPress={handleSave}
-          />
-        </View>
-
-        {/* Delete Account Button */}
-        <TouchableOpacity
-          onPress={() => setShowDeleteModal(true)}
-          disabled={saving}
-          className="bg-white border-2 border-red-400 rounded-2xl shadow-sm px-5 py-4 flex-row items-center mb-6"
-          activeOpacity={0.7}
-          style={{ opacity: saving ? 0.5 : 1 }}
-        >
-          <View className="w-10 h-10 rounded-full items-center justify-center bg-red-100">
-            <Icon name="trash-2" size={20} color="#DC2626" />
+            <AppButton
+              title={saving ? 'Đang lưu...' : 'Lưu'}
+              onPress={handleSave}
+              disabled={!hasChanges || saving}
+            />
           </View>
-          <Text className="ml-4 flex-1 text-base text-red-600 font-semibold">
-            Xóa tài khoản
-          </Text>
-        </TouchableOpacity>
-      </View>
+
+          {/* Delete Account Button */}
+          <TouchableOpacity
+            onPress={() => setShowDeleteModal(true)}
+            disabled={saving}
+            className="bg-white border-2 border-red-400 rounded-2xl shadow-sm px-5 py-4 flex-row items-center mb-6"
+            activeOpacity={0.7}
+            style={{ opacity: saving ? 0.5 : 1 }}
+          >
+            <View className="w-10 h-10 rounded-full items-center justify-center bg-red-100">
+              <Icon name="trash-2" size={20} color="#DC2626" />
+            </View>
+            <Text className="ml-4 flex-1 text-base text-red-600 font-semibold">
+              Xóa tài khoản
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableWithoutFeedback>
       <ImagePickerModal
         visible={pickerVisible}
         onClose={handlePickerClose}
