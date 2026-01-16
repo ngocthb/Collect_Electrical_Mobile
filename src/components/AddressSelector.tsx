@@ -51,47 +51,6 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
     };
   }, []);
 
-  const handleTapTitle = async () => {
-    const newCount = tapCount + 1;
-    setTapCount(newCount);
-
-    if (tapTimeoutRef.current) {
-      clearTimeout(tapTimeoutRef.current);
-    }
-
-    if (newCount >= 5) {
-      try {
-        const currentValue = await AsyncStorage.getItem('enable_map_mode');
-        const isCurrentlyEnabled = currentValue === 'true';
-        const newValue = isCurrentlyEnabled ? 'false' : 'true';
-
-        await AsyncStorage.setItem('enable_map_mode', newValue);
-        toast.show({
-          type: 'info',
-          text1: isCurrentlyEnabled
-            ? 'Đã tắt chế độ bản đồ'
-            : 'Đã bật chế độ bản đồ',
-          visibilityTime: 1000,
-        });
-        setTapCount(0);
-      } catch (error) {
-        console.error('Error saving to AsyncStorage:', error);
-      }
-    } else {
-      tapTimeoutRef.current = setTimeout(() => {
-        setTapCount(0);
-      }, 1000);
-    }
-  };
-
-  const handleCreateNewAddress = async () => {
-    onSelectAddress(null);
-
-    navigation.navigate('AddressMap', {
-      mode: 'create',
-    });
-  };
-
   const handleDeleteAddress = (addr: Address) => {
     setAddressToDelete(addr);
     setDeleteModalVisible(true);
@@ -163,11 +122,11 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
       ) : (
         <>
           <View className="flex-row justify-between mb-3 items-center">
-            <TouchableOpacity onPress={handleTapTitle} activeOpacity={0.8}>
+            <View>
               <Text className="text-sm font-semibold text-primary-100">
                 Danh sách địa chỉ<Text className="text-red-500"> *</Text>
               </Text>
-            </TouchableOpacity>
+            </View>
             {addresses.length > 1 && (
               <Text className="text-xs text-gray-500">Vuốt trái để xóa</Text>
             )}
@@ -216,23 +175,6 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
               </Swipeable>
             </View>
           ))}
-
-          {addresses.length < 5 && (
-            <TouchableOpacity
-              className="px-4 py-3 rounded-xl border-2 border-dashed border-primary-100 bg-red-50/30 flex-row items-center justify-center mt-1"
-              onPress={() => {
-                handleCreateNewAddress();
-              }}
-              activeOpacity={0.7}
-            >
-              <View className="w-6 h-6 bg-primary-100 rounded-full items-center justify-center mr-2">
-                <Icon name="plus" size={14} color="#fff" />
-              </View>
-              <Text className="text-sm font-semibold text-primary-100">
-                Tạo địa chỉ mới
-              </Text>
-            </TouchableOpacity>
-          )}
         </>
       )}
 

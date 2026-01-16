@@ -43,8 +43,12 @@ const CreateAddress: React.FC<CreateAddressProps> = ({ onLocationSelect }) => {
   const [pendingLocation, setPendingLocation] = useState<LocationData | null>(
     null,
   );
+  const [myLocationData, setMyLocationData] = useState<LocationData | null>(
+    null,
+  );
 
   const searchTimeoutRef = useRef<number | null>(null);
+  const isSettingMyLocation = useRef<boolean>(false);
 
   const searchLocation = async (query: string): Promise<void> => {
     setLoading(true);
@@ -67,6 +71,7 @@ const CreateAddress: React.FC<CreateAddressProps> = ({ onLocationSelect }) => {
     try {
       const addressDetails = await resolvePlace(item.place_id);
       setPendingLocation(addressDetails);
+      setSearchQuery(item.description);
       setConfirmModalVisible(true);
     } catch (error) {
       console.error('Error resolving place:', error);
@@ -97,8 +102,10 @@ const CreateAddress: React.FC<CreateAddressProps> = ({ onLocationSelect }) => {
         const [longitude, latitude] = location;
         const addressResults = await reverseGeocodeService(longitude, latitude);
         if (addressResults) {
-          setPendingLocation(addressResults);
-          setConfirmModalVisible(true);
+          isSettingMyLocation.current = true;
+          setMyLocationData(addressResults);
+          setSearchQuery(addressResults.name);
+          setSearchResults([]);
         }
       } else {
         toast.show({
@@ -120,10 +127,18 @@ const CreateAddress: React.FC<CreateAddressProps> = ({ onLocationSelect }) => {
     }
   };
 
+  const handleSaveLocation = () => {
+    if (myLocationData) {
+      onLocationSelect(myLocationData);
+      setMyLocationData(null);
+      setSearchQuery('');
+    }
+  };
+
   return (
     <View className="flex-1 bg-gray-50">
       <View className="">
-        <View className="mx-4 mb-3 flex-row items-center  border-2 border-red-200 rounded-2xl px-4 py-1">
+        <View className=" mb-3 flex-row items-center  border-2 border-red-200 rounded-2xl px-4 py-1">
           <Icon name="search" size={22} color="#e85a4f" />
           <TextInput
             className="flex-1 ml-3 text-base text-gray-900 font-medium"
@@ -133,12 +148,26 @@ const CreateAddress: React.FC<CreateAddressProps> = ({ onLocationSelect }) => {
                 : 'Tìm kiếm địa điểm ...'
             }
             placeholderTextColor="#9ca3af"
-            value={searchQuery}
+            value={myLocationData ? myLocationData.name : searchQuery}
             onChangeText={text => {
+              if (myLocationData) {
+                setMyLocationData({
+                  ...myLocationData,
+                  name: text,
+                });
+                return;
+              }
+
               setSearchQuery(text);
               if (searchTimeoutRef.current) {
                 clearTimeout(searchTimeoutRef.current);
               }
+
+              if (isSettingMyLocation.current) {
+                isSettingMyLocation.current = false;
+                return;
+              }
+
               if (text.trim().length === 0) {
                 setSearchResults([]);
                 return;
@@ -163,6 +192,7 @@ const CreateAddress: React.FC<CreateAddressProps> = ({ onLocationSelect }) => {
               onPress={() => {
                 setSearchQuery('');
                 setSearchResults([]);
+                setMyLocationData(null);
                 if (searchTimeoutRef.current) {
                   clearTimeout(searchTimeoutRef.current);
                 }
@@ -175,20 +205,24 @@ const CreateAddress: React.FC<CreateAddressProps> = ({ onLocationSelect }) => {
           )}
 
           <TouchableOpacity
-            onPress={handleMyLocation}
+            onPress={myLocationData ? handleSaveLocation : handleMyLocation}
             activeOpacity={0.7}
             className="ml-2 bg-red-50 rounded-full p-2"
           >
-            <Icon name="my-location" size={20} color="#e85a4f" />
+            <Icon
+              name={myLocationData ? 'add' : 'my-location'}
+              size={20}
+              color="#e85a4f"
+            />
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Search Results */}
-      {searchQuery.length > 0 && !loading && (
+      {searchQuery.length > 0 && !loading && !myLocationData && (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          className="flex-1"
+          className="flex-1 absolute top-16 left-0 right-0 bg-white rounded-b-2xl shadow-md z-10"
           style={{ maxHeight: height - 200 }}
         >
           {searchResults.length > 0 ? (
@@ -245,11 +279,14 @@ const CreateAddress: React.FC<CreateAddressProps> = ({ onLocationSelect }) => {
           if (pendingLocation) {
             setPendingLocation(null);
             onLocationSelect(pendingLocation);
+            setSearchQuery('');
+            setSearchResults([]);
           }
           setConfirmModalVisible(false);
         }}
         onCancel={() => {
           setPendingLocation(null);
+          setSearchQuery('');
           setConfirmModalVisible(false);
         }}
         iconName="map-pin"

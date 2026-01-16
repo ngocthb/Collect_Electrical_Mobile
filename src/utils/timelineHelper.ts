@@ -4,6 +4,7 @@ export const mapStatusToIcon = (status: string) => {
     .toLowerCase();
   // Vietnamese status mappings
   if (s === 'chờ duyệt') return 'clock';
+  if (s === 'đã duyệt') return 'check-square';
   if (s === 'chờ thu gom') return 'calendar';
   if (s === 'đã thu gom' || s === 'đã lấy hàng') return 'package';
   if (s === 'nhập kho') return 'archive';
