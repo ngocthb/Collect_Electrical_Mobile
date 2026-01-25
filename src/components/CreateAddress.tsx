@@ -142,6 +142,11 @@ const CreateAddress: React.FC<CreateAddressProps> = ({ onLocationSelect }) => {
           <Icon name="search" size={22} color="#e85a4f" />
           <TextInput
             className="flex-1 ml-3 text-base text-gray-900 font-medium"
+            style={{
+              minHeight: (30 * height) / 812,
+              paddingVertical: 4,
+              lineHeight: 16,
+            }}
             placeholder={
               isGetLocation
                 ? 'Đang lấy vị trí của bạn'

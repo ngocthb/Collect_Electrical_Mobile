@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import BottomTabs from './BottomTabs';
 
 import CreateRequestScreen from '../screens/user/CreateRequestScreen';
-import AddressMap from '../screens/user/AddressMap';
+
 import DeliveryListScreen from '../screens/delivery/DeliveryListScreen';
 import ProductDetailsScreen from '../screens/user/ProductDetailsScreen';
 
@@ -78,8 +78,6 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
             name="DefaultSchedule"
             component={DefaultScheduleScreen}
           />
-
-          <Stack.Screen name="AddressMap" component={AddressMap} />
 
           <Stack.Screen
             name="ProductDetails"

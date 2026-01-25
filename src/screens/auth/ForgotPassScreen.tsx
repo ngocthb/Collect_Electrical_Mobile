@@ -59,7 +59,7 @@ export default function ForgotPassScreen() {
     Keyboard.dismiss();
     try {
       setLoading(true);
-      await getOtpByEmail(email);
+      await getOtpByEmail(email.toLocaleLowerCase().trim());
       Toast.show({
         type: 'success',
         text1: content[type].successTitle,
@@ -115,6 +115,7 @@ export default function ForgotPassScreen() {
             onChangeText={t => {
               setEmail(t);
             }}
+            isEmail={true}
             required
             returnKeyType="next"
             onSubmitEditing={handleVerify}

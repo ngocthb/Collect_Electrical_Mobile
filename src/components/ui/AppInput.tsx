@@ -13,6 +13,7 @@ interface AppInputProps extends TextInputProps {
   inlineLabel?: boolean; // nếu true thì label và input cùng hàng
   // Nếu true sẽ dùng bàn phím số (phone-pad) và một số xử lý mặc định cho số điện thoại
   isPhone?: boolean;
+  isEmail?: boolean; // nếu true sẽ dùng bàn phím email
   isNumeric?: boolean; // New prop to enable numeric input
   showStepper?: boolean; // show +/- buttons for numeric adjustment
   step?: number; // step increment/decrement (default 1)
@@ -34,6 +35,7 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
       required = false,
       disabled = false,
       isPhone = false,
+      isEmail = false,
       inlineLabel = false,
       isNumeric = false,
       showStepper = false,
@@ -128,7 +130,13 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
           placeholderTextColor={disabled ? '#D1D5DB' : '#9CA3AF'}
           secureTextEntry={displaySecure}
           keyboardType={
-            isNumeric ? 'numeric' : isPhone ? 'phone-pad' : props.keyboardType
+            isNumeric
+              ? 'numeric'
+              : isPhone
+              ? 'phone-pad'
+              : isEmail
+              ? 'email-address'
+              : props.keyboardType
           }
           editable={!disabled}
           onFocus={handleFocus}

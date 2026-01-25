@@ -15,6 +15,11 @@ import { useNavigation } from '@react-navigation/native';
 import SubLayout from '../../layout/SubLayout';
 import { Warehouse } from '../../types/Warehouse';
 import { getWarehouses } from '../../services/warehouseService';
+const DISTANCE = 10000;
+import {
+  calculateDistance,
+  getCurrentLocation,
+} from '../../services/mapboxService';
 
 const WarehouseLocationScreen = () => {
   const navigation = useNavigation<any>();
@@ -25,6 +30,7 @@ const WarehouseLocationScreen = () => {
   >([]);
   const [selectedRatingFilter, setSelectedRatingFilter] = useState('');
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc'); // 'asc' = gần nhất, 'desc' = xa nhất
 
   const ratingFilterOptions = [
     { value: '', label: 'Tất cả', color: 'gray' },
@@ -38,10 +44,23 @@ const WarehouseLocationScreen = () => {
       setLoading(true);
 
       const warehouseData = await getWarehouses();
-      const warehouseWithRating = warehouseData.map(wh => ({
+      const [longitude, latitude] = await getCurrentLocation();
+
+      const warehouse = warehouseData.map(wh => ({
         ...wh,
         rating: Math.random() * 2 + 3,
+
+        distanceMeters: calculateDistance(
+          latitude,
+          longitude,
+          wh.latitude,
+          wh.longitude,
+        ),
       }));
+
+      const warehouseWithRating = warehouse.filter(
+        wh => wh.distanceMeters <= DISTANCE,
+      );
 
       setWarehousesWithDistance(warehouseWithRating);
     } catch (error) {
@@ -65,6 +84,15 @@ const WarehouseLocationScreen = () => {
           w => w.rating >= parseFloat(selectedRatingFilter),
         );
 
+  // Sort theo khoảng cách
+  filteredWarehouses = [...filteredWarehouses].sort((a, b) => {
+    if (sortOrder === 'asc') {
+      return (a.distanceMeters || 0) - (b.distanceMeters || 0); // Gần nhất đến xa nhất
+    } else {
+      return (b.distanceMeters || 0) - (a.distanceMeters || 0); // Xa nhất đến gần nhất
+    }
+  });
+
   const getColorClass = (color: string) => {
     const classes: any = {
       gray: 'bg-gray-400',
@@ -73,37 +101,6 @@ const WarehouseLocationScreen = () => {
       green: 'bg-green-500',
     };
     return classes[color] || 'bg-gray-400';
-  };
-
-  const renderStars = (rating: number) => {
-    const full = Math.floor(rating);
-    const half = rating % 1 >= 0.5;
-    const stars = [];
-
-    for (let i = 0; i < full; i++)
-      stars.push(
-        <FontAwesome key={`full-${i}`} name="star" size={14} color="#F59E0B" />,
-      );
-    if (half)
-      stars.push(
-        <FontAwesome
-          key="half"
-          name="star-half-full"
-          size={14}
-          color="#F59E0B"
-        />,
-      );
-    for (let i = stars.length; i < 5; i++)
-      stars.push(
-        <FontAwesome
-          key={`empty-${i}`}
-          name="star"
-          size={14}
-          color="#D1D5DB"
-        />,
-      );
-
-    return stars;
   };
 
   const selectedOption = ratingFilterOptions.find(
@@ -116,6 +113,18 @@ const WarehouseLocationScreen = () => {
       onBackPress={() => navigation.goBack()}
       rightComponent={
         <View className="flex-row items-center space-x-2">
+          {/* SORT BUTTON */}
+          <TouchableOpacity
+            onPress={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            className="flex-row items-center px-3 py-1.5 rounded-lg border border-gray-200 bg-white mr-2"
+          >
+            <Icon
+              name={sortOrder === 'asc' ? 'chevrons-up' : 'chevrons-down'}
+              size={14}
+              color="#e85a4f"
+            />
+          </TouchableOpacity>
+
           {/* FILTER DROPDOWN */}
           <View className="relative">
             <TouchableOpacity
@@ -215,11 +224,13 @@ const WarehouseLocationScreen = () => {
                     </Text>
                     <View className="flex-row items-center">
                       <Icon name="clock" size={12} color="#6B7280" />
-                      <Text className="text-sm text-gray-600 ml-1">
-                        Giờ mở cửa:{' '}
-                        <Text className="font-semibold text-gray-900">
-                          {wh.openTime}
-                        </Text>
+
+                      <Text className="text-sm text-gray-600 ml-1 mr-2">
+                        {wh.openTime}
+                      </Text>
+                      <Icon name="minus" size={12} color="#6B7280" />
+                      <Text className="text-sm text-gray-600 ml-1 ">
+                        {((wh.distanceMeters || 0) / 1000).toFixed(0)} km
                       </Text>
                     </View>
                   </View>

@@ -2,11 +2,11 @@ import { Platform, PermissionsAndroid, Linking } from 'react-native';
 import toast from 'react-native-toast-message';
 import Geolocation from 'react-native-geolocation-service';
 import type { LineString } from 'geojson';
-import type { ResolvedLocation } from '../types/MapboxPicker';
+// import type { ResolvedLocation } from '../types/MapboxPicker';
 import Config from '../config/env';
 import axios from 'axios';
 
-const MAPBOX_TOKEN = Config.MAPBOX_ACCESS_TOKEN;
+// const MAPBOX_TOKEN = Config.MAPBOX_ACCESS_TOKEN;
 const OPEN_MAP_TOKEN = Config.OPEN_MAP_TOKEN;
 
 export async function searchLocation(query: string) {
@@ -106,34 +106,34 @@ export interface RouteData {
   steps: NavigationStep[];
 }
 
-export async function getDirections(
-  currentLocation: [number, number],
-  markerCoordinate: [number, number],
-): Promise<RouteData | null> {
-  const startCoords = `${currentLocation[0]},${currentLocation[1]}`;
-  const endCoords = `${markerCoordinate[0]},${markerCoordinate[1]}`;
-  const data = await mapboxDirections(startCoords, endCoords);
-  if (data.routes && data.routes.length > 0) {
-    const route = data.routes[0];
-    const steps: NavigationStep[] = route.legs[0].steps.map((step: any) => ({
-      instruction: step.maneuver.instruction,
-      distance: step.distance,
-      duration: step.duration,
-      maneuver: {
-        type: step.maneuver.type,
-        modifier: step.maneuver.modifier,
-        location: step.maneuver.location,
-      },
-    }));
-    return {
-      distance: route.distance,
-      duration: route.duration,
-      geometry: route.geometry,
-      steps,
-    };
-  }
-  return null;
-}
+// export async function getDirections(
+//   currentLocation: [number, number],
+//   markerCoordinate: [number, number],
+// ): Promise<RouteData | null> {
+//   const startCoords = `${currentLocation[0]},${currentLocation[1]}`;
+//   const endCoords = `${markerCoordinate[0]},${markerCoordinate[1]}`;
+//   const data = await mapboxDirections(startCoords, endCoords);
+//   if (data.routes && data.routes.length > 0) {
+//     const route = data.routes[0];
+//     const steps: NavigationStep[] = route.legs[0].steps.map((step: any) => ({
+//       instruction: step.maneuver.instruction,
+//       distance: step.distance,
+//       duration: step.duration,
+//       maneuver: {
+//         type: step.maneuver.type,
+//         modifier: step.maneuver.modifier,
+//         location: step.maneuver.location,
+//       },
+//     }));
+//     return {
+//       distance: route.distance,
+//       duration: route.duration,
+//       geometry: route.geometry,
+//       steps,
+//     };
+//   }
+//   return null;
+// }
 // Lấy vị trí hiện tại, trả về Promise<[longitude, latitude]>
 export function getCurrentLocation(): Promise<[number, number]> {
   return new Promise((resolve, reject) => {
@@ -216,51 +216,51 @@ export async function checkAndRequestLocationPermission() {
   }
 }
 
-export async function mapboxGeocode(
-  query: string,
-  proximity = '105.8342,21.0278',
-) {
-  const vietnamBbox = '102.14,8.18,109.46,23.39';
-  const url =
-    `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-      query,
-    )}.json?` +
-    `access_token=${MAPBOX_TOKEN}` +
-    `&country=VN` +
-    `&bbox=${vietnamBbox}` +
-    `&proximity=${proximity}` +
-    `&language=vi` +
-    `&limit=5` +
-    `&types=poi,address,place,locality,neighborhood`;
-  const response = await fetch(url);
-  return response.json();
-}
+// export async function mapboxGeocode(
+//   query: string,
+//   proximity = '105.8342,21.0278',
+// ) {
+//   const vietnamBbox = '102.14,8.18,109.46,23.39';
+//   const url =
+//     `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+//       query,
+//     )}.json?` +
+//     `access_token=${MAPBOX_TOKEN}` +
+//     `&country=VN` +
+//     `&bbox=${vietnamBbox}` +
+//     `&proximity=${proximity}` +
+//     `&language=vi` +
+//     `&limit=5` +
+//     `&types=poi,address,place,locality,neighborhood`;
+//   const response = await fetch(url);
+//   return response.json();
+// }
 
-export async function mapboxReverseGeocode(
-  longitude: number,
-  latitude: number,
-) {
-  const url =
-    `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?` +
-    `access_token=${MAPBOX_TOKEN}` +
-    `&language=vi` +
-    `&country=VN`;
-  const response = await fetch(url);
-  return response.json();
-}
+// export async function mapboxReverseGeocode(
+//   longitude: number,
+//   latitude: number,
+// ) {
+//   const url =
+//     `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?` +
+//     `access_token=${MAPBOX_TOKEN}` +
+//     `&language=vi` +
+//     `&country=VN`;
+//   const response = await fetch(url);
+//   return response.json();
+// }
 
-export async function mapboxDirections(start: string, end: string) {
-  const url =
-    `https://api.mapbox.com/directions/v5/mapbox/driving/${start};${end}?` +
-    `access_token=${MAPBOX_TOKEN}` +
-    `&geometries=geojson` +
-    `&steps=true` +
-    `&banner_instructions=true` +
-    `&language=vi` +
-    `&overview=full`;
-  const response = await fetch(url);
-  return response.json();
-}
+// export async function mapboxDirections(start: string, end: string) {
+//   const url =
+//     `https://api.mapbox.com/directions/v5/mapbox/driving/${start};${end}?` +
+//     `access_token=${MAPBOX_TOKEN}` +
+//     `&geometries=geojson` +
+//     `&steps=true` +
+//     `&banner_instructions=true` +
+//     `&language=vi` +
+//     `&overview=full`;
+//   const response = await fetch(url);
+//   return response.json();
+// }
 
 // Calculate distance between two coordinates using Haversine formula
 export function calculateDistance(
