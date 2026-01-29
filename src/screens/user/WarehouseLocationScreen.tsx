@@ -11,12 +11,14 @@ import Icon from 'react-native-vector-icons/Feather';
 import IconIon from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
+import toast from 'react-native-toast-message';
 
 import SubLayout from '../../layout/SubLayout';
 import { Warehouse } from '../../types/Warehouse';
 import { getWarehouses } from '../../services/warehouseService';
 const DISTANCE = 10000;
 import {
+  checkAndRequestLocationPermission,
   calculateDistance,
   getCurrentLocation,
 } from '../../services/mapboxService';
@@ -42,7 +44,15 @@ const WarehouseLocationScreen = () => {
   const loadWarehouses = async () => {
     try {
       setLoading(true);
-
+      const granted = await checkAndRequestLocationPermission();
+      if (!granted) {
+        toast.show({
+          type: 'error',
+          text1: 'Lỗi',
+          text2: 'Quyền truy cập vị trí bị từ chối',
+        });
+        return;
+      }
       const warehouseData = await getWarehouses();
       const [longitude, latitude] = await getCurrentLocation();
 

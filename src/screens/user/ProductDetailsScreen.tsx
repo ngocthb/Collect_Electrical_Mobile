@@ -180,7 +180,7 @@ const ProductDetailsScreen = () => {
           {canRenderBox ? (
             <View className="flex-row justify-between py-2  ">
               <Text className="text-gray-600 text-sm">
-                Dài x Rộng x Cao ({unit ? ` ${unit}` : ''})
+                Dài x Rộng x Cao ({unit ? `${unit}` : ''})
               </Text>
               <Text className="text-gray-900 font-medium">
                 {`${lengthAttr.value} x ${widthAttr.value} x ${heightAttr.value}`}

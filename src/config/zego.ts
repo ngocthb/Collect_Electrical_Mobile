@@ -65,16 +65,16 @@ export const initZegoService = async (
           incomingCallFileName: 'zego_incoming.wav',
           outgoingCallFileName: 'zego_incoming.wav',
         },
-        notifyWhenAppRunningInBackgroundOrQuit: true , // ✅ Tắt auto-show khi app background
+        notifyWhenAppRunningInBackgroundOrQuit: true, // ✅ Tắt auto-show khi app background
         isIOSSandboxEnvironment: false,
         androidNotificationConfig: {
           channelID: 'thu_gom',
           channelName: 'thu_gom',
         },
         iOSCallKit: {
-      enabled: true,
-      appName: 'Ewise',
-    },
+          enabled: true,
+          appName: 'Ewise',
+        },
         innerText: {
           incomingCallPageDeclineButton: 'Từ chối',
           incomingCallPageAcceptButton: 'Chấp nhận',
@@ -89,7 +89,16 @@ export const initZegoService = async (
           };
         },
       },
-    );
+    ).then(() => {
+      // /////////////////////////
+      ZegoUIKitPrebuiltCallService.requestSystemAlertWindow({
+        message:
+          'We need your consent for the following permissions in order to use the offline call function properly',
+        allow: 'Allow',
+        deny: 'Deny',
+      });
+      // /////////////////////////
+    });
 
     isInitialized = true;
     currentUserId = userId;

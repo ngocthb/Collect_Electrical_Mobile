@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleSyncDays, clickDay } from '../store/slices/timeSlotSlice';
 
 // Cutoff hour (24-hour format): if current time >= this hour, start calendar from next day
-const CUTOFF_HOUR = 20;
+const CUTOFF_HOUR = 23;
 
 interface DaySelectionProps {
   selectedDays: Day[];
