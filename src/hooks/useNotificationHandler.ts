@@ -8,31 +8,43 @@ export const useNotificationHandler = () => {
     // Foreground
     const unsubscribe = messaging().onMessage(async remoteMessage => {
       console.log('Notification nhận được ở foreground:', remoteMessage);
-      const productId = remoteMessage.data?.productId;
+      const { productId, type, routeId } = remoteMessage.data || {};
 
-      Toast.show({
-        type: 'info',
-        text1: remoteMessage.notification?.title || 'Thông báo',
-        text2: remoteMessage.notification?.body || '',
-        onPress: () => {
-          if (productId && navigationRef.isReady()) {
-            navigationRef.navigate('ProductDetails', { productId });
-          }
-        },
-      });
+      if (type === 'SHIPPER_ARRIVAL' && productId) {
+        Toast.show({
+          type: 'info',
+          text1: remoteMessage.notification?.title || 'Thông báo',
+          text2: remoteMessage.notification?.body || '',
+          onPress: () => {
+            if (productId && navigationRef.isReady()) {
+              navigationRef.navigate('ProductDetails', { productId });
+            }
+          },
+        });
+      } else if (type === 'COLLECTOR_CALL' && routeId) {
+        return;
+      } else {
+        Toast.show({
+          type: 'info',
+          text1: remoteMessage.notification?.title || 'Thông báo',
+          text2: remoteMessage.notification?.body || '',
+        });
+      }
     });
 
     // Background - khi user TAP vào notification
     const unsubscribeOpenedApp = messaging().onNotificationOpenedApp(
       remoteMessage => {
         console.log('App opened from BACKGROUND notification:', remoteMessage);
-        const productId = remoteMessage.data?.productId;
-        if (productId) {
+        const { productId, type, routeId } = remoteMessage.data || {};
+        if (productId && type === 'SHIPPER_ARRIVAL') {
           // Navigation đã sẵn sàng vì app đang chạy
           if (navigationRef.isReady()) {
             console.log('Navigate từ background');
             navigationRef.navigate('ProductDetails', { productId });
           }
+        } else if (type === 'COLLECTOR_CALL' && routeId) {
+          return;
         }
       },
     );
@@ -43,9 +55,9 @@ export const useNotificationHandler = () => {
       .then(remoteMessage => {
         console.log('getInitialNotification:', remoteMessage);
         if (remoteMessage) {
-          const productId = remoteMessage.data?.productId;
+          const { productId, type, routeId } = remoteMessage.data || {};
           console.log('ProductId from killed state:', productId);
-          if (productId) {
+          if (productId && type === 'SHIPPER_ARRIVAL') {
             // Cần đợi navigation ready
             const checkNavReady = setInterval(() => {
               if (navigationRef.isReady()) {
@@ -59,6 +71,8 @@ export const useNotificationHandler = () => {
 
             // Timeout sau 5s để tránh loop vô hạn
             setTimeout(() => clearInterval(checkNavReady), 5000);
+          } else if (type === 'COLLECTOR_CALL' && routeId) {
+            return;
           }
         }
       });
