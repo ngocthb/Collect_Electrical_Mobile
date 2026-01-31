@@ -89,16 +89,18 @@ export const initZegoService = async (
           };
         },
       },
-    ).then(() => {
-      // /////////////////////////
-      ZegoUIKitPrebuiltCallService.requestSystemAlertWindow({
-        message:
-          'We need your consent for the following permissions in order to use the offline call function properly',
-        allow: 'Allow',
-        deny: 'Deny',
-      });
-      // /////////////////////////
-    });
+    );
+    //   .then(() => {
+    //     // /////////////////////////
+    //     ZegoUIKitPrebuiltCallService.requestSystemAlertWindow({
+    //       message:
+    //         'We need your consent for the following permissions in order to use the offline call function properly',
+    //       allow: 'Allow',
+    //       deny: 'Deny',
+    //     });
+    //     // /////////////////////////
+    //   }
+    // );
 
     isInitialized = true;
     currentUserId = userId;
