@@ -75,7 +75,7 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
       <View className="flex-1 flex-row items-center">
         <TouchableOpacity
           onPress={handleEyePress}
-          // disabled={!isSelectedDateToday || actionsDisabled}
+          disabled={!isSelectedDateToday || actionsDisabled}
           className="flex-1"
         >
           <View className="flex-row justify-between items-center mb-1">
@@ -101,7 +101,8 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
             <ZegoSendCallInvitationButton
               invitees={invitees}
               isVideoCall={false}
-              resourceID="thugom_data"
+              resourceID="thu_gom_data"
+              timeout={120}
             />
           ) : invitees.length > 0 ? (
             <View

@@ -168,6 +168,8 @@
 	<array>
 		<string>remote-notification</string>
 		<string>location</string>
+		<string>voip</string>
+		<string>processing</string>
 	</array>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>

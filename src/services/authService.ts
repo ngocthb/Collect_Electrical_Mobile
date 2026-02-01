@@ -5,7 +5,6 @@ import auth from '@react-native-firebase/auth';
 import messaging from '@react-native-firebase/messaging';
 import { Profile, DeliveryLoginResponse } from '../types/Profile';
 import { Platform, PermissionsAndroid } from 'react-native';
-import { ZPNs } from 'zego-zpns-react-native';
 
 export const requestAndroidNotificationPermission = async (): Promise<void> => {
   if (Platform.OS === 'android' && Platform.Version >= 33) {
@@ -25,7 +24,7 @@ export const registerFcmToken = async (
     await messaging().requestPermission();
     const fcmToken = await messaging().getToken();
     const platform = Platform.OS;
-
+    console.log('FCM token', fcmToken);
     const response = await axiosClient.post('/notifications/register-device', {
       fcmToken,
       platform,

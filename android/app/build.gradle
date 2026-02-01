@@ -129,7 +129,7 @@ dependencies {
   
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-messaging:23.1.2")
-
+    implementation("im.zego:zpns-fcm:2.8.0")
 
 }
 

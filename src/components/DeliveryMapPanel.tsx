@@ -280,7 +280,8 @@ const DeliveryMapPanel: React.FC<Props> = ({
                   <ZegoSendCallInvitationButton
                     invitees={invitees}
                     isVideoCall={false}
-                    resourceID="thugom_data"
+                    resourceID="thu_gom_data"
+                    timeout={120}
                   />
                 </View>
               </View>

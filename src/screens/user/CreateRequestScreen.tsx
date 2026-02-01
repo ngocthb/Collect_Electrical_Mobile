@@ -145,7 +145,7 @@ const CreateRequestScreen = () => {
       Toast.show({
         type: 'error',
         text1: 'Lỗi',
-        text2: error?.toString(),
+        text2: error?.toString() || 'Đã có lỗi xảy ra khi tạo yêu cầu.',
       });
       setLoading(false);
     } finally {
