@@ -2,19 +2,21 @@ import * as ZIM from 'zego-zim-react-native';
 import * as ZPNs from 'zego-zpns-react-native';
 // @ts-ignore
 import ZegoUIKitPrebuiltCallService from '@zegocloud/zego-uikit-prebuilt-call-rn';
+import messaging from '@react-native-firebase/messaging';
 import Config from './env';
+
 const APP_ID = Config.ZEGO_APP_ID;
 const APP_SIGN = Config.ZEGO_APP_SIGN;
 
 let isInitialized = false;
 let currentUserId: string | null = null;
 let initPromise: Promise<void> | null = null;
+
 export const uninitZegoService = async (): Promise<void> => {
   try {
     console.log('[Zego] Uninitializing...');
 
     if (isInitialized) {
-      // ✅ Hangup any ongoing calls before uninit
       try {
         await ZegoUIKitPrebuiltCallService.hangUp();
         console.log('[Zego] Hung up all calls');
@@ -43,13 +45,13 @@ export const initZegoService = async (
   onCallEnd?: (duration: number) => void,
 ) => {
   try {
-    // ✅ Check if already initialized for THIS user
+    // Check if already initialized for THIS user
     if (isInitialized && currentUserId === userId) {
       console.log('[Zego] Already initialized for user:', userId);
       return;
     }
 
-    // ✅ If initialized for a DIFFERENT user, uninit first
+    // If initialized for a DIFFERENT user, uninit first
     if (isInitialized && currentUserId !== userId) {
       await uninitZegoService();
     }
@@ -59,29 +61,28 @@ export const initZegoService = async (
       APP_SIGN,
       userId,
       userName,
-      [ZIM, ZPNs],
+      [ZIM, ZPNs], // ✅ ZPNs sẽ tự động enable offline push
       {
         ringtoneConfig: {
           incomingCallFileName: 'zego_incoming.wav',
           outgoingCallFileName: 'zego_incoming.wav',
         },
-        notifyWhenAppRunningInBackgroundOrQuit: true, // ✅ Tắt auto-show khi app background
+        notifyWhenAppRunningInBackgroundOrQuit: true,
         isIOSSandboxEnvironment: false,
         androidNotificationConfig: {
           channelID: 'thu_gom',
           channelName: 'thu_gom',
         },
-        iOSCallKit: {
-          enabled: true,
-          appName: 'Ewise',
-        },
-        innerText: {
-          incomingCallPageDeclineButton: 'Từ chối',
-          incomingCallPageAcceptButton: 'Chấp nhận',
-        },
-        requireConfig: (data: any) => {
-          console.log('[Zego] requireConfig called:', data);
+        // ✅ QUAN TRỌNG: Cấu hình offline push
+        requireConfig: (callInvitationData: any) => {
+          console.log('[Zego] requireConfig called:', callInvitationData);
           return {
+            // ✅ KEY 1: Phải set false để nhận push khi app killed
+            onlineOnly: false,
+
+            // ✅ KEY 2: Resource ID từ Zego Console
+            resourceID: 'zego_call', // ⚠️ Thay bằng resource ID thật của bạn
+
             onHangUp: (duration: number) => {
               console.log('[Zego] Call ended:', duration);
               onCallEnd?.(duration);
@@ -89,18 +90,14 @@ export const initZegoService = async (
           };
         },
       },
-    );
-    //   .then(() => {
-    //     // /////////////////////////
-    //     ZegoUIKitPrebuiltCallService.requestSystemAlertWindow({
-    //       message:
-    //         'We need your consent for the following permissions in order to use the offline call function properly',
-    //       allow: 'Allow',
-    //       deny: 'Deny',
-    //     });
-    //     // /////////////////////////
-    //   }
-    // );
+    ).then(() => {
+      ZegoUIKitPrebuiltCallService.requestSystemAlertWindow({
+        message:
+          'We need your consent for the following permissions in order to use the offline call function properly',
+        allow: 'Allow',
+        deny: 'Deny',
+      });
+    });
 
     isInitialized = true;
     currentUserId = userId;
@@ -111,4 +108,29 @@ export const initZegoService = async (
     currentUserId = null;
     throw error;
   }
+};
+
+// ✅ Setup notification handlers
+export const setupZegoNotificationHandlers = () => {
+  // Foreground notification
+  const unsubscribe = messaging().onMessage(async remoteMessage => {
+    console.log('[Zego] Foreground notification:', remoteMessage);
+    // Zego sẽ tự động handle
+  });
+
+  // Background/Quit notification tap
+  messaging().onNotificationOpenedApp(remoteMessage => {
+    console.log('[Zego] Notification opened app:', remoteMessage);
+  });
+
+  // Killed state notification tap
+  messaging()
+    .getInitialNotification()
+    .then(remoteMessage => {
+      if (remoteMessage) {
+        console.log('[Zego] App opened from killed state:', remoteMessage);
+      }
+    });
+
+  return unsubscribe;
 };

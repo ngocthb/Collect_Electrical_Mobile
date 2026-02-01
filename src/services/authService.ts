@@ -5,6 +5,7 @@ import auth from '@react-native-firebase/auth';
 import messaging from '@react-native-firebase/messaging';
 import { Profile, DeliveryLoginResponse } from '../types/Profile';
 import { Platform, PermissionsAndroid } from 'react-native';
+import { ZPNs } from 'zego-zpns-react-native';
 
 export const requestAndroidNotificationPermission = async (): Promise<void> => {
   if (Platform.OS === 'android' && Platform.Version >= 33) {

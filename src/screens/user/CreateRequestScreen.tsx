@@ -28,6 +28,7 @@ import { useAppDispatch } from '../../store/hooks';
 import { clearTimeSlot } from '../../store/slices/timeSlotSlice';
 import Icon from 'react-native-vector-icons/Feather';
 import ChooseAddress from '../../components/ChooseAddress';
+import Toast from 'react-native-toast-message';
 
 const CreateRequestScreen = () => {
   const router = useRoute<any>();
@@ -48,7 +49,6 @@ const CreateRequestScreen = () => {
   const [attributeValues, setAttributeValues] = useState<AttributeOptionData[]>(
     [],
   );
-  const [isLoadingAttributes, setIsLoadingAttributes] = useState(false);
   const [selectedImages, setSelectedImages] = useState<Asset[]>([]);
   const [isImagePickerVisible, setIsImagePickerVisible] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -126,7 +126,7 @@ const CreateRequestScreen = () => {
         product: {
           parentCategoryId: categoryId,
           subCategoryId: selectedCategory?.id,
-          brandId: selectedBrandId || '',
+          brandId: selectedBrandId,
           attributes: attributeValues || null,
         },
       };
@@ -138,13 +138,18 @@ const CreateRequestScreen = () => {
         text1: 'Thành công',
         text2: 'Yêu cầu đã được tạo thành công.',
       });
+      dispatch(clearTimeSlot());
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (error) {
       console.error('Error creating request:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: error?.toString(),
+      });
       setLoading(false);
     } finally {
       setLoading(false);
-      dispatch(clearTimeSlot());
-      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     }
   };
 
@@ -173,8 +178,6 @@ const CreateRequestScreen = () => {
                     const brand = (selectedItem as any) || null;
                     if (brand) {
                       setSelectedBrandId(brand.brandId);
-                    } else {
-                      setSelectedBrandId(null);
                     }
                   }}
                 />

@@ -75,7 +75,7 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
       <View className="flex-1 flex-row items-center">
         <TouchableOpacity
           onPress={handleEyePress}
-          disabled={!isSelectedDateToday || actionsDisabled}
+          // disabled={!isSelectedDateToday || actionsDisabled}
           className="flex-1"
         >
           <View className="flex-row justify-between items-center mb-1">

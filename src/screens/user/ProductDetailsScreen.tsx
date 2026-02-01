@@ -246,7 +246,7 @@ const ProductDetailsScreen = () => {
     }
   };
 
-  console.log('====', product?.status);
+  console.log('====', product);
   return (
     <SubLayout
       title="Thông tin giao hàng"
@@ -269,7 +269,8 @@ const ProductDetailsScreen = () => {
                   <View className="flex-row items-center">
                     <Icon name="calendar" size={14} color="#fff" />
                     <Text className="text-white text-xs font-semibold uppercase tracking-wider ml-2">
-                      {product?.pickUpDate} • {product?.estimatedTime}
+                      {product?.pickUpDate} •{' '}
+                      {product?.estimatedTime?.split(':').slice(0, 2).join(':')}
                     </Text>
                   </View>
                 </View>

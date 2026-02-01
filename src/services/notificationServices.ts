@@ -39,3 +39,19 @@ export const sendNotification = async (productId: string): Promise<void> => {
     throw error;
   }
 };
+
+export const sendCallNoti = async (
+  routeId: string,
+  userId: string,
+): Promise<void> => {
+  try {
+    await axiosClient.post(`notifications/notify-call`, {
+      routeId,
+      userId,
+    });
+    console.log('Send call noti');
+  } catch (error) {
+    console.error('[sendCallNoti] Error:', error);
+    throw error;
+  }
+};

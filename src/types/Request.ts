@@ -12,7 +12,7 @@ export interface CreateRequestPayload {
     parentCategoryId?: string;
     subCategoryId?: string;
     sizeTierId?: string | null;
-    brandId?: string;
+    brandId?: string | null;
     attributes?: AttributeOptionData[];
   };
 }
