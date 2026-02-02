@@ -14,8 +14,6 @@ import ConfirmModal from '../../components/ConfirmModal';
 import AppImageGallery from '../../components/ui/AppImageGallery';
 import AppButton from '../../components/ui/AppButton';
 import SizeOptions from '../../components/SizeOptions';
-import AddressSelector from '../../components/AddressSelector';
-
 import tags from '../../data/tags';
 import type { AttributeOptionData, SubCategory } from '../../types/Category';
 import type { Address } from '../../types/Address';
@@ -26,9 +24,7 @@ import { TimeSlot } from '../../types/TimeSlot';
 import create from '../../services/requestService';
 import { useAppDispatch } from '../../store/hooks';
 import { clearTimeSlot } from '../../store/slices/timeSlotSlice';
-import Icon from 'react-native-vector-icons/Feather';
 import ChooseAddress from '../../components/ChooseAddress';
-import Toast from 'react-native-toast-message';
 
 const CreateRequestScreen = () => {
   const router = useRoute<any>();
@@ -53,6 +49,8 @@ const CreateRequestScreen = () => {
   const [isImagePickerVisible, setIsImagePickerVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const dispatch = useAppDispatch();
 
   // Reset brand when category changes
@@ -142,11 +140,8 @@ const CreateRequestScreen = () => {
       navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (error) {
       console.error('Error creating request:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Lỗi',
-        text2: error?.toString() || 'Đã có lỗi xảy ra khi tạo yêu cầu.',
-      });
+      setErrorMessage(error?.toString() || 'Đã có lỗi xảy ra khi tạo yêu cầu.');
+      setShowErrorModal(true);
       setLoading(false);
     } finally {
       setLoading(false);
@@ -276,6 +271,17 @@ const CreateRequestScreen = () => {
           handleCreateRequest();
         }}
         onCancel={() => setShowConfirmModal(false)}
+      />
+
+      <ConfirmModal
+        visible={showErrorModal}
+        iconName="alert-circle"
+        title="Thất bại"
+        message={errorMessage}
+        onConfirm={() => setShowErrorModal(false)}
+        onCancel={() => setShowErrorModal(false)}
+        showButtons={false}
+        showCloseButton={true}
       />
 
       {loading && currentStep === 2 && (

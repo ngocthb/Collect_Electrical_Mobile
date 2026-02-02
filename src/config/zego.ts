@@ -74,14 +74,15 @@ export const initZegoService = async (
           channelName: 'ZegoUIKit',
         },
       },
-    ).then(() => {
-      ZegoUIKitPrebuiltCallService.requestSystemAlertWindow({
-        message:
-          'App cần quyền hiển thị trên các ứng dụng khác để thực hiện cuộc gọi.',
-        allow: 'Cho phép',
-        deny: 'Từ chối',
-      });
-    });
+    );
+    // .then(() => {
+    //   ZegoUIKitPrebuiltCallService.requestSystemAlertWindow({
+    //     message:
+    //       'App cần quyền hiển thị trên các ứng dụng khác để thực hiện cuộc gọi.',
+    //     allow: 'Cho phép',
+    //     deny: 'Từ chối',
+    //   });
+    // });
 
     isInitialized = true;
     currentUserId = userId;

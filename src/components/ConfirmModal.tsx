@@ -19,6 +19,8 @@ interface ConfirmModalProps {
   iconName?: string;
   iconColor?: string;
   loading?: boolean;
+  showCloseButton?: boolean;
+  showButtons?: boolean;
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -32,6 +34,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   iconName = 'alert-circle',
   iconColor = '#e85a4f',
   loading = false,
+  showCloseButton = false,
+  showButtons = true,
 }) => {
   return (
     <Modal
@@ -42,6 +46,14 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     >
       <View className="flex-1 bg-black/50 justify-center items-center">
         <View className="bg-white rounded-xl p-6 w-[85%] max-w-[400px]">
+          {showCloseButton && (
+            <TouchableOpacity
+              onPress={onCancel}
+              className="absolute top-4 right-4 z-10"
+            >
+              <Icon name="x" size={24} color="#6B7280" />
+            </TouchableOpacity>
+          )}
           <View className="items-center mb-4">
             <Icon name={iconName} size={48} color={iconColor} />
           </View>
@@ -51,30 +63,32 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <Text className="text-sm text-center text-gray-500 mb-6">
             {message}
           </Text>
-          <View className="flex-row gap-3">
-            <TouchableOpacity
-              onPress={onCancel}
-              className="flex-1 py-3 rounded-lg border border-gray-300 bg-white"
-              disabled={loading}
-            >
-              <Text className="text-center text-gray-500 font-semibold">
-                {cancelText}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={onConfirm}
-              className="flex-1 py-3 rounded-lg bg-primary-100"
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text className="text-center text-white font-semibold">
-                  {confirmText}
+          {showButtons && (
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                onPress={onCancel}
+                className="flex-1 py-3 rounded-lg border border-gray-300 bg-white"
+                disabled={loading}
+              >
+                <Text className="text-center text-gray-500 font-semibold">
+                  {cancelText}
                 </Text>
-              )}
-            </TouchableOpacity>
-          </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={onConfirm}
+                className="flex-1 py-3 rounded-lg bg-primary-100"
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text className="text-center text-white font-semibold">
+                    {confirmText}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     </Modal>
