@@ -12,6 +12,7 @@ interface MainLayoutProps {
   hideHeader?: boolean;
   onRefresh?: () => Promise<void> | void;
   headerRightComponent?: React.ReactNode;
+  useScrollView?: boolean; // Default true, set false if children has its own scrollable component
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({
@@ -22,6 +23,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   hideHeader,
   onRefresh,
   headerRightComponent,
+  useScrollView = true,
 }) => {
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -49,19 +51,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         />
       )}
 
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onPullRefresh}
-            tintColor="#e85a4f"
-            colors={['#e85a4f']}
-          />
-        }
-      >
+      {useScrollView ? (
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onPullRefresh}
+              tintColor="#e85a4f"
+              colors={['#e85a4f']}
+            />
+          }
+        >
+          <View style={{ flex: 1 }}>{children}</View>
+        </ScrollView>
+      ) : (
         <View style={{ flex: 1 }}>{children}</View>
-      </ScrollView>
+      )}
     </SafeAreaView>
   );
 };

@@ -1,9 +1,14 @@
 import axiosClient from '../config/axios';
 import { ProductDetail } from '../types/Product';
 
-export async function getProductsByUser(userId: string) {
+export async function getProductsByUser(
+  userId: string,
+  page: number = 1,
+): Promise<ProductDetail[]> {
   if (!userId) return [];
-  const resp = await axiosClient.get(`/products/user/${userId}`);
+  const resp = await axiosClient.get('/products/user/filter', {
+    params: { Page: page, Limit: 10, UserId: userId },
+  });
   return Array.isArray(resp) ? resp : resp?.data ?? [];
 }
 
@@ -26,6 +31,13 @@ export async function cancelProduct(productId: string): Promise<void> {
     console.error('Error cancelling product:', error);
     throw error;
   }
+}
+
+export async function getProductToday(userId: string, pickUpDate: string) {
+  const resp = await axiosClient.get('/products/user/my-pickups', {
+    params: { userId, pickUpDate },
+  });
+  return Array.isArray(resp) ? resp : resp?.data ?? [];
 }
 
 export default { getProductsByUser, getProductById, cancelProduct };

@@ -5,11 +5,9 @@ export const COMPLETED_STATUSES = [
   'Tái chế',
 ];
 
-export const IN_PROGRESS_STATUSES = [
-  'Chờ phân kho',
-  'Chờ gom nhóm',
-  'Chờ thu gom',
-];
+export const IN_PROGRESS_STATUSES = ['Chờ phân kho', 'Chờ gom nhóm'];
+
+export const IN_WAITING_COLLECTION = ['Chờ thu gom'];
 
 export const PENDING_STATUSES = ['Chờ Duyệt'];
 export const REJECTED_STATUSES = ['Đã Từ Chối', 'Đã hủy'];
@@ -19,11 +17,19 @@ export const ALL_KNOWN_STATUSES = [
   ...IN_PROGRESS_STATUSES,
   ...PENDING_STATUSES,
   ...REJECTED_STATUSES,
+  ...IN_WAITING_COLLECTION,
 ];
 
 export const isCompletedStatus = (status?: string) => {
   if (!status) return false;
   return COMPLETED_STATUSES.map(s => s.toLowerCase()).includes(
+    status.trim().toLowerCase(),
+  );
+};
+
+export const isWaitingCollectionStatus = (status?: string) => {
+  if (!status) return false;
+  return IN_WAITING_COLLECTION.map(s => s.toLowerCase()).includes(
     status.trim().toLowerCase(),
   );
 };
@@ -60,6 +66,8 @@ export const getStatusLabel = (status?: string) => {
     return 'Đang xử lý';
   } else if (isPendingStatus(status)) {
     return 'Chờ duyệt';
+  } else if (isWaitingCollectionStatus(status)) {
+    return 'Chờ thu gom';
   } else if (isRejectedStatus(status)) {
     return status?.toLowerCase() === 'đã từ chối' ? 'Từ chối' : 'Đã hủy';
   }
@@ -73,12 +81,15 @@ export const getStatusBgClass = (status?: string) => {
     return 'bg-blue-500';
   } else if (isRejectedStatus(status)) {
     return 'bg-red-500';
+  } else if (isWaitingCollectionStatus(status)) {
+    return 'bg-purple-500';
   }
   return 'bg-green-500';
 };
 
 export const statusGroupOptions = [
   { value: 'incomplete', label: 'Đang xử lý', color: 'yellow' },
+  { value: 'inProcess ', label: 'Chờ thu gom', color: 'purple' },
   { value: 'completed', label: 'Hoàn thành', color: 'green' },
   { value: 'rejected', label: 'Từ chối / hủy', color: 'red' },
 ];
@@ -108,6 +119,9 @@ export const filterProductsByStatusGroup = (
 
     if (statusGroup === 'incomplete') {
       return isInProgressStatus(p.status) || isPendingStatus(p.status);
+    }
+    if (statusGroup === 'inProcess ') {
+      return isWaitingCollectionStatus(p.status);
     }
     if (statusGroup === 'rejected') {
       return isRejectedStatus(p.status);

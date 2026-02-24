@@ -13,6 +13,7 @@ interface ConfirmModalProps {
   title: string;
   message: string;
   confirmText?: string;
+  subMessage?: string;
   cancelText?: string;
   onConfirm: () => void;
   onCancel: () => void;
@@ -27,6 +28,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   visible,
   title,
   message,
+  subMessage,
   confirmText = 'Xác nhận',
   cancelText = 'Hủy',
   onConfirm,
@@ -60,9 +62,14 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <Text className="text-lg font-bold text-center mb-2 text-gray-800">
             {title}
           </Text>
-          <Text className="text-sm text-center text-gray-500 mb-6">
+          <Text className="text-md text-center text-primary-100 font-bold  mb-6">
             {message}
           </Text>
+          {subMessage && (
+            <Text className="text-sm text-center text-gray-500 mb-6">
+              {subMessage}
+            </Text>
+          )}
           {showButtons && (
             <View className="flex-row gap-3">
               <TouchableOpacity

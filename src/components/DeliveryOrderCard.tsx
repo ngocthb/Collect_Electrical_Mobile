@@ -51,7 +51,13 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
   return (
     <View className="flex-row mb-8 relative z-10">
       <View className="items-center mr-3">
-        <View
+        <TouchableOpacity
+          onPress={() => {
+            if (order.iat && order.ing) {
+              const url = `https://www.google.com/maps/dir/?api=1&destination=${order.iat},${order.ing}&travelmode=driving`;
+              Linking.openURL(url);
+            }
+          }}
           className="w-10 h-10 rounded-full items-center justify-center"
           style={{
             backgroundColor: `${getStatusColor(status)}20`,
@@ -63,12 +69,12 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
                 ? 'check-circle'
                 : status === 'failed'
                 ? 'alert-circle'
-                : 'clock-outline'
+                : 'navigation-variant'
             }
             size={24}
             color={getStatusColor(status)}
           />
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Order card */}

@@ -278,9 +278,17 @@ const CreateRequestScreen = () => {
         iconName="alert-circle"
         title="Thất bại"
         message={errorMessage}
-        onConfirm={() => setShowErrorModal(false)}
+        subMessage="Bạn có thể xem lại các kho gần bạn."
+        confirmText="Xem các kho"
+        onConfirm={() => {
+          setShowErrorModal(false);
+          dispatch(clearTimeSlot());
+          navigation.reset({
+            index: 1,
+            routes: [{ name: 'MainTabs' }, { name: 'WarehouseLocation' }],
+          });
+        }}
         onCancel={() => setShowErrorModal(false)}
-        showButtons={false}
         showCloseButton={true}
       />
 

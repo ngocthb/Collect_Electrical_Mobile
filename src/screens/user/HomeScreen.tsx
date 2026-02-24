@@ -1,13 +1,15 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { setUser } from '../../store/slices/authSlice';
 import { fetchUserProfile } from '../../services/authService';
-import AppAvatar from '../../components/ui/AppAvatar';
+import { getProductToday } from '../../services/productService';
 
 import MainLayout from '../../layout/MainLayout';
+
+import ProductCard from '../../components/ProductCard';
 const homepage1 = require('../../assets/images/homepage1.png');
 const homepage2 = require('../../assets/images/homepage2.png');
 const homepage = require('../../assets/images/homepage.png');
@@ -15,23 +17,33 @@ export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const { user } = useAppSelector(s => s.auth);
   const dispatch = useAppDispatch();
+  const [todayProducts, setTodayProducts] = useState<any[]>([]);
+  const getTodayProducts = useCallback(async () => {
+    const date = new Date();
+    const pickUpDate = date.toISOString().split('T')[0];
+    const userId = user?.userId;
+    if (userId) {
+      const products = await getProductToday(userId, pickUpDate);
+      setTodayProducts(products);
+    }
+  }, [user]);
 
   const onRefresh = useCallback(async () => {
     try {
-      // re-fetch profile and update redux
       const profileData: any = await fetchUserProfile();
       if (profileData) {
         dispatch(setUser(profileData));
       }
+      await getTodayProducts();
     } catch (e) {
       console.warn('[Home] refresh profile failed', e);
     }
-  }, [dispatch]);
+  }, [dispatch, getTodayProducts]);
 
   const menuItems = [
     {
       id: 1,
-      title: 'Ví của tôi',
+      title: 'Kho điểm xanh',
       image: homepage2,
     },
     {
@@ -54,6 +66,10 @@ export default function HomeScreen() {
         break;
     }
   };
+
+  useEffect(() => {
+    getTodayProducts();
+  }, []);
 
   return (
     <MainLayout hideHeader={true} onRefresh={onRefresh}>
@@ -107,6 +123,26 @@ export default function HomeScreen() {
             </TouchableOpacity>
           ))}
         </View>
+        {todayProducts.length > 0 && (
+          <View>
+            <View className="mt-4 mb-2">
+              <Text className=" text-base font-bold text-text-main">
+                Lịch thu hôm nay
+              </Text>
+            </View>
+            {todayProducts.map(product => (
+              <ProductCard
+                key={product.productId}
+                product={product}
+                onPress={() =>
+                  navigation.navigate('ProductDetail', {
+                    productId: product.productId,
+                  })
+                }
+              />
+            ))}
+          </View>
+        )}
       </View>
     </MainLayout>
   );

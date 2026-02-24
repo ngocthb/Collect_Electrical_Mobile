@@ -2,9 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
-  ScrollView,
+  FlatList,
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
@@ -14,10 +13,9 @@ import { getProductsByUser } from '../../services/productService';
 import { useIsFocused } from '@react-navigation/native';
 import { useAppSelector } from '../../store/hooks';
 import MainLayout from '../../layout/MainLayout';
+import ProductCard from '../../components/ProductCard';
 import {
   isCompletedStatus,
-  getStatusLabel,
-  getStatusBgClass,
   statusGroupOptions,
   getColorClass,
   filterProductsByStatusGroup,
@@ -27,6 +25,9 @@ const ProductScreen = () => {
   const navigation = useNavigation<any>();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [selectedStatusGroup, setSelectedStatusGroup] = useState<string>('');
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
   const auth = useAppSelector(s => s.auth);
@@ -34,32 +35,73 @@ const ProductScreen = () => {
 
   const isMounted = useRef(true);
 
-  const loadProducts = async () => {
-    setLoading(true);
+  const loadProducts = async (pageNum: number = 1, append: boolean = false) => {
+    if (pageNum === 1) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
     try {
       const userId = auth.user?.userId;
       if (!userId) {
         if (isMounted.current) setProducts([]);
         return;
       }
-      const resp = await getProductsByUser(userId);
-      console.log(resp);
-      if (isMounted.current) setProducts(Array.isArray(resp) ? resp : []);
+      const resp = await getProductsByUser(userId, pageNum);
+
+      if (isMounted.current) {
+        const newProducts = Array.isArray(resp) ? resp : [];
+
+        if (append) {
+          setProducts(prev => {
+            const existingIds = new Set(prev.map(p => p.productId));
+            const uniqueNew = newProducts.filter(
+              p => !existingIds.has(p.productId),
+            );
+            return [...prev, ...uniqueNew];
+          });
+        } else {
+          setProducts(newProducts);
+        }
+
+        setHasMore(newProducts.length >= 10);
+      }
     } catch (e) {
-      console.warn('[Products] Failed to load user products', e);
-      if (isMounted.current) setProducts([]);
+      if (isMounted.current && !append) setProducts([]);
     } finally {
-      if (isMounted.current) setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
+  };
+
+  const loadMore = () => {
+    if (!loadingMore && !loading && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      loadProducts(nextPage, true);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setPage(1);
+    setHasMore(true);
+    await loadProducts(1, false);
   };
 
   useEffect(() => {
     isMounted.current = true;
-    if (isFocused) loadProducts();
+    if (isFocused) {
+      setPage(1);
+      setHasMore(true);
+      loadProducts(1, false);
+    }
     return () => {
       isMounted.current = false;
     };
-  }, []);
+  }, [isFocused]);
 
   const filteredProducts = filterProductsByStatusGroup(
     products,
@@ -79,20 +121,6 @@ const ProductScreen = () => {
   const selectedOption = statusGroupOptions.find(
     opt => opt.value === selectedStatusGroup,
   );
-
-  const renderProductStatusBadge = (status: string | null | undefined) => {
-    if (!status) return null;
-    const label = getStatusLabel(status);
-    const bgClass = getStatusBgClass(status);
-
-    return (
-      <View className={`${bgClass} px-2 py-1 rounded-lg`}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text className="text-white text-[10px] font-semibold">{label}</Text>
-        </View>
-      </View>
-    );
-  };
 
   const filterDropdown = (
     <View className="relative">
@@ -184,71 +212,56 @@ const ProductScreen = () => {
     </View>
   );
 
-  console.log('Rendered ProductScreen', filteredProducts);
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View className="py-4">
+        <ActivityIndicator size="small" color="#e85a4f" />
+      </View>
+    );
+  };
+
+  const renderEmpty = () => {
+    if (loading) {
+      return (
+        <View className="items-center justify-center py-12">
+          <ActivityIndicator size="large" color="#e85a4f" />
+          <Text className="text-text-muted mt-4 text-center">Đang tải...</Text>
+        </View>
+      );
+    }
+    return (
+      <View className="items-center justify-center py-12">
+        <Icon name="inbox" size={64} color="#DDD" />
+        <Text className="text-text-muted mt-4 text-center">
+          Không có sản phẩm nào
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <MainLayout
       headerTitle="Yêu cầu của bạn"
-      onRefresh={loadProducts}
+      onRefresh={handleRefresh}
       headerRightComponent={filterDropdown}
+      useScrollView={false}
     >
       <View className="flex-1 bg-background-50">
-        <ScrollView className="flex-1 px-4 mt-2">
-          {loading ? (
-            <View className="items-center justify-center py-12">
-              <ActivityIndicator size="large" color="#e85a4f" />
-              <Text className="text-text-muted mt-4 text-center">
-                Đang tải...
-              </Text>
-            </View>
-          ) : filteredProducts.length === 0 ? (
-            <View className="items-center justify-center py-12">
-              <Icon name="inbox" size={64} color="#DDD" />
-              <Text className="text-text-muted mt-4 text-center">
-                Không có sản phẩm nào
-              </Text>
-            </View>
-          ) : (
-            filteredProducts.map((prod: any) => (
-              <TouchableOpacity
-                key={prod.productId}
-                className="flex-row items-center bg-white border-2 border-red-200 rounded-xl p-3 mb-3 shadow-sm"
-                onPress={() => openProduct(prod)}
-                activeOpacity={0.7}
-              >
-                {/* Image */}
-                <View className="w-16 h-16 rounded-lg overflow-hidden bg-red-200">
-                  <Image
-                    source={{ uri: prod.productImages?.[0] }}
-                    style={{ width: 64, height: 64 }}
-                    resizeMode="cover"
-                  />
-                  <Text>{prod.productImages?.[0] ? '✅' : '❌'}</Text>
-                </View>
-
-                {/* Content */}
-                <View className="flex-1 ml-3">
-                  <Text
-                    className="text-base font-semibold text-primary-100 mb-1"
-                    numberOfLines={1}
-                  >
-                    {prod.categoryName} • {prod.brandName}
-                  </Text>
-                  <Text className="text-sm text-gray-600" numberOfLines={2}>
-                    {prod.description}
-                  </Text>
-                  <Text className="text-xs text-gray-400 mt-1">
-                    {prod.sizeTierName}
-                  </Text>
-                </View>
-
-                {/* Status Badge */}
-                <View className="ml-2">
-                  {renderProductStatusBadge(prod.status)}
-                </View>
-              </TouchableOpacity>
-            ))
+        <FlatList
+          data={filteredProducts}
+          keyExtractor={item => item.productId}
+          renderItem={({ item }) => (
+            <ProductCard product={item} onPress={() => openProduct(item)} />
           )}
-        </ScrollView>
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}
+          ListEmptyComponent={renderEmpty}
+          ListFooterComponent={renderFooter}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          refreshing={loading}
+          onRefresh={handleRefresh}
+        />
       </View>
     </MainLayout>
   );

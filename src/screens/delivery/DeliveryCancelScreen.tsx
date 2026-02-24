@@ -208,22 +208,11 @@ const DeliveryCancelScreen = () => {
             />
           </View>
 
-          {/* Require at least one badge (reason) and at least one image before allowing submit */}
-          {selectedBadges.length === 0 || selectedImages.length === 0 ? (
-            <Text className="text-sm text-red-500 mb-2">
-              Vui lòng chọn lý do và thêm ít nhất 1 ảnh để xác nhận từ chối
-            </Text>
-          ) : null}
-
           <AppButton
             title="Xác nhận từ chối"
             color="#E53935"
             loading={isSubmitting}
-            disabled={
-              isSubmitting ||
-              selectedBadges.length === 0 ||
-              selectedImages.length === 0
-            }
+            disabled={isSubmitting || selectedBadges.length === 0}
             onPress={handleCancelConfirm}
           />
         </View>

@@ -95,11 +95,11 @@ export default function WalletScreen() {
             {desc}
           </Text>
           <Text className="text-sm text-gray-500 mt-1">
-            Bạn đã thu được{' '}
-            <Text className="text-primary-100 font-semibold">
-              {(item.point ?? 0).toLocaleString()}
+            {item.point >= 0 ? 'Bạn đã thu được ' : 'Bạn đã mất '}
+            <Text className="text-red-500 font-semibold">
+              {(Math.abs(item.point) ?? 0).toLocaleString()}
             </Text>{' '}
-            <Text style={{ fontSize: 12 }}>🪙</Text>
+            <Text style={{ fontSize: 12 }}> 🪙</Text>
           </Text>
           <Text className="text-xs text-gray-400 mt-1">
             {formatTimestamp(item.createdAt)}

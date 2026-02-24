@@ -203,6 +203,7 @@ export default function DeliveryListScreen() {
     <SubLayout
       title="Đơn hàng"
       onBackPress={handleBackPress}
+      noScroll={true}
       rightComponent={
         <View className="flex-row items-center bg-gray-100 rounded-xl p-2 shadow-sm">
           <TouchableOpacity
@@ -238,44 +239,46 @@ export default function DeliveryListScreen() {
         onStatusChange={handleStatusChange}
       />
 
-      <ScrollView className="flex-1 bg-background-50">
-        <View className="px-4 pt-2">
-          {isLoading ? (
-            <View className="items-center justify-center py-12">
-              <ActivityIndicator size="large" color="#e85a4f" />
-              <Text className="text-text-muted mt-4 text-center">
-                Đang tải...
-              </Text>
-            </View>
-          ) : filteredOrders.length === 0 ? (
-            <View className="items-center justify-center py-12">
-              <Icon name="package-variant" size={64} color="#DDD" />
-              <Text className="text-text-muted mt-4 text-center">
-                Không có đơn hàng nào
-              </Text>
-            </View>
-          ) : (
-            <View className="flex-row relative" ref={listRef}>
-              <View className="flex-1">
-                {filteredOrders.map((order, idx) => {
-                  const isLast = idx === filteredOrders.length - 1;
-                  return (
-                    <View
-                      key={order.collectionRouteId || idx}
-                      ref={isLast ? lastItemRef : null}
-                    >
-                      <DeliveryOrderCard
-                        order={order}
-                        isSelectedDateToday={isSelectedDateToday}
-                      />
-                    </View>
-                  );
-                })}
+      <View className="flex-1 bg-background-50">
+        {isLoading ? (
+          <View className="items-center justify-center flex-1">
+            <ActivityIndicator size="large" color="#e85a4f" />
+            <Text className="text-text-muted mt-4 text-center">
+              Đang tải...
+            </Text>
+          </View>
+        ) : filteredOrders.length === 0 ? (
+          <View className="items-center justify-center flex-1">
+            <Icon name="package-variant" size={64} color="#DDD" />
+            <Text className="text-text-muted mt-4 text-center">
+              Không có đơn hàng nào
+            </Text>
+          </View>
+        ) : (
+          <ScrollView className="flex-1">
+            <View className="px-4 pt-2">
+              <View className="flex-row relative" ref={listRef}>
+                <View className="flex-1">
+                  {filteredOrders.map((order, idx) => {
+                    const isLast = idx === filteredOrders.length - 1;
+                    return (
+                      <View
+                        key={order.collectionRouteId || idx}
+                        ref={isLast ? lastItemRef : null}
+                      >
+                        <DeliveryOrderCard
+                          order={order}
+                          isSelectedDateToday={isSelectedDateToday}
+                        />
+                      </View>
+                    );
+                  })}
+                </View>
               </View>
             </View>
-          )}
-        </View>
-      </ScrollView>
+          </ScrollView>
+        )}
+      </View>
     </SubLayout>
   );
 }
