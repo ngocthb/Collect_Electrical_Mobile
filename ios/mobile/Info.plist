@@ -34,7 +34,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>3</string>
+	<string>7</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>googleauth</string>
@@ -164,7 +164,6 @@
 	<array>
 		<string>location</string>
 		<string>voip</string>
-		<string>processing</string>
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>

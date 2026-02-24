@@ -6,31 +6,79 @@ import messaging from '@react-native-firebase/messaging';
 import { Profile, DeliveryLoginResponse } from '../types/Profile';
 import { Platform, PermissionsAndroid } from 'react-native';
 
-export const requestAndroidNotificationPermission = async (): Promise<void> => {
+export const requestNotificationPermission = async (): Promise<void> => {
   if (Platform.OS === 'android' && Platform.Version >= 33) {
     const granted = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
     );
 
     console.log('🔔 Notification permission:', granted);
+  } else {
+    console.log('🔔 Notification permission: Not required on this platform');
   }
 };
 
+// export const registerFcmToken = async (
+//   userId: String,
+// ): Promise<string | null> => {
+//   try {
+//     await requestNotificationPermission();
+//     await messaging().requestPermission();
+//     const fcmToken = await messaging().getToken();
+//     const platform = Platform.OS;
+//     console.log('FCM token', fcmToken);
+//     const response = await axiosClient.post('/notifications/register-device', {
+//       fcmToken,
+//       platform,
+//       userId,
+//     });
+//     console.log(response);
+//     return fcmToken;
+//   } catch (error) {
+//     console.error('❌ Lỗi lấy FCM token:', error);
+//     return null;
+//   }
+// };
+
+
 export const registerFcmToken = async (
-  userId: String,
+  userId: string,
 ): Promise<string | null> => {
   try {
-    await requestAndroidNotificationPermission();
-    await messaging().requestPermission();
+    // 🔹 ANDROID 13+
+    if (Platform.OS === 'android' && Platform.Version >= 33) {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+      );
+      console.log('🔔 Android permission:', granted);
+    }
+
+    // 🔹 iOS permission
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    if (!enabled) {
+      console.log('❌ Notification permission denied');
+      return null;
+    }
+
+    // 🔥 QUAN TRỌNG CHO iOS
+    if (Platform.OS === 'ios') {
+      await messaging().registerDeviceForRemoteMessages();
+    }
+
+    // 🔹 Lấy FCM token
     const fcmToken = await messaging().getToken();
-    const platform = Platform.OS;
-    console.log('FCM token', fcmToken);
-    const response = await axiosClient.post('/notifications/register-device', {
+    console.log('📱 FCM token:', fcmToken);
+
+    await axiosClient.post('/notifications/register-device', {
       fcmToken,
-      platform,
+      platform: Platform.OS,
       userId,
     });
-    console.log(response);
+
     return fcmToken;
   } catch (error) {
     console.error('❌ Lỗi lấy FCM token:', error);
