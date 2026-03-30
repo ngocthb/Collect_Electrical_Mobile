@@ -4,10 +4,11 @@ import { ProductDetail } from '../types/Product';
 export async function getProductsByUser(
   userId: string,
   page: number = 1,
+  search: string = '',
 ): Promise<ProductDetail[]> {
   if (!userId) return [];
   const resp = await axiosClient.get('/products/user/filter', {
-    params: { Page: page, Limit: 10, UserId: userId },
+    params: { Page: page, Limit: 10, UserId: userId, Search: search },
   });
   return Array.isArray(resp) ? resp : resp?.data ?? [];
 }

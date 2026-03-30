@@ -24,6 +24,8 @@ import VoucherScreen from '../screens/user/VoucherScreen';
 import DeliveryDetailsScreen from '../screens/delivery/DeliveryDetailsScreen';
 import DeliveryStats from '../screens/delivery/DeliveryStats';
 import MyQrScreen from '../screens/user/MyQrScreen';
+import VoucherDetailsScreen from '../screens/user/VoucherDetailsScreen';
+import LeaderboardScreen from '../screens/user/LeaderboardScreen';
 
 // @ts-ignore - no TypeScript declarations for this module
 const {
@@ -39,7 +41,6 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
       {delivery ? (
         <>
           <Stack.Screen name="MainTabs" component={BottomTabs} />
-          <Stack.Screen name="DeliveryList" component={DeliveryListScreen} />
 
           <Stack.Screen
             name="DeliveryPhotoConfirm"
@@ -94,6 +95,11 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
           <Stack.Screen name="Voucher" component={VoucherScreen} />
 
           <Stack.Screen name="MyQr" component={MyQrScreen} />
+          <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
+          <Stack.Screen
+            name="VoucherDetails"
+            component={VoucherDetailsScreen}
+          />
         </>
       )}
 

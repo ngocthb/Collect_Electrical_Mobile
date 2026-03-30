@@ -3,6 +3,7 @@ export const COMPLETED_STATUSES = [
   'Đã thu gom',
   'Đã đóng thùng',
   'Tái chế',
+  'Đang vận chuyển',
 ];
 
 export const IN_PROGRESS_STATUSES = ['Chờ phân kho', 'Chờ gom nhóm'];

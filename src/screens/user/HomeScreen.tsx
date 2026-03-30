@@ -1,27 +1,37 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Feather';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { setUser } from '../../store/slices/authSlice';
 import { fetchUserProfile } from '../../services/authService';
 import { getProductToday } from '../../services/productService';
-
+import { isCompletedStatus } from '../../utils/productHelper';
 import MainLayout from '../../layout/MainLayout';
-
 import ProductCard from '../../components/ProductCard';
+import NewsCarousel from '../../components/NewsCarousel';
+
 const homepage1 = require('../../assets/images/homepage1.png');
 const homepage2 = require('../../assets/images/homepage2.png');
-const homepage = require('../../assets/images/homepage.png');
+const homepage3 = require('../../assets/images/homepage3.png');
+const DEVELOP_MODE_KEY = 'develop_mode';
+
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const { user } = useAppSelector(s => s.auth);
   const dispatch = useAppDispatch();
+
   const [todayProducts, setTodayProducts] = useState<any[]>([]);
+  const [isDevelopMode, setIsDevelopMode] = useState(false);
+  const [isRefreshingProducts, setIsRefreshingProducts] = useState(false);
+
   const getTodayProducts = useCallback(async () => {
     const date = new Date();
     const pickUpDate = date.toISOString().split('T')[0];
     const userId = user?.userId;
+
     if (userId) {
       const products = await getProductToday(userId, pickUpDate);
       setTodayProducts(products);
@@ -34,11 +44,22 @@ export default function HomeScreen() {
       if (profileData) {
         dispatch(setUser(profileData));
       }
+
       await getTodayProducts();
+      checkIsDevelopMode();
     } catch (e) {
       console.warn('[Home] refresh profile failed', e);
     }
   }, [dispatch, getTodayProducts]);
+
+  const onRefreshProducts = useCallback(async () => {
+    try {
+      setIsRefreshingProducts(true);
+      await onRefresh();
+    } finally {
+      setIsRefreshingProducts(false);
+    }
+  }, [onRefresh]);
 
   const menuItems = [
     {
@@ -51,6 +72,15 @@ export default function HomeScreen() {
       title: 'Các điểm thu',
       image: homepage1,
     },
+    ...(isDevelopMode
+      ? [
+          {
+            id: 3,
+            title: 'Bảng xếp hạng',
+            image: homepage3,
+          },
+        ]
+      : []),
   ];
 
   const handleMenuPress = (id: number) => {
@@ -61,8 +91,8 @@ export default function HomeScreen() {
       case 2:
         navigation.navigate('WarehouseLocation');
         break;
-
-      default:
+      case 3:
+        navigation.navigate('Leaderboard');
         break;
     }
   };
@@ -71,78 +101,103 @@ export default function HomeScreen() {
     getTodayProducts();
   }, []);
 
+  useEffect(() => {
+    checkIsDevelopMode();
+  }, []);
+
+  const checkIsDevelopMode = () => {
+    let mounted = true;
+
+    (async () => {
+      try {
+        const savedMode = await AsyncStorage.getItem(DEVELOP_MODE_KEY);
+        if (mounted) {
+          setIsDevelopMode(savedMode === 'true');
+        }
+      } catch (error) {
+        console.warn('[DeliveryOrderCard] Failed to load develop mode', error);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  };
+
   return (
-    <MainLayout hideHeader={true} onRefresh={onRefresh}>
-      <View className="flex-1 px-6 bg-background-50 ">
-        {/* Promotional banner above menu */}
-        <View className="mb-4 mt-10">
-          <View className="rounded-2xl p-4 bg-primary-100 border border-gray-200 ">
-            <View className="flex-row items-center">
-              <View className="flex-1">
-                <Text className="text-white text-base font-bold">
-                  Công nghệ – xanh
-                </Text>
-                <Text className="text-white text-sm mt-1">
-                  Công nghệ cũ, giá trị mới. Tái chế điện tử an toàn – dễ dàng –
-                  bền vững.
-                </Text>
-              </View>
-              <View>
-                <Image
-                  source={homepage}
-                  style={{ width: 72, height: 72, borderRadius: 24 }}
-                  resizeMode="cover"
-                />
-              </View>
-            </View>
-          </View>
-        </View>
+    <MainLayout hideHeader={true} useScrollView={false}>
+      <View className="px-6 bg-background-50 pb-24">
+        {/* NEWS CAROUSEL */}
+        <NewsCarousel />
+
+        {/* QUICK ACTION */}
         <View className="mb-4">
-          <Text className=" text-base font-bold text-text-main">
+          <Text className="text-base font-bold text-text-main">
             Thao tác nhanh
           </Text>
         </View>
+
         <View className="flex-row flex-wrap justify-between">
           {menuItems.map(item => (
             <TouchableOpacity
               key={item.id}
-              className="w-[48%] mb-4 p-4 rounded-xl items-center justify-center bg-primary-100 border-2  border-red-200"
+              className="w-[48%] mb-4 p-4 rounded-xl items-center justify-center bg-primary-100 border-2 border-red-200"
               onPress={() => handleMenuPress(item.id)}
             >
-              <View className="items-center justify-center">
-                <View className="items-center justify-center">
-                  <View>
-                    <Image source={item.image} className="w-24 h-20" />
-                  </View>
-                </View>
+              <Image source={item.image} className="w-24 h-20" />
 
-                <Text className="text-sm font-medium text-center mt-3 text-white">
-                  {item.title}
-                </Text>
-              </View>
+              <Text className="text-sm font-medium text-center mt-3 text-white">
+                {item.title}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
-        {todayProducts.length > 0 && (
-          <View>
-            <View className="mt-4 mb-2">
-              <Text className=" text-base font-bold text-text-main">
-                Lịch thu hôm nay
+
+        {/* TODAY PRODUCTS */}
+
+        <View className="mb-2">
+          <Text className="text-base font-bold text-text-main">
+            Lịch thu hôm nay
+          </Text>
+        </View>
+        <FlatList
+          className="max-h-80"
+          contentContainerStyle={{
+            paddingBottom: 90,
+            flexGrow: todayProducts.length === 0 ? 1 : 0,
+          }}
+          data={todayProducts}
+          keyExtractor={item => String(item.productId)}
+          onRefresh={onRefreshProducts}
+          refreshing={isRefreshingProducts}
+          renderItem={({ item: product }) => (
+            <ProductCard
+              key={product.productId}
+              product={product}
+              onPress={() => {
+                if (!isCompletedStatus(product.status)) {
+                  navigation.navigate('ProductDetails', {
+                    productId: product.productId,
+                  });
+                } else {
+                  navigation.navigate('Timeline', {
+                    productId: product.productId,
+                  });
+                }
+              }}
+            />
+          )}
+          ListEmptyComponent={
+            <View className="items-center justify-center py-10">
+              <Icon name="inbox" size={40} color="#6B7280" />
+              <Text className="text-gray-500 text-sm mt-2 text-center">
+                Hôm nay chưa có sản phẩm cần thu gom
               </Text>
             </View>
-            {todayProducts.map(product => (
-              <ProductCard
-                key={product.productId}
-                product={product}
-                onPress={() =>
-                  navigation.navigate('ProductDetail', {
-                    productId: product.productId,
-                  })
-                }
-              />
-            ))}
-          </View>
-        )}
+          }
+          nestedScrollEnabled
+          showsVerticalScrollIndicator={false}
+        />
       </View>
     </MainLayout>
   );

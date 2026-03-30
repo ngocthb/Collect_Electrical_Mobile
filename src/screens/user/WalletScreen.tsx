@@ -17,7 +17,7 @@ import { useAppSelector } from '../../store/hooks';
 import { formatTimestamp } from '../../utils/dateUtils';
 const wallet1 = require('../../assets/images/wallet1.png');
 const wallet2 = require('../../assets/images/wallet2.png');
-const thumb1 = require('../../assets/images/homepage1.png');
+const voucher = require('../../assets/images/voucher.png');
 
 export default function WalletScreen() {
   const navigation = useNavigation<any>();
@@ -74,7 +74,9 @@ export default function WalletScreen() {
 
   const renderHistory = ({ item }: any) => {
     const img =
-      item?.images && item.images.length > 0 ? { uri: item.images[0] } : thumb1;
+      item?.images && item.images.length > 0
+        ? { uri: item.images[0] }
+        : voucher;
 
     const desc =
       item.desciption ||

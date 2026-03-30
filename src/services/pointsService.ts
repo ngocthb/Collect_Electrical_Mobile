@@ -13,4 +13,13 @@ export async function getUserPointTransactions(userId: string) {
   return resp?.data ?? resp;
 }
 
-export default { getUserPoints };
+export async function dailyPoints(userId: string, points: number) {
+  if (!userId) return null;
+  const resp = await axiosClient.post(`/point/daily`, {
+    userId,
+    points,
+  });
+  return resp?.data ?? resp;
+}
+
+export default { getUserPoints, dailyPoints };

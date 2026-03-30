@@ -6,14 +6,13 @@ import IconOcticons from 'react-native-vector-icons/Octicons';
 import IconFeature from 'react-native-vector-icons/Feather';
 import HomeScreen from '../screens/user/HomeScreen';
 import ProductScreen from '../screens/user/ProductScreen';
-import DeliveryNotificationsScreen from '../screens/delivery/DeliveryNotificationsScreen';
 import ProfileScreen from '../screens/common/ProfileScreen';
 import { useAppSelector } from '../store/hooks';
 import { createStackNavigator } from '@react-navigation/stack';
-import DeliveryHomeScreen from '../screens/delivery/DeliveryHomeScreen';
 import NotificationScreen from '../screens/user/NotificationScreen';
 import CategoryPickerModal from '../components/CategoryPickerModal';
 import Toast from 'react-native-toast-message';
+import DeliveryListScreen from '../screens/delivery/DeliveryListScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -100,10 +99,9 @@ function BottomTabs() {
         tabBarIcon: ({ color, size }) => {
           const props = { color, size: size ?? 22 };
           switch (route.name) {
-            case 'Trang chủ':
-              return <IconOcticons name="home" {...props} />;
-            case 'Thông báo':
-              return <IconFeature name="bell" {...props} />;
+            case 'Đơn hàng':
+              return <IconOcticons name="checklist" {...props} />;
+
             case 'Tài khoản':
               return <IconFeature name="user" {...props} />;
             default:
@@ -112,8 +110,7 @@ function BottomTabs() {
         },
       })}
     >
-      <Tab.Screen name="Trang chủ" component={DeliveryHomeScreen} />
-      <Tab.Screen name="Thông báo" component={DeliveryNotificationsScreen} />
+      <Tab.Screen name="Đơn hàng" component={DeliveryListScreen} />
       <Tab.Screen name="Tài khoản" component={ProfileScreen} />
     </Tab.Navigator>
   );

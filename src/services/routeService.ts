@@ -8,7 +8,7 @@ const listByDate = async (
 ): Promise<CollectionRouteResponse> => {
   try {
     const res = await axiosClient.get(`/routes/${dateStr}/collector/${userId}`);
-
+    console.log(res);
     return res as any;
   } catch (e) {
     throw e;

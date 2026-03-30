@@ -98,16 +98,6 @@ const OtpInput: React.FC<OtpInputProps> = ({
     inputsRef.current[0]?.focus();
   };
 
-  // Expose clear method via ref if needed
-  React.useImperativeHandle(
-    inputsRef as any,
-    () => ({
-      clear: clearInputs,
-      focus: () => inputsRef.current[0]?.focus(),
-    }),
-    [],
-  );
-
   return (
     <View className="flex-row w-full justify-between px-6">
       {Array.from({ length }).map((_, i) => (

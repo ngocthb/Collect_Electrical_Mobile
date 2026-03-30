@@ -40,7 +40,6 @@ export const requestNotificationPermission = async (): Promise<void> => {
 //   }
 // };
 
-
 export const registerFcmToken = async (
   userId: string,
 ): Promise<string | null> => {
@@ -278,6 +277,7 @@ export const changePassword = async (
   confirmNewPassword: string,
 ): Promise<any> => {
   try {
+    console.log(email, newPassword, confirmNewPassword);
     const response = await axiosClient.post('/forgot-password/re-pass', {
       email,
       newPassword,

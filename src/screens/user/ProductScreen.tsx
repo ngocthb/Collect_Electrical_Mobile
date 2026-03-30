@@ -14,6 +14,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { useAppSelector } from '../../store/hooks';
 import MainLayout from '../../layout/MainLayout';
 import ProductCard from '../../components/ProductCard';
+import SearchInputHeader from '../../components/SearchAndFilterHeader';
 import {
   isCompletedStatus,
   statusGroupOptions,
@@ -30,12 +31,18 @@ const ProductScreen = () => {
   const [hasMore, setHasMore] = useState(true);
   const [selectedStatusGroup, setSelectedStatusGroup] = useState<string>('');
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
   const auth = useAppSelector(s => s.auth);
   const isFocused = useIsFocused();
-
+  const searchTimeoutRef = useRef<number | null>(null);
   const isMounted = useRef(true);
 
-  const loadProducts = async (pageNum: number = 1, append: boolean = false) => {
+  const loadProducts = async (
+    pageNum: number = 1,
+    append: boolean = false,
+    search: string = '',
+  ) => {
     if (pageNum === 1) {
       setLoading(true);
     } else {
@@ -48,7 +55,7 @@ const ProductScreen = () => {
         if (isMounted.current) setProducts([]);
         return;
       }
-      const resp = await getProductsByUser(userId, pageNum);
+      const resp = await getProductsByUser(userId, pageNum, search);
 
       if (isMounted.current) {
         const newProducts = Array.isArray(resp) ? resp : [];
@@ -81,14 +88,14 @@ const ProductScreen = () => {
     if (!loadingMore && !loading && hasMore) {
       const nextPage = page + 1;
       setPage(nextPage);
-      loadProducts(nextPage, true);
+      loadProducts(nextPage, true, searchQuery);
     }
   };
 
   const handleRefresh = async () => {
     setPage(1);
     setHasMore(true);
-    await loadProducts(1, false);
+    await loadProducts(1, false, searchQuery);
   };
 
   useEffect(() => {
@@ -96,12 +103,31 @@ const ProductScreen = () => {
     if (isFocused) {
       setPage(1);
       setHasMore(true);
-      loadProducts(1, false);
+      loadProducts(1, false, searchQuery);
     }
     return () => {
       isMounted.current = false;
     };
   }, [isFocused]);
+
+  // Handle search with debouncing
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      setPage(1);
+      setHasMore(true);
+      loadProducts(1, false, searchQuery);
+    }, 500);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
 
   const filteredProducts = filterProductsByStatusGroup(
     products,
@@ -240,14 +266,44 @@ const ProductScreen = () => {
     );
   };
 
+  const headerRightComponent = (
+    <View className="flex-row items-center gap-2">
+      <TouchableOpacity
+        onPress={() => {
+          setShowSearch(!showSearch);
+          if (showSearch) {
+            setSearchQuery('');
+          }
+        }}
+        className={`p-2 rounded-xl ${
+          showSearch ? 'bg-gray-200' : 'bg-primary-100'
+        }`}
+      >
+        <Icon
+          name={showSearch ? 'x' : 'search'}
+          size={15}
+          color={showSearch ? '#6B7280' : '#fff'}
+        />
+      </TouchableOpacity>
+      {filterDropdown}
+    </View>
+  );
+
+  console.log(filteredProducts);
   return (
     <MainLayout
       headerTitle="Yêu cầu của bạn"
-      onRefresh={handleRefresh}
-      headerRightComponent={filterDropdown}
+      headerRightComponent={headerRightComponent}
       useScrollView={false}
     >
       <View className="flex-1 bg-background-50">
+        {showSearch && (
+          <SearchInputHeader
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            placeholder="Tìm kiếm sản phẩm..."
+          />
+        )}
         <FlatList
           data={filteredProducts}
           keyExtractor={item => item.productId}

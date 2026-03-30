@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { days, type Day } from '../data/timeSlots';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { useAppDispatch } from '../store/hooks';
 import { toggleSyncDays, clickDay } from '../store/slices/timeSlotSlice';
 
-// Cutoff hour (24-hour format): if current time >= this hour, start calendar from next day
-const CUTOFF_HOUR = 23;
+const CUTOFF_TIME = '23:00';
 
 interface DaySelectionProps {
   selectedDays: Day[];
@@ -30,14 +29,29 @@ const DaySelection: React.FC<DaySelectionProps> = ({
   // Check if current time in Vietnam is after cutoff
   const isAfterCutoff = (): boolean => {
     const now = new Date();
-    const formatter = new Intl.DateTimeFormat('en-US', {
+    const parts = new Intl.DateTimeFormat('en-US', {
       timeZone: 'Asia/Ho_Chi_Minh',
-      hour: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
       hour12: false,
-    });
-    const hourStr = formatter.format(now);
-    const currentHour = parseInt(hourStr, 10);
-    return currentHour >= CUTOFF_HOUR;
+    }).formatToParts(now);
+
+    const currentHour = parseInt(
+      parts.find(part => part.type === 'hour')?.value || '0',
+      10,
+    );
+    const currentMinute = parseInt(
+      parts.find(part => part.type === 'minute')?.value || '0',
+      10,
+    );
+
+    const [cutoffHourStr, cutoffMinuteStr] = CUTOFF_TIME.split(':');
+    const cutoffHour = parseInt(cutoffHourStr || '0', 10);
+    const cutoffMinute = parseInt(cutoffMinuteStr || '0', 10);
+
+    if (currentHour > cutoffHour) return true;
+    if (currentHour < cutoffHour) return false;
+    return currentMinute >= cutoffMinute;
   };
 
   // Reorder days: before cutoff start from tomorrow, after cutoff start from day after tomorrow

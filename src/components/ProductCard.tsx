@@ -1,23 +1,25 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { getStatusLabel, getStatusBgClass } from '../utils/productHelper';
-
+import { formatDate } from '../utils/dateUtils';
 interface ProductCardProps {
   product: any;
   onPress: () => void;
 }
 
 export default function ProductCard({ product, onPress }: ProductCardProps) {
-  const renderProductStatusBadge = (status: string | null | undefined) => {
+  const renderProductStatusBadge = (status?: string | null) => {
     if (!status) return null;
-    const label = getStatusLabel(status);
-    const bgClass = getStatusBgClass(status);
 
     return (
-      <View className={`${bgClass} px-2 py-1 rounded-lg`}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text className="text-white text-[10px] font-semibold">{label}</Text>
-        </View>
+      <View
+        className={`${getStatusBgClass(
+          status,
+        )} w-20 h-7 rounded-lg items-center justify-center`}
+      >
+        <Text className="text-white text-[10px] font-semibold text-center">
+          {getStatusLabel(status)}
+        </Text>
       </View>
     );
   };
@@ -49,9 +51,11 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
         <Text className="text-sm text-gray-600" numberOfLines={2}>
           {product.description}
         </Text>
-        <Text className="text-xs text-gray-400 mt-1">
-          {product.sizeTierName}
-        </Text>
+        {product?.pickUpDate && (
+          <Text className="text-xs text-gray-400 mt-1">
+            Ngày thu gom: {formatDate(product.pickUpDate)}
+          </Text>
+        )}
       </View>
 
       {/* Status Badge */}

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { CollectionRouteWithDistance } from '../types/Collector';
@@ -10,6 +10,9 @@ import {
 // @ts-ignore
 import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const DEVELOP_MODE_KEY = 'develop_mode';
 
 const cleanUserIdForZego = (userId: string) => {
   return userId.replace(/[^a-zA-Z0-9_]/g, '');
@@ -22,6 +25,7 @@ type Props = {
 
 const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
   const navigation = useNavigation<any>();
+  const [isDevelopMode, setIsDevelopMode] = useState(false);
   const status = resolveStatus(order);
   const actionsDisabled = status === 'failed' || status === 'completed';
 
@@ -40,6 +44,25 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
     ];
   }, [cleanReceiverId, receiver?.name]);
 
+  useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      try {
+        const savedMode = await AsyncStorage.getItem(DEVELOP_MODE_KEY);
+        if (mounted) {
+          setIsDevelopMode(savedMode === 'true');
+        }
+      } catch (error) {
+        console.warn('[DeliveryOrderCard] Failed to load develop mode', error);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const handleEyePress = () => {
     navigation.navigate('DeliveryDetails', {
       normalizedRequest: order,
@@ -47,11 +70,12 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
       isRouteLoading: false,
     });
   };
-
+  console.log(order);
   return (
     <View className="flex-row mb-8 relative z-10">
       <View className="items-center mr-3">
         <TouchableOpacity
+          disabled={!isSelectedDateToday || actionsDisabled}
           onPress={() => {
             if (order.iat && order.ing) {
               const url = `https://www.google.com/maps/dir/?api=1&destination=${order.iat},${order.ing}&travelmode=driving`;
@@ -81,7 +105,9 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
       <View className="flex-1 flex-row items-center">
         <TouchableOpacity
           onPress={handleEyePress}
-          disabled={!isSelectedDateToday || actionsDisabled}
+          disabled={
+            !isDevelopMode ? !isSelectedDateToday || actionsDisabled : false
+          }
           className="flex-1"
         >
           <View className="flex-row justify-between items-center mb-1">
@@ -97,7 +123,7 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
             </View>
 
             <Text className="text-primary-100 font-bold text-lg">
-              {order?.distanceKm || '---'} km
+              {order?.distanceKm} km
             </Text>
           </View>
         </TouchableOpacity>

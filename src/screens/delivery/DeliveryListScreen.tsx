@@ -23,12 +23,12 @@ import {
   resolveStatus,
   statusOptions,
 } from '../../utils/deliveryHelpers';
-import SubLayout from '../../layout/SubLayout';
 import StatusFilter from '../../components/ui/StatusFilter';
 import { useAppSelector } from '../../store/hooks';
 import { CollectionRouteWithDistance } from '../../types/Collector';
 import { getTimeSever } from '../../services/systemServe';
 import { ServerTime } from './../../types/common';
+import MainLayout from '../../layout/MainLayout';
 export default function DeliveryListScreen() {
   const navigation = useNavigation<any>();
   const listRef = useRef(null);
@@ -199,12 +199,13 @@ export default function DeliveryListScreen() {
     getDateTimeSever();
   }, []);
 
+  console.log(filteredOrders);
+
   return (
-    <SubLayout
-      title="Đơn hàng"
-      onBackPress={handleBackPress}
-      noScroll={true}
-      rightComponent={
+    <MainLayout
+      headerTitle="Đơn hàng"
+      useScrollView={false}
+      headerRightComponent={
         <View className="flex-row items-center bg-gray-100 rounded-xl p-2 shadow-sm">
           <TouchableOpacity
             onPress={() => setShowWeekCalendar(true)}
@@ -279,6 +280,6 @@ export default function DeliveryListScreen() {
           </ScrollView>
         )}
       </View>
-    </SubLayout>
+    </MainLayout>
   );
 }
