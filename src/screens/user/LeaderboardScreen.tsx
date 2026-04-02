@@ -2,11 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   ActivityIndicator,
   Image,
   Modal,
   TouchableOpacity,
+  FlatList,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
@@ -15,7 +16,7 @@ import AppAvatar from '../../components/ui/AppAvatar';
 import { getLeaderboard, getMyRank } from '../../services/leaderboardService';
 import { LeaderboardItem } from '../../types/LeaderboardItem';
 import { useAppSelector } from '../../store/hooks';
-
+const cup = require('../../assets/images/cup.png');
 type MyRank = {
   userId: string;
   currentRankName: string;
@@ -30,6 +31,7 @@ export default function LeaderboardScreen() {
   const { user } = useAppSelector(s => s.auth);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [myRank, setMyRank] = useState<MyRank | null>(null);
   const [showCo2Info, setShowCo2Info] = useState(false);
 
@@ -40,43 +42,52 @@ export default function LeaderboardScreen() {
   const topThree = sortedData.slice(0, 3);
   const remainingUsers = sortedData.slice(3);
 
+  const loadLeaderboard = async () => {
+    try {
+      setLoading(true);
+      const userId = user?.userId;
+      const [leaderboardRes, myRankRes] = await Promise.all([
+        getLeaderboard(),
+        userId ? getMyRank(userId) : Promise.resolve(null),
+      ]);
+
+      const res = leaderboardRes;
+      const list = Array.isArray(res)
+        ? res
+        : Array.isArray(res?.data)
+        ? res.data
+        : [];
+
+      const myRankData = myRankRes ? myRankRes?.data ?? myRankRes : null;
+
+      setLeaderboardData(list);
+      setMyRank(myRankData);
+    } catch (error) {
+      console.warn('[Leaderboard] Failed to fetch leaderboard', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadLeaderboard();
+  };
+
+  const renderEmptyList = () => {
+    if (loading) return null;
+
+    return (
+      <View className="py-8 items-center ">
+        <Icon name="award" size={48} color="#6B7280" />
+        <Text className="text-gray-500">Chưa có dữ liệu bảng xếp hạng</Text>
+      </View>
+    );
+  };
+
   useEffect(() => {
-    let mounted = true;
-
-    (async () => {
-      try {
-        setLoading(true);
-        const userId = user?.userId;
-        const [leaderboardRes, myRankRes] = await Promise.all([
-          getLeaderboard(),
-          userId ? getMyRank(userId) : Promise.resolve(null),
-        ]);
-
-        const res = leaderboardRes;
-        const list = Array.isArray(res)
-          ? res
-          : Array.isArray(res?.data)
-          ? res.data
-          : [];
-
-        const myRankData = myRankRes ? myRankRes?.data ?? myRankRes : null;
-
-        if (mounted) {
-          setLeaderboardData(list);
-          setMyRank(myRankData);
-        }
-      } catch (error) {
-        console.warn('[Leaderboard] Failed to fetch leaderboard', error);
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
+    loadLeaderboard();
   }, [user?.userId]);
 
   return (
@@ -95,119 +106,122 @@ export default function LeaderboardScreen() {
       }
     >
       <View className="flex-1 bg-background-50">
-        <ScrollView
+        <FlatList
           className="flex-1 px-4"
+          data={remainingUsers}
+          keyExtractor={item => item.userId}
+          renderItem={({ item }) => (
+            <View className="bg-white border border-red-100 rounded-xl p-4 mb-3 flex-row items-center justify-between">
+              <View className="flex-row items-center flex-1 mr-3">
+                <View className="w-7 h-7 rounded-full bg-primary-100 items-center justify-center mr-2">
+                  <Text className="text-white text-xs font-bold">
+                    {item.rankPosition}
+                  </Text>
+                </View>
+                <AppAvatar name={item.userName} uri={item.avatar} size={32} />
+                <Text className="text-text-main font-semibold flex-1">
+                  {'  '}
+                  {item.userName}
+                </Text>
+              </View>
+
+              <Text className="text-primary-100 font-bold">
+                {item.totalCo2Saved?.toLocaleString()} kg CO₂
+              </Text>
+            </View>
+          )}
+          ListHeaderComponent={
+            <>
+              {loading ? (
+                <View className="py-10 items-center justify-center">
+                  <ActivityIndicator size="large" color="#e85a4f" />
+                </View>
+              ) : null}
+
+              {sortedData.length > 0 ? (
+                <View className="bg-primary-100 border-2 border-red-200 rounded-2xl p-4 mt-2 mb-4">
+                  <Text className="text-white text-lg font-bold text-center mb-4">
+                    Top 3 đóng góp nhiều nhất
+                  </Text>
+
+                  <View className="flex-row justify-between items-end">
+                    {topThree[1] ? (
+                      <View className="w-[31%] items-center bg-white/20 rounded-xl py-3 px-2">
+                        <View className="mt-2 mb-1">
+                          <AppAvatar
+                            name={topThree[1].userName}
+                            uri={topThree[1].avatar}
+                            size={44}
+                          />
+                        </View>
+                        <Text className="text-white font-semibold mt-2 text-center">
+                          {topThree[1].userName}
+                        </Text>
+                        <Text className="text-white/90 text-xs mt-1">#2</Text>
+                        <Text className="text-white font-bold mt-1">
+                          {topThree[1].totalCo2Saved?.toLocaleString()}
+                        </Text>
+                      </View>
+                    ) : null}
+
+                    {topThree[0] ? (
+                      <View className="w-[33%] items-center bg-white/25 rounded-xl py-4 px-2 -mt-3">
+                        <View className="mt-2 mb-1">
+                          <AppAvatar
+                            name={topThree[0].userName}
+                            uri={topThree[0].avatar}
+                            size={48}
+                          />
+                        </View>
+                        <Text className="text-white font-bold mt-2 text-center">
+                          {topThree[0].userName}
+                        </Text>
+                        <Text className="text-white text-xs mt-1">#1</Text>
+                        <Text className="text-white font-extrabold mt-1">
+                          {topThree[0].totalCo2Saved?.toLocaleString()}
+                        </Text>
+                      </View>
+                    ) : null}
+
+                    {topThree[2] ? (
+                      <View className="w-[31%] items-center bg-white/20 rounded-xl py-3 px-2">
+                        <View className="mt-2 mb-1">
+                          <AppAvatar
+                            name={topThree[2].userName}
+                            uri={topThree[2].avatar}
+                            size={44}
+                          />
+                        </View>
+                        <Text className="text-white font-semibold mt-2 text-center">
+                          {topThree[2].userName}
+                        </Text>
+                        <Text className="text-white/90 text-xs mt-1">#3</Text>
+                        <Text className="text-white font-bold mt-1">
+                          {topThree[2].totalCo2Saved?.toLocaleString()}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                </View>
+              ) : null}
+
+              <View className="mb-6">
+                <Text className="text-base font-bold text-text-main mb-3">
+                  Danh sách xếp hạng
+                </Text>
+              </View>
+            </>
+          }
+          ListEmptyComponent={renderEmptyList}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="#e85a4f"
+            />
+          }
           contentContainerStyle={{ paddingBottom: myRank ? 12 : 24 }}
-        >
-          {loading ? (
-            <View className="py-10 items-center justify-center">
-              <ActivityIndicator size="large" color="#e85a4f" />
-            </View>
-          ) : null}
-
-          <View className="bg-primary-100 border-2 border-red-200 rounded-2xl p-4 mt-2 mb-4">
-            <Text className="text-white text-lg font-bold text-center mb-4">
-              Top 3 đóng góp nhiều nhất
-            </Text>
-
-            <View className="flex-row justify-between items-end">
-              {topThree[1] ? (
-                <View className="w-[31%] items-center bg-white/20 rounded-xl py-3 px-2">
-                  <View className="mt-2 mb-1">
-                    <AppAvatar
-                      name={topThree[1].userName}
-                      uri={topThree[1].avatar}
-                      size={44}
-                    />
-                  </View>
-                  <Text className="text-white font-semibold mt-2 text-center">
-                    {topThree[1].userName}
-                  </Text>
-                  <Text className="text-white/90 text-xs mt-1">#2</Text>
-                  <Text className="text-white font-bold mt-1">
-                    {topThree[1].totalCo2Saved?.toLocaleString()}
-                  </Text>
-                </View>
-              ) : null}
-
-              {topThree[0] ? (
-                <View className="w-[33%] items-center bg-white/25 rounded-xl py-4 px-2 -mt-3">
-                  <View className="mt-2 mb-1">
-                    <AppAvatar
-                      name={topThree[0].userName}
-                      uri={topThree[0].avatar}
-                      size={48}
-                    />
-                  </View>
-                  <Text className="text-white font-bold mt-2 text-center">
-                    {topThree[0].userName}
-                  </Text>
-                  <Text className="text-white text-xs mt-1">#1</Text>
-                  <Text className="text-white font-extrabold mt-1">
-                    {topThree[0].totalCo2Saved?.toLocaleString()}
-                  </Text>
-                </View>
-              ) : null}
-
-              {topThree[2] ? (
-                <View className="w-[31%] items-center bg-white/20 rounded-xl py-3 px-2">
-                  <View className="mt-2 mb-1">
-                    <AppAvatar
-                      name={topThree[2].userName}
-                      uri={topThree[2].avatar}
-                      size={44}
-                    />
-                  </View>
-                  <Text className="text-white font-semibold mt-2 text-center">
-                    {topThree[2].userName}
-                  </Text>
-                  <Text className="text-white/90 text-xs mt-1">#3</Text>
-                  <Text className="text-white font-bold mt-1">
-                    {topThree[2].totalCo2Saved?.toLocaleString()}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
-          </View>
-
-          <View className="mb-6">
-            <Text className="text-base font-bold text-text-main mb-3">
-              Danh sách xếp hạng
-            </Text>
-
-            {remainingUsers.map(item => (
-              <View
-                key={item.userId}
-                className="bg-white border border-red-100 rounded-xl p-4 mb-3 flex-row items-center justify-between"
-              >
-                <View className="flex-row items-center flex-1 mr-3">
-                  <View className="w-7 h-7 rounded-full bg-primary-100 items-center justify-center mr-2">
-                    <Text className="text-white text-xs font-bold">
-                      {item.rankPosition}
-                    </Text>
-                  </View>
-                  <AppAvatar name={item.userName} uri={item.avatar} size={32} />
-                  <Text className="text-text-main font-semibold flex-1">
-                    {'  '}
-                    {item.userName}
-                  </Text>
-                </View>
-
-                <Text className="text-primary-100 font-bold">
-                  {item.totalCo2Saved?.toLocaleString()} kg CO₂
-                </Text>
-              </View>
-            ))}
-
-            {!loading && sortedData.length === 0 ? (
-              <View className="py-8 items-center">
-                <Text className="text-gray-500">
-                  Chưa có dữ liệu bảng xếp hạng
-                </Text>
-              </View>
-            ) : null}
-          </View>
-        </ScrollView>
+        />
 
         {myRank ? (
           <View className="px-4 pb-4 pt-2 bg-background-50 ">
@@ -241,7 +255,7 @@ export default function LeaderboardScreen() {
                 <View className="items-center justify-center w-[74px]">
                   {myRank.rankIcon ? (
                     <Image
-                      source={{ uri: myRank.rankIcon }}
+                      source={myRank?.rankIcon ? { uri: myRank.rankIcon } : cup}
                       className="w-[64px] h-[64px]"
                       resizeMode="contain"
                     />

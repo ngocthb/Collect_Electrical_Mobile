@@ -14,16 +14,18 @@ import {
   groupTimeSlots,
   parseProductAttributes,
   getStatusLabel,
+  isWaitingCollectionStatus,
 } from '../../utils/productHelper';
 import SubLayout from '../../layout/SubLayout';
 import { useNavigation } from '@react-navigation/core';
 import { useRoute } from '@react-navigation/native';
-
+import { formatDate } from '../../utils/dateUtils';
 import AppAvatar from '../../components/ui/AppAvatar';
 import AppButton from '../../components/ui/AppButton';
 import routeService from '../../services/routeService';
 import { getProductById, cancelProduct } from '../../services/productService';
 import ConfirmModal from '../../components/ConfirmModal';
+import ReportCreateModal from '../../components/ReportCreateModal';
 import { isCanCancelProduct } from '../../utils/productHelper';
 
 import {
@@ -47,6 +49,7 @@ const ProductDetailsScreen = () => {
   const [product, setProduct] = useState<ProductDetail>();
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   useEffect(() => {
     if (!productId) return;
@@ -269,7 +272,7 @@ const ProductDetailsScreen = () => {
                   <View className="flex-row items-center">
                     <Icon name="calendar" size={14} color="#fff" />
                     <Text className="text-white text-xs font-semibold uppercase tracking-wider ml-2">
-                      {product?.pickUpDate} •{' '}
+                      {formatDate(product?.pickUpDate)} •{' '}
                       {product?.estimatedTime?.split(':').slice(0, 2).join(':')}
                     </Text>
                   </View>
@@ -417,6 +420,16 @@ const ProductDetailsScreen = () => {
               </View>
             )}
 
+            {isWaitingCollectionStatus(product?.status) &&
+              !showVerifyButton && (
+                <View className="mt-4 mb-4">
+                  <AppButton
+                    title="Phản ánh thu gom"
+                    onPress={() => setShowReportModal(true)}
+                  />
+                </View>
+              )}
+
             {isCanCancelProduct(product?.status) && (
               <View className="mt-4 mb-4">
                 <AppButton
@@ -440,6 +453,13 @@ const ProductDetailsScreen = () => {
         cancelText="Quay lại"
         iconName="x-octagon"
         iconColor="#DC2626"
+      />
+
+      <ReportCreateModal
+        visible={showReportModal}
+        reportType="Vấn đề thu gom"
+        collectionRouteId={product?.collectionRouterId ?? null}
+        onClose={() => setShowReportModal(false)}
       />
     </SubLayout>
   );

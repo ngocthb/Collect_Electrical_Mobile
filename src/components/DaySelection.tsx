@@ -1,10 +1,9 @@
-import React from 'react';
+import { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { days, type Day } from '../data/timeSlots';
 import { useAppDispatch } from '../store/hooks';
 import { toggleSyncDays, clickDay } from '../store/slices/timeSlotSlice';
-
-const CUTOFF_TIME = '23:00';
+import { useSelector } from 'react-redux';
 
 interface DaySelectionProps {
   selectedDays: Day[];
@@ -15,12 +14,19 @@ const DaySelection: React.FC<DaySelectionProps> = ({
   selectedDays,
   setSelectedDays,
 }) => {
-  const dispatch = useAppDispatch();
+  const [CUTOFF_TIME, timeSever, publicHoliday] = useSelector((state: any) => [
+    state?.systemConfig?.timeToPost?.value,
+    state?.systemConfig?.timeSever,
+    state?.systemConfig?.publicHoliday,
+  ]);
+  console.log(publicHoliday);
 
+  const dispatch = useAppDispatch();
   // Get today's day name
+
   const getTodayDayName = (): Day => {
     const dayMap: Day[] = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-    const today = new Date();
+    const today = timeSever ? new Date(timeSever?.serverDate) : new Date();
     return dayMap[today.getDay()];
   };
 
@@ -28,7 +34,7 @@ const DaySelection: React.FC<DaySelectionProps> = ({
 
   // Check if current time in Vietnam is after cutoff
   const isAfterCutoff = (): boolean => {
-    const now = new Date();
+    const now = timeSever ? new Date(timeSever?.serverDate) : new Date();
     const parts = new Intl.DateTimeFormat('en-US', {
       timeZone: 'Asia/Ho_Chi_Minh',
       hour: '2-digit',
@@ -73,7 +79,7 @@ const DaySelection: React.FC<DaySelectionProps> = ({
 
   // Safe function to get today's date in Vietnam timezone
   const getTodayInVietnam = (): Date => {
-    const now = new Date();
+    const now = timeSever ? new Date(timeSever?.serverDate) : new Date();
     const parts = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Asia/Ho_Chi_Minh',
       year: 'numeric',
@@ -96,18 +102,7 @@ const DaySelection: React.FC<DaySelectionProps> = ({
 
   // Get next date for a specific day (accounting for cutoff shift)
   const getNextDateForDay = (dayName: Day) => {
-    const dayMap: Record<Day, number> = {
-      T2: 1,
-      T3: 2,
-      T4: 3,
-      T5: 4,
-      T6: 5,
-      T7: 6,
-      CN: 0,
-    };
-
     const today = getTodayInVietnam();
-    const todayIndex = days.indexOf(todayDayName);
     const targetIndex = days.indexOf(dayName);
     const startIndex = days.indexOf(startDayName);
 
@@ -134,23 +129,26 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     const today = getTodayInVietnam();
     const targetIndex = days.indexOf(dayName);
     const startIndex = days.indexOf(startDayName);
-
-    // Calculate offset from the start of the displayed week
     let offset = targetIndex - startIndex;
     if (offset < 0) offset += 7;
-
-    // Calculate base shift: +1 day before cutoff, +2 days after cutoff
     const baseShift = isAfterCutoff() ? 2 : 1;
-
     const targetDate = new Date(today);
     targetDate.setDate(today.getDate() + baseShift + offset);
-
     const dd = String(targetDate.getDate()).padStart(2, '0');
     const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
-
     return `${dd}/${mm}`;
   };
 
+  const checkIsPublicHoliday = (dayName: Day): boolean => {
+    if (!publicHoliday || !Array.isArray(publicHoliday)) return false;
+
+    const displayDate = getNextDateForDay(dayName);
+
+    return publicHoliday.some(
+      holiday =>
+        displayDate >= holiday.startDate && displayDate <= holiday.endDate,
+    );
+  };
   const toggleDaySelection = (day: Day) => {
     if (selectedDays.includes(day)) {
       setSelectedDays(prev => prev.filter(d => d !== day));
@@ -167,23 +165,28 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     );
   };
 
-  const isAllSelected = reorderedDays.every(day => selectedDays.includes(day));
-  const toggleAll = () => {
-    if (isAllSelected) {
-      // Bỏ chọn tất cả
-      setSelectedDays([]);
-    } else {
-      // Chọn tất cả
-      setSelectedDays(reorderedDays);
-    }
-    const data = reorderedDays.map(day => ({
-      dayName: day,
-      pickUpDate: getNextDateForDay(day),
-      slots: { startTime: '09:00', endTime: '17:00' },
-    }));
-    dispatch(toggleSyncDays(data));
-  };
+  const isAllSelected = reorderedDays
+    .filter(day => !checkIsPublicHoliday(day))
+    .every(day => selectedDays.includes(day));
 
+  const toggleAll = () => {
+    const allDays = reorderedDays.filter(day => !checkIsPublicHoliday(day));
+
+    if (isAllSelected) {
+      setSelectedDays([]);
+      dispatch(toggleSyncDays([]));
+    } else {
+      setSelectedDays(allDays);
+
+      const data = allDays.map(day => ({
+        dayName: day,
+        pickUpDate: getNextDateForDay(day),
+        slots: { startTime: '09:00', endTime: '17:00' },
+      }));
+
+      dispatch(toggleSyncDays(data));
+    }
+  };
   return (
     <>
       <View className="flex-row justify-between mb-2">
@@ -227,8 +230,10 @@ const DaySelection: React.FC<DaySelectionProps> = ({
                   borderColor: selectedDays.includes(day)
                     ? '#e85a4f'
                     : '#E5E7EB',
+                  opacity: checkIsPublicHoliday(day) ? 0.5 : 1,
                 }}
                 onPress={() => toggleDaySelection(day)}
+                disabled={checkIsPublicHoliday(day)}
               >
                 <Text
                   className={`text-sm font-semibold ${

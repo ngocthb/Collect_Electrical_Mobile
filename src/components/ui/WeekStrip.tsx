@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { ServerTime } from '../../types/common';
+import { ServerTime } from '../../types/SystemConfig';
+import { useSelector } from 'react-redux';
 
 interface Props {
   selectedDate: Date;
@@ -32,8 +33,8 @@ const WeekStrip: React.FC<Props> = ({
   onSelectDate,
   onPrevWeek,
   onNextWeek,
-  serverDate,
 }) => {
+  const [serverDate] = useSelector((s: any) => [s.systemConfig.timeSever]);
   const weekStart = useMemo(() => startOfWeek(selectedDate), [selectedDate]);
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
@@ -47,7 +48,6 @@ const WeekStrip: React.FC<Props> = ({
     return new Date();
   }, [serverDate]);
 
-  console.log(serverDate);
   return (
     <View className="flex-row items-center p-1 bg-red-50">
       {/* <TouchableOpacity onPress={onPrevWeek} className="p-2">

@@ -83,7 +83,7 @@ export const getStatusBgClass = (status?: string) => {
   } else if (isRejectedStatus(status)) {
     return 'bg-red-500';
   } else if (isWaitingCollectionStatus(status)) {
-    return 'bg-purple-500';
+    return 'bg-teal-500';
   }
   return 'bg-green-500';
 };
@@ -102,7 +102,7 @@ export const getColorClass = (color: string) => {
     yellow: 'bg-amber-500',
     red: 'bg-red-500',
     green: 'bg-green-500',
-    purple: 'bg-purple-500',
+    purple: 'bg-teal-500',
   };
   return colorMap[color] || 'bg-gray-400';
 };

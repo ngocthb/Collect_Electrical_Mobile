@@ -12,10 +12,13 @@ import { isCompletedStatus } from '../../utils/productHelper';
 import MainLayout from '../../layout/MainLayout';
 import ProductCard from '../../components/ProductCard';
 import NewsCarousel from '../../components/NewsCarousel';
+import { getAllConfig } from '../../services/systemConfigService';
+import { setAllConfig } from '../../store/slices/systemSlice';
 
 const homepage1 = require('../../assets/images/homepage1.png');
 const homepage2 = require('../../assets/images/homepage2.png');
 const homepage3 = require('../../assets/images/homepage3.png');
+const homepage4 = require('../../assets/images/homepage4.png');
 const DEVELOP_MODE_KEY = 'develop_mode';
 
 export default function HomeScreen() {
@@ -47,6 +50,7 @@ export default function HomeScreen() {
 
       await getTodayProducts();
       checkIsDevelopMode();
+      await fetchAllConfig();
     } catch (e) {
       console.warn('[Home] refresh profile failed', e);
     }
@@ -72,12 +76,18 @@ export default function HomeScreen() {
       title: 'Các điểm thu',
       image: homepage1,
     },
+
     ...(isDevelopMode
       ? [
           {
             id: 3,
             title: 'Bảng xếp hạng',
             image: homepage3,
+          },
+          {
+            id: 4,
+            title: 'Phản ánh',
+            image: homepage4,
           },
         ]
       : []),
@@ -94,6 +104,19 @@ export default function HomeScreen() {
       case 3:
         navigation.navigate('Leaderboard');
         break;
+      case 4:
+        navigation.navigate('ReportList');
+        break;
+    }
+  };
+
+  const fetchAllConfig = async () => {
+    try {
+      const configData = await getAllConfig();
+      console.log(configData);
+      dispatch(setAllConfig(configData));
+    } catch (error) {
+      console.error('Failed to fetch system config:', error);
     }
   };
 
@@ -105,6 +128,9 @@ export default function HomeScreen() {
     checkIsDevelopMode();
   }, []);
 
+  useEffect(() => {
+    fetchAllConfig();
+  }, []);
   const checkIsDevelopMode = () => {
     let mounted = true;
 

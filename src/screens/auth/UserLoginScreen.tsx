@@ -49,6 +49,7 @@ export default function UserLoginScreen() {
       dispatch(setUser(profileData));
       const addresses = await getUserAddresses(profileData.userId);
       dispatch(setAddressList(addresses || []));
+
       // @ts-ignore
       globalThis.navigation?.replace('MainTabs');
 

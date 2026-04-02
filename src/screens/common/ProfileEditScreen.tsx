@@ -28,7 +28,7 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
   const user = useAppSelector(s => s.auth.user);
   const dispatch = useAppDispatch();
 
-  const [name, setName] = useState(user?.name ?? '');
+  const [name] = useState(user?.name ?? '');
   const [email] = useState(user?.email ?? '');
   const [phone, setPhone] = useState(user?.phone ?? '');
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(
@@ -40,11 +40,6 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleSave = async () => {
-    if (!name || name.trim().length === 0) {
-      toast.show({ type: 'error', text1: 'Lỗi', text2: 'Vui lòng nhập tên' });
-      return;
-    }
-
     setSaving(true);
     try {
       let uploadedAvatarUrl = avatarUrl || '';
@@ -116,10 +111,7 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
     setPickerVisible(false);
   };
 
-  const hasChanges =
-    name !== (user?.name ?? '') ||
-    phone !== (user?.phone ?? '') ||
-    selectedImage !== null;
+  const hasChanges = phone !== (user?.phone ?? '') || selectedImage !== null;
   const handleDeleteAccount = async () => {
     setShowDeleteModal(false);
     try {
@@ -200,13 +192,7 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
           </View>
 
           <View className="bg-white rounded-2xl p-4 mb-4 border-2 border-red-200">
-            <AppInput
-              label="Họ và tên"
-              placeholder="Họ và tên"
-              value={name}
-              onChangeText={setName}
-              editable={!saving}
-            />
+            <AppInput label="Họ và tên" value={name} disabled />
 
             <AppInput label="Email" value={email} disabled />
 

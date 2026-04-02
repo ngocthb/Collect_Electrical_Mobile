@@ -1,12 +1,6 @@
-import React, {
-  useRef,
-  useEffect,
-  useState,
-  useMemo,
-  useCallback,
-} from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import {
-  ScrollView,
+  FlatList,
   View,
   Text,
   TouchableOpacity,
@@ -26,13 +20,12 @@ import {
 import StatusFilter from '../../components/ui/StatusFilter';
 import { useAppSelector } from '../../store/hooks';
 import { CollectionRouteWithDistance } from '../../types/Collector';
-import { getTimeSever } from '../../services/systemServe';
-import { ServerTime } from './../../types/common';
 import MainLayout from '../../layout/MainLayout';
+import { getAllConfig } from '../../services/systemConfigService';
+import { setAllConfig } from '../../store/slices/systemSlice';
+import { useAppDispatch } from '../../store/hooks';
+
 export default function DeliveryListScreen() {
-  const navigation = useNavigation<any>();
-  const listRef = useRef(null);
-  const lastItemRef = useRef(null);
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showWeekCalendar, setShowWeekCalendar] = useState(false);
@@ -41,7 +34,9 @@ export default function DeliveryListScreen() {
   >([]);
   const [dateSever, setDateServer] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
-  const [serverDate, setServerDate] = useState<ServerTime>();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const dispatch = useAppDispatch();
+
   const user = useAppSelector(s => s.auth.user);
   const userId = user?.userId;
 
@@ -71,12 +66,18 @@ export default function DeliveryListScreen() {
   }, []);
 
   const fetchOrdersByDate = useCallback(
-    async (userId: string, date: Date) => {
-      setIsLoading(true);
+    async (
+      userId: string,
+      date: Date,
+      options?: {
+        showLoading?: boolean;
+      },
+    ) => {
+      const showLoading = options?.showLoading ?? true;
+      if (showLoading) setIsLoading(true);
       try {
         const dateStr = formatAPIDate(date);
         const res = await routeService.listByDate(userId, dateStr);
-        setDateServer(res.serverDate);
         const orders = Array.isArray(res.data) ? res.data : [];
         setOrdersWithDistance(
           orders?.map(o => ({
@@ -89,7 +90,7 @@ export default function DeliveryListScreen() {
         console.warn('Failed to load orders', e);
         setOrdersWithDistance([]);
       } finally {
-        setIsLoading(false);
+        if (showLoading) setIsLoading(false);
       }
     },
     [formatAPIDate],
@@ -164,14 +165,6 @@ export default function DeliveryListScreen() {
     [startOfWeek],
   );
 
-  const handleBackPress = useCallback(() => {
-    if (navigation.canGoBack && navigation.canGoBack()) {
-      navigation.goBack();
-    } else {
-      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
-    }
-  }, [navigation]);
-
   const handleSelectDate = useCallback((d: Date) => {
     setIsLoading(true); // 🔥 quan trọng
     setOrdersWithDistance([]); // optional, để clear list
@@ -182,24 +175,36 @@ export default function DeliveryListScreen() {
     setSelectedStatus(status);
   }, []);
 
-  const getDateTimeSever = async () => {
+  const handleRefresh = useCallback(async () => {
+    if (!userId) return;
+    setIsRefreshing(true);
     try {
-      const serverTime = await getTimeSever();
-      setServerDate(serverTime);
-      // Set selectedDate theo server date lần đầu
-      if (serverTime?.serverDate) {
-        setSelectedDate(new Date(serverTime.serverDate));
-      }
+      await fetchOrdersByDate(userId, selectedDate, { showLoading: false });
+      await fetchAllConfig();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [userId, selectedDate, fetchOrdersByDate]);
+
+  const fetchAllConfig = async () => {
+    try {
+      const configData = await getAllConfig();
+      console.log(configData);
+      setSelectedDate(
+        configData.timeServe
+          ? new Date(configData?.timeServe?.serverDate)
+          : new Date(),
+      );
+      setDateServer(configData?.timeServe?.serverDate);
+      dispatch(setAllConfig(configData));
     } catch (error) {
-      console.error('Failed to get server time:', error);
+      console.error('Failed to fetch system config:', error);
     }
   };
 
   useEffect(() => {
-    getDateTimeSever();
+    fetchAllConfig();
   }, []);
-
-  console.log(filteredOrders);
 
   return (
     <MainLayout
@@ -227,7 +232,6 @@ export default function DeliveryListScreen() {
       />
 
       <WeekStrip
-        serverDate={serverDate}
         selectedDate={selectedDate}
         onSelectDate={handleSelectDate}
         onPrevWeek={() => changeWeek(-1)}
@@ -241,44 +245,49 @@ export default function DeliveryListScreen() {
       />
 
       <View className="flex-1 bg-background-50">
-        {isLoading ? (
-          <View className="items-center justify-center flex-1">
-            <ActivityIndicator size="large" color="#e85a4f" />
-            <Text className="text-text-muted mt-4 text-center">
-              Đang tải...
-            </Text>
-          </View>
-        ) : filteredOrders.length === 0 ? (
-          <View className="items-center justify-center flex-1">
-            <Icon name="package-variant" size={64} color="#DDD" />
-            <Text className="text-text-muted mt-4 text-center">
-              Không có đơn hàng nào
-            </Text>
-          </View>
-        ) : (
-          <ScrollView className="flex-1">
-            <View className="px-4 pt-2">
-              <View className="flex-row relative" ref={listRef}>
-                <View className="flex-1">
-                  {filteredOrders.map((order, idx) => {
-                    const isLast = idx === filteredOrders.length - 1;
-                    return (
-                      <View
-                        key={order.collectionRouteId || idx}
-                        ref={isLast ? lastItemRef : null}
-                      >
-                        <DeliveryOrderCard
-                          order={order}
-                          isSelectedDateToday={isSelectedDateToday}
-                        />
-                      </View>
-                    );
-                  })}
-                </View>
+        <FlatList
+          className="flex-1"
+          data={filteredOrders}
+          keyExtractor={(item, index) =>
+            String(item.collectionRouteId || index)
+          }
+          renderItem={({ item }) => (
+            <DeliveryOrderCard
+              order={item}
+              isSelectedDateToday={isSelectedDateToday}
+            />
+          )}
+          contentContainerStyle={
+            filteredOrders.length === 0
+              ? {
+                  paddingHorizontal: 16,
+                  paddingTop: 8,
+                  flexGrow: 1,
+                  justifyContent: 'center',
+                }
+              : { paddingHorizontal: 16, paddingTop: 8 }
+          }
+          ListEmptyComponent={
+            isLoading ? (
+              <View className="items-center justify-center flex-1">
+                <ActivityIndicator size="large" color="#e85a4f" />
+                <Text className="text-text-muted mt-4 text-center">
+                  Đang tải...
+                </Text>
               </View>
-            </View>
-          </ScrollView>
-        )}
+            ) : (
+              <View className="items-center justify-center flex-1">
+                <Icon name="package-variant" size={64} color="#DDD" />
+                <Text className="text-text-muted mt-4 text-center">
+                  Không có đơn hàng nào
+                </Text>
+              </View>
+            )
+          }
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          showsVerticalScrollIndicator={false}
+        />
       </View>
     </MainLayout>
   );

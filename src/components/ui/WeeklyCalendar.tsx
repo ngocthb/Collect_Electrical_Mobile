@@ -8,7 +8,8 @@ import {
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { ServerTime } from '../../types/common';
+import { ServerTime } from '../../types/SystemConfig';
+import { useSelector } from 'react-redux';
 
 interface WeeklyCalendarProps {
   visible: boolean;
@@ -35,8 +36,8 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   onClose,
   initialDate,
   onSelect,
-  serverDate,
 }) => {
+  const [serverDate] = useSelector((s: any) => [s.systemConfig.timeSever]);
   const today = useMemo(() => {
     if (serverDate?.serverDate) {
       return new Date(serverDate.serverDate);

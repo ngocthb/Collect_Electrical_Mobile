@@ -18,7 +18,7 @@ import axiosClient from '../config/axios';
 import { Linking } from 'react-native';
 import { sendNotification } from '../services/notificationServices';
 import { formatDate } from '../utils/dateUtils';
-const ARRIVAL_DISTANCE_THRESHOLD = 1500; // meters
+import { useSelector } from 'react-redux';
 
 type Props = {
   normalizedRequest: any;
@@ -40,6 +40,10 @@ const DeliveryMapPanel: React.FC<Props> = ({
   onRefresh,
   resetQrTrigger,
 }) => {
+  const [ARRIVAL_DISTANCE_THRESHOLD] = useSelector((s: any) => [
+    s?.systemConfig?.radiusMeter?.value,
+  ]);
+  console.log(ARRIVAL_DISTANCE_THRESHOLD);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showActionButtons, setShowActionButtons] = useState(false);
   const hasShownQrModalRef = React.useRef(false);

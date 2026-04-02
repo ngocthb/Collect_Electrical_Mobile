@@ -63,19 +63,14 @@ const timeSlotSlice = createSlice({
       }
     },
     toggleSyncDays(state, action: PayloadAction<TimeSlot[]>) {
-      state.isSyncedDays = !state.isSyncedDays;
-      if (state.isSyncedDays) {
-        const existingDays = new Set(state.list.map(slot => slot.dayName));
-        const newSlots = action.payload.filter(
-          slot => !existingDays.has(slot.dayName),
-        );
-        if (newSlots.length > 0) {
-          state.list.push(...newSlots);
-          state.list = sortTimeSlotsByWeekOrder(state.list);
-        }
-      } else {
+      if (action.payload.length === 0) {
+        state.isSyncedDays = false;
         state.list = [];
+        return;
       }
+
+      state.isSyncedDays = true;
+      state.list = sortTimeSlotsByWeekOrder(action.payload);
     },
     updateTimeSlot(state, action: PayloadAction<TimeSlot>) {
       if (state.isSynced) {
