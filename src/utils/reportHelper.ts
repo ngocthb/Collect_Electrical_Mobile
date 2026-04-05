@@ -7,6 +7,15 @@ export const STATUS_COLORS: { [key: string]: string } = {
   [REPORT_STATUS.PROCESSING]: '#F59E0B',
   [REPORT_STATUS.RESOLVED]: '#10B981',
 };
+export const REPORT_TYPE_COLORS: { [key: string]: string } = {
+  'Lỗi hệ thống': '#EF4444',
+  'Vấn đề thu gom': '#14B8A6',
+  'Lỗi điểm thu gom': '#3B82F6',
+};
+
+export const getTypeColor = (type: string): string => {
+  return REPORT_TYPE_COLORS[type] || '#999999';
+};
 
 export const isProcessingStatus = (status?: string) => {
   if (!status) return false;
@@ -52,6 +61,8 @@ export const sortReportsByDate = (reports: any[]): any[] => {
 export default {
   REPORT_STATUS,
   STATUS_COLORS,
+  REPORT_TYPE_COLORS,
+  getTypeColor,
   isProcessingStatus,
   isResolvedStatus,
   getStatusColor,

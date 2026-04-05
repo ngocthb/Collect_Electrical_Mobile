@@ -5,6 +5,8 @@ export interface ProductInfo {
   description: string; // Mô tả / tình trạng
   images: string[]; // Danh sách URL hình ảnh
   status: string; // Trạng thái hiện tại (VD: "Tái chế")
+  points: number; // Điểm tích lũy (nếu có)
+  collectionRouteId: string; // ID tuyến thu gom (nếu có)
 }
 
 export interface TimelineItem {

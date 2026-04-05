@@ -6,6 +6,7 @@ import {
   Image,
   FlatList,
   Linking,
+  useWindowDimensions,
 } from 'react-native';
 
 const homepage = require('../assets/images/homepage.png');
@@ -21,6 +22,8 @@ export default function NewsCarousel() {
   const [newsList, setNewsList] = useState<NewsItem[]>([]);
   const flatListRef = useRef<any>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { width: screenWidth } = useWindowDimensions();
+  const [listWidth, setListWidth] = useState(screenWidth);
 
   const fetchNews = async () => {
     try {
@@ -67,47 +70,75 @@ export default function NewsCarousel() {
 
   if (newsList.length > 0) {
     return (
-      <FlatList
-        ref={flatListRef}
-        data={newsList}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(_, index) => index.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            className="mb-4 mt-10 w-[330px]"
-            onPress={() => {
-              if (item.link) {
-                Linking.openURL(item.link);
-              }
+      <View className="mb-4 mt-10">
+        <View
+          onLayout={event => {
+            const width = event.nativeEvent.layout.width;
+            if (width > 0 && width !== listWidth) {
+              setListWidth(width);
+            }
+          }}
+        >
+          <FlatList
+            ref={flatListRef}
+            data={newsList}
+            horizontal
+            pagingEnabled
+            snapToInterval={listWidth}
+            snapToAlignment="start"
+            decelerationRate="fast"
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(_, index) => index.toString()}
+            getItemLayout={(_, index) => ({
+              length: listWidth,
+              offset: listWidth * index,
+              index,
+            })}
+            onMomentumScrollEnd={event => {
+              const index = Math.round(
+                event.nativeEvent.contentOffset.x / listWidth,
+              );
+              setCurrentIndex(index);
             }}
-          >
-            <View className="rounded-2xl p-4 bg-primary-100 border border-gray-200">
-              <View className="flex-row items-center">
-                {item.image && (
-                  <Image
-                    source={{ uri: item.image }}
-                    style={{ width: 100, height: 72 }}
-                    className="mr-4"
-                  />
-                )}
-                <View className="flex-1">
-                  <Text
-                    numberOfLines={2}
-                    className="text-white text-sm font-bold"
-                  >
-                    {item.title}
-                  </Text>
-                  <Text numberOfLines={3} className="text-white text-xs mt-1">
-                    {item.intro}
-                  </Text>
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={{ width: listWidth }}
+                onPress={() => {
+                  if (item.link) {
+                    Linking.openURL(item.link);
+                  }
+                }}
+              >
+                <View className="rounded-2xl p-4 bg-primary-100 border border-gray-200">
+                  <View className="flex-row items-center">
+                    {item.image && (
+                      <Image
+                        source={{ uri: item.image }}
+                        style={{ width: 100, height: 72 }}
+                        className="mr-4"
+                      />
+                    )}
+                    <View className="flex-1">
+                      <Text
+                        numberOfLines={2}
+                        className="text-white text-sm font-bold"
+                      >
+                        {item.title}
+                      </Text>
+                      <Text
+                        numberOfLines={3}
+                        className="text-white text-xs mt-1"
+                      >
+                        {item.intro}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-              </View>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </View>
     );
   }
 

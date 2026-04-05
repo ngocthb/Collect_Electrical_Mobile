@@ -1,65 +1,124 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
+  ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import { useNavigation } from '@react-navigation/native';
 import SubLayout from '../../layout/SubLayout';
+import { useAppSelector } from '../../store/hooks';
+import { getStatistics } from '../../services/collectorService';
 
-// Lightweight clean stats screen (Day/Week/Month) with mocked completed/failed counts.
+type StatisticChartItem = {
+  label: string;
+  value: number;
+};
 
-function getWeekdayLabels() {
-  return ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-}
+type StatisticsData = {
+  totalOrders: number;
+  completedOrders: number;
+  failedOrders: number;
+  completedChart: StatisticChartItem[];
+  failedChart: StatisticChartItem[];
+};
 
-function lastNMonthsLabels(n = 6) {
-  const now = new Date();
-  const labels: string[] = [];
-  for (let i = 0; i < n; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const month = d.getMonth() + 1;
-    const year = String(d.getFullYear()).slice(-2);
-    labels.unshift(`${month}/${year}`);
-  }
-  return labels;
-}
-
-function generateMockPairs(n: number, base = 10) {
-  const completed: number[] = [];
-  const failed: number[] = [];
-  for (let i = 0; i < n; i++) {
-    const a = Math.round(Math.abs(Math.sin((i + 1) * 1.2) * base) + (i % 4));
-    const b = Math.round(Math.abs(Math.cos((i + 2) * 0.9) * (base / 3)));
-    completed.push(a + Math.round(base / 3));
-    failed.push(Math.round(b));
-  }
-  return { completed, failed };
-}
+const emptyStatistics: StatisticsData = {
+  totalOrders: 0,
+  completedOrders: 0,
+  failedOrders: 0,
+  completedChart: [],
+  failedChart: [],
+};
 
 export default function DeliveryStats() {
+  const user = useAppSelector(s => s.auth.user);
+  const userId = user?.userId;
   const navigation = useNavigation<any>();
-  const [mode, setMode] = useState<'week' | 'month'>('week');
-  const [showRaw, setShowRaw] = useState(false);
+  const { width: screenWidth } = useWindowDimensions();
 
-  const screenWidth = Dimensions.get('window').width;
+  const [mode, setMode] = useState<'week' | 'month'>('week');
+  const [loading, setLoading] = useState(false);
+  const [statistics, setStatistics] = useState<StatisticsData>(emptyStatistics);
+
+  const period = mode === 'week' ? 0 : 1;
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchStatistics = async () => {
+      if (!userId) {
+        setStatistics(emptyStatistics);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await getStatistics(String(userId), period);
+        const payload = response?.data?.data ?? response?.data ?? null;
+
+        if (!mounted) return;
+
+        setStatistics({
+          totalOrders: payload?.totalOrders ?? 0,
+          completedOrders: payload?.completedOrders ?? 0,
+          failedOrders: payload?.failedOrders ?? 0,
+          completedChart: payload?.completedChart ?? [],
+          failedChart: payload?.failedChart ?? [],
+        });
+      } catch (error) {
+        console.error('[DeliveryStats] Error loading statistics:', error);
+        if (mounted) setStatistics(emptyStatistics);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    fetchStatistics();
+
+    return () => {
+      mounted = false;
+    };
+  }, [userId, period]);
 
   const labels = useMemo(() => {
-    if (mode === 'week') return getWeekdayLabels();
-    return lastNMonthsLabels(6);
-  }, [mode]);
+    if (statistics.completedChart.length > 0) {
+      return statistics.completedChart.map(item => item.label);
+    }
 
-  const { completed, failed } = useMemo(
-    () => generateMockPairs(labels.length, mode === 'week' ? 18 : 24),
-    [labels, mode],
+    if (statistics.failedChart.length > 0) {
+      return statistics.failedChart.map(item => item.label);
+    }
+
+    return [];
+  }, [statistics.completedChart, statistics.failedChart]);
+
+  const completed = useMemo(
+    () => statistics.completedChart.map(item => item.value),
+    [statistics.completedChart],
   );
 
-  const totals = {
-    completed: completed.reduce((a, b) => a + b, 0),
-    failed: failed.reduce((a, b) => a + b, 0),
+  const failed = useMemo(
+    () => statistics.failedChart.map(item => item.value),
+    [statistics.failedChart],
+  );
+
+  const totalOrders =
+    statistics.totalOrders ||
+    statistics.completedOrders + statistics.failedOrders;
+
+  const chartConfig = {
+    backgroundGradientFrom: '#ffffff',
+    backgroundGradientTo: '#ffffff',
+    fillShadowGradient: '#e85a4f',
+    fillShadowGradientOpacity: 1,
+    color: (opacity = 1) => `rgba(0,0,0,${opacity})`,
+    strokeWidth: 2,
+    barPercentage: 0.5,
+    decimalPlaces: 0,
   };
 
   const chartData = {
@@ -67,8 +126,7 @@ export default function DeliveryStats() {
     datasets: [
       {
         data: completed,
-        color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`, // green-500
-        strokeWidth: 2,
+        colors: [(opacity = 1) => `rgba(232, 90, 79, ${opacity})`],
       },
     ],
   };
@@ -78,20 +136,44 @@ export default function DeliveryStats() {
     datasets: [
       {
         data: failed,
-        color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`, // red-500
-        strokeWidth: 2,
+        colors: [(opacity = 1) => `rgba(232, 90, 79, ${opacity * 0.5})`],
       },
     ],
   };
 
-  const chartConfig = {
-    backgroundGradientFrom: '#ffffff',
-    backgroundGradientTo: '#ffffff',
-    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-    strokeWidth: 2,
-    barPercentage: 0.5,
-    useShadowColorFromDataset: false,
-    formatYLabel: (value: string) => Math.floor(parseFloat(value)).toString(),
+  const renderChart = (data: any, emptyText: string) => {
+    if (loading) {
+      return (
+        <View className="py-10 items-center justify-center">
+          <ActivityIndicator size="small" color="#e85a4f" />
+        </View>
+      );
+    }
+
+    if (!data || data.datasets[0].data.length === 0) {
+      return (
+        <View className="py-10 items-center justify-center">
+          <Text className="text-sm text-gray-500">{emptyText}</Text>
+        </View>
+      );
+    }
+
+    return (
+      <BarChart
+        data={data}
+        width={screenWidth - 86}
+        height={220}
+        chartConfig={chartConfig}
+        verticalLabelRotation={30}
+        yAxisLabel=""
+        yAxisSuffix=""
+        showValuesOnTopOfBars
+        style={{
+          marginVertical: 8,
+          borderRadius: 16,
+        }}
+      />
+    );
   };
 
   return (
@@ -117,7 +199,7 @@ export default function DeliveryStats() {
                     shadowOpacity: 0.1,
                     shadowRadius: 2,
                   }
-                : {}
+                : undefined
             }
           >
             <Text
@@ -128,6 +210,7 @@ export default function DeliveryStats() {
               Tuần
             </Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             onPress={() => setMode('month')}
             className={`px-4 py-2 rounded-lg ${
@@ -142,7 +225,7 @@ export default function DeliveryStats() {
                     shadowOpacity: 0.1,
                     shadowRadius: 2,
                   }
-                : {}
+                : undefined
             }
           >
             <Text
@@ -159,59 +242,43 @@ export default function DeliveryStats() {
       <ScrollView className="flex-1 px-6 pt-2">
         <View className="bg-white rounded-lg p-4 shadow-sm">
           <Text className="text-sm text-gray-600 mb-2">Tóm tắt</Text>
-          <View className="flex-row justify-between">
-            <View className="items-center">
-              <Text className="text-xl font-bold">
-                {totals.completed + totals.failed}
-              </Text>
-              <Text className="text-sm text-gray-500">Tổng đơn</Text>
+
+          {loading ? (
+            <View className="py-8 items-center justify-center">
+              <ActivityIndicator size="small" color="#e85a4f" />
             </View>
-            <View className="items-center">
-              <Text className="text-xl font-bold">{totals.completed}</Text>
-              <Text className="text-sm text-gray-500">Hoàn thành</Text>
+          ) : (
+            <View className="flex-row justify-between">
+              <View className="items-center flex-1">
+                <Text className="text-xl font-bold">{totalOrders}</Text>
+                <Text className="text-sm text-gray-500">Tổng đơn</Text>
+              </View>
+              <View className="items-center flex-1">
+                <Text className="text-xl font-bold">
+                  {statistics.completedOrders}
+                </Text>
+                <Text className="text-sm text-gray-500">Hoàn thành</Text>
+              </View>
+              <View className="items-center flex-1">
+                <Text className="text-xl font-bold">
+                  {statistics.failedOrders}
+                </Text>
+                <Text className="text-sm text-gray-500">Thất bại</Text>
+              </View>
             </View>
-            <View className="items-center">
-              <Text className="text-xl font-bold">{totals.failed}</Text>
-              <Text className="text-sm text-gray-500">Thất bại</Text>
-            </View>
-          </View>
+          )}
         </View>
-        <View className="bg-white rounded-lg p-4 shadow-sm mb-6">
+
+        <View className="bg-white rounded-lg p-4 shadow-sm mb-6 mt-4">
           <Text className="text-sm text-gray-600 mb-2">
             Số đơn (Hoàn thành)
           </Text>
-          <BarChart
-            data={chartData}
-            width={screenWidth - 86}
-            height={220}
-            chartConfig={chartConfig}
-            verticalLabelRotation={30}
-            yAxisLabel=""
-            yAxisSuffix=""
-            showValuesOnTopOfBars
-            style={{
-              marginVertical: 8,
-              borderRadius: 16,
-            }}
-          />
+          {renderChart(chartData, 'Không có dữ liệu')}
         </View>
 
         <View className="bg-white rounded-lg p-4 shadow-sm mb-6">
           <Text className="text-sm text-gray-600 mb-2">Số đơn (Thất bại)</Text>
-          <BarChart
-            data={failedChartData}
-            width={screenWidth - 80}
-            height={220}
-            chartConfig={chartConfig}
-            verticalLabelRotation={30}
-            yAxisLabel=""
-            yAxisSuffix=""
-            showValuesOnTopOfBars
-            style={{
-              marginVertical: 8,
-              borderRadius: 16,
-            }}
-          />
+          {renderChart(failedChartData, 'Không có dữ liệu')}
         </View>
       </ScrollView>
     </SubLayout>

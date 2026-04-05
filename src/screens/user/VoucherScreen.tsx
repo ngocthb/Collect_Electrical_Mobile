@@ -151,8 +151,9 @@ export default function VoucherScreen() {
 
     return (
       <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={() => handleVoucherPress(item)}
+        activeOpacity={viewMode === 'my' ? 0.7 : 1}
+        onPress={viewMode === 'my' ? () => handleVoucherPress(item) : undefined}
+        disabled={viewMode !== 'my'}
         className="flex-row mb-4 items-stretch"
       >
         <View

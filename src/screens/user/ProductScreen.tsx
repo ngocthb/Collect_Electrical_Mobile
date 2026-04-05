@@ -251,7 +251,6 @@ const ProductScreen = () => {
     if (loading) {
       return (
         <View className="items-center justify-center py-12">
-          <ActivityIndicator size="large" color="#e85a4f" />
           <Text className="text-text-muted mt-4 text-center">Đang tải...</Text>
         </View>
       );

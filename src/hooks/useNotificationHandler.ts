@@ -9,7 +9,7 @@ export const useNotificationHandler = () => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
       console.log('Notification nhận được ở foreground:', remoteMessage);
       const { productId, type, routeId } = remoteMessage.data || {};
-
+      console.log(type);
       if (type === 'SHIPPER_ARRIVAL' && productId) {
         Toast.show({
           type: 'info',
@@ -18,6 +18,17 @@ export const useNotificationHandler = () => {
           onPress: () => {
             if (productId && navigationRef.isReady()) {
               navigationRef.navigate('ProductDetails', { productId });
+            }
+          },
+        });
+      } else if (type === 'REPORT_ANSWERED') {
+        Toast.show({
+          type: 'info',
+          text1: remoteMessage.notification?.title || 'Thông báo',
+          text2: remoteMessage.notification?.body || '',
+          onPress: () => {
+            if (navigationRef.isReady()) {
+              navigationRef.navigate('ReportList');
             }
           },
         });
@@ -43,6 +54,12 @@ export const useNotificationHandler = () => {
             console.log('Navigate từ background');
             navigationRef.navigate('ProductDetails', { productId });
           }
+        } else if (type === 'REPORT_ANSWERED') {
+          // Navigation đã sẵn sàng vì app đang chạy
+          if (navigationRef.isReady()) {
+            console.log('Navigate từ background');
+            navigationRef.navigate('ReportList');
+          }
         } else if (type === 'COLLECTOR_CALL' && routeId) {
           return;
         }
@@ -64,6 +81,20 @@ export const useNotificationHandler = () => {
                 console.log('Navigation ready! Navigate now');
                 clearInterval(checkNavReady);
                 navigationRef.navigate('ProductDetails', { productId });
+              } else {
+                console.log('Navigation not ready yet...');
+              }
+            }, 100);
+
+            // Timeout sau 5s để tránh loop vô hạn
+            setTimeout(() => clearInterval(checkNavReady), 5000);
+          } else if (type === 'REPORT_ANSWERED') {
+            // Cần đợi navigation ready
+            const checkNavReady = setInterval(() => {
+              if (navigationRef.isReady()) {
+                console.log('Navigation ready! Navigate now');
+                clearInterval(checkNavReady);
+                navigationRef.navigate('ReportList');
               } else {
                 console.log('Navigation not ready yet...');
               }

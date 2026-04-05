@@ -19,6 +19,7 @@ interface ReportCreateModalProps {
   visible: boolean;
   reportType: string;
   collectionRouteId?: string | null;
+  forceCollectionRouteId?: string | null;
   showTypeSelector?: boolean;
   typeOptions?: string[];
   onClose: () => void;
@@ -29,6 +30,7 @@ export default function ReportCreateModal({
   visible,
   reportType,
   collectionRouteId = null,
+  forceCollectionRouteId = null,
   showTypeSelector = false,
   typeOptions = ['Lỗi hệ thống', 'Lỗi điểm thu gom'],
   onClose,
@@ -49,6 +51,10 @@ export default function ReportCreateModal({
   const REPORT_TYPES_WITHOUT_ROUTE = ['Lỗi hệ thống', 'Lỗi điểm thu gom'];
 
   const getCollectionRouteId = () => {
+    if (forceCollectionRouteId !== null) {
+      return forceCollectionRouteId;
+    }
+
     if (REPORT_TYPES_WITHOUT_ROUTE.includes(selectedReportType)) {
       return null;
     }
@@ -111,7 +117,7 @@ export default function ReportCreateModal({
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-4 pb-6 h-[80%]">
+          <View className="bg-white rounded-t-3xl p-4 pb-6 max-h-[80%]">
             {/* Header */}
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-lg font-bold text-primary-100">

@@ -16,12 +16,12 @@ import { useAppSelector } from '../../store/hooks';
 import reportService from '../../services/reportService';
 import { Report } from '../../types/report';
 import SubLayout from '../../layout/SubLayout';
-import AppAvatar from '../../components/ui/AppAvatar';
+
 import ReportCreateModal from '../../components/ReportCreateModal';
 import {
   getStatusColor,
   formatReportDate,
-  filterReportsByType,
+  getTypeColor,
 } from '../../utils/reportHelper';
 import AppButton from '../../components/ui/AppButton';
 
@@ -137,16 +137,6 @@ export default function ReportListScreen() {
     });
   };
 
-  const REPORT_TYPE_COLORS: { [key: string]: string } = {
-    'Lỗi hệ thống': '#EF4444',
-    'Vấn đề thu gom': '#14B8A6',
-    'Lỗi điểm thu gom': '#3B82F6',
-  };
-
-  const getTypeColor = (type: string): string => {
-    return REPORT_TYPE_COLORS[type] || '#999999';
-  };
-
   useEffect(() => {
     isMounted.current = true;
     if (isFocused) {
@@ -162,25 +152,25 @@ export default function ReportListScreen() {
 
   const renderReportItem = ({ item }: { item: Report }) => {
     const statusColor = getStatusColor(item.status);
+    const typeColor = getTypeColor(item.reportType);
     const formattedDate = formatReportDate(item.createdAt);
     const isExpanded = expandedReports.has(item.reportId);
     const hasAnswer = item.answerMessage && item.answerMessage !== 'null';
 
     return (
-      <View className="bg-white mb-3 rounded-lg overflow-hidden border border-gray-100">
-        {/* Status color top bar */}
-        <View style={{ height: 3, backgroundColor: statusColor }} />
-
+      <View
+        className="bg-white mb-3 rounded-lg overflow-hidden border border-gray-100"
+        style={{ borderLeftWidth: 2, borderLeftColor: typeColor }}
+      >
         <View className="p-3">
           {/* Header: Avatar + UserName + Type + Status */}
           <View className="flex-row justify-between items-start mb-3">
             <View className="flex-row flex-1 items-center">
-              <AppAvatar name={item.reportUserName} size={40} />
               <View className="ml-3 flex-1">
-                <Text className="text-sm text-gray-500">
-                  {item.reportUserName}
-                </Text>
-                <Text className="text-sm font-semibold text-primary-100 mt-1">
+                <Text
+                  className="text-sm font-semibold mt-1"
+                  style={{ color: typeColor }}
+                >
                   {item.reportType}
                 </Text>
               </View>
@@ -414,7 +404,6 @@ export default function ReportListScreen() {
       <ReportCreateModal
         visible={showCreateModal}
         reportType="Lỗi hệ thống"
-        showTypeSelector
         onClose={() => setShowCreateModal(false)}
         onSuccess={() => {
           setPage(1);
