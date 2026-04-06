@@ -279,6 +279,7 @@ const ProfileScreen = () => {
       // ignore
     }
   };
+
   return (
     <MainLayout hideHeader={true}>
       <View className="flex-1 bg-background-50">

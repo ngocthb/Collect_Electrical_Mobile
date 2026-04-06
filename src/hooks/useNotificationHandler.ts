@@ -2,14 +2,33 @@ import { useEffect } from 'react';
 import messaging from '@react-native-firebase/messaging';
 import Toast from 'react-native-toast-message';
 import { navigationRef } from '../navigation/navigationService';
+import { getRankUpPayload, RankUpPayload } from '../utils/rankUtils';
 
-export const useNotificationHandler = () => {
+export const useNotificationHandler = (
+  onRankUp?: (payload: RankUpPayload) => void,
+) => {
   useEffect(() => {
     // Foreground
     const unsubscribe = messaging().onMessage(async remoteMessage => {
       console.log('Notification nhận được ở foreground:', remoteMessage);
-      const { productId, type, routeId } = remoteMessage.data || {};
-      console.log(type);
+      const { productId, type, routeId, oldRankName, newRankName, isRankUp } =
+        remoteMessage.data || {};
+      console.log(remoteMessage.data);
+      if (
+        type === 'CO2_SAVED' &&
+        isRankUp === 'true' &&
+        oldRankName &&
+        newRankName
+      ) {
+        const rankUpPayload = getRankUpPayload({
+          fromRank: oldRankName,
+          toRank: newRankName,
+        });
+        if (rankUpPayload) {
+          onRankUp?.(rankUpPayload);
+        }
+      }
+
       if (type === 'SHIPPER_ARRIVAL' && productId) {
         Toast.show({
           type: 'info',
@@ -48,6 +67,13 @@ export const useNotificationHandler = () => {
       remoteMessage => {
         console.log('App opened from BACKGROUND notification:', remoteMessage);
         const { productId, type, routeId } = remoteMessage.data || {};
+        if (type === 'CO2_SAVED') {
+          const rankUpPayload = getRankUpPayload(remoteMessage.data);
+          if (rankUpPayload) {
+            onRankUp?.(rankUpPayload);
+          }
+        }
+
         if (productId && type === 'SHIPPER_ARRIVAL') {
           // Navigation đã sẵn sàng vì app đang chạy
           if (navigationRef.isReady()) {
@@ -74,6 +100,13 @@ export const useNotificationHandler = () => {
         if (remoteMessage) {
           const { productId, type, routeId } = remoteMessage.data || {};
           console.log('ProductId from killed state:', productId);
+          if (type === 'CO2_SAVED') {
+            const rankUpPayload = getRankUpPayload(remoteMessage.data);
+            if (rankUpPayload) {
+              onRankUp?.(rankUpPayload);
+            }
+          }
+
           if (productId && type === 'SHIPPER_ARRIVAL') {
             // Cần đợi navigation ready
             const checkNavReady = setInterval(() => {
@@ -112,5 +145,5 @@ export const useNotificationHandler = () => {
       unsubscribe();
       unsubscribeOpenedApp();
     };
-  }, []);
+  }, [onRankUp]);
 };

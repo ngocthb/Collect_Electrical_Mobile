@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Text, View } from 'react-native';
 import CenterPlusButton from '../components/ui/CenterPlusButton';
 import { useNavigation } from '@react-navigation/native';
 import IconOcticons from 'react-native-vector-icons/Octicons';
@@ -31,7 +32,7 @@ function BottomTabs() {
   const navigation = useNavigation<any>();
   const [catModalVisible, setCatModalVisible] = useState(false);
   const isHaveAddress = useAppSelector(s => s.address.list.length > 0);
-
+  const { unRead } = useAppSelector(s => s.notification);
   const userTabs = (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -47,7 +48,37 @@ function BottomTabs() {
             case 'Yêu cầu':
               return <IconFeature name="archive" {...props} />;
             case 'Thông báo':
-              return <IconFeature name="bell" {...props} />;
+              return (
+                <View style={{ width: 24, height: 24 }}>
+                  <IconFeature name="bell" {...props} />
+                  {Number(unRead) > 0 && (
+                    <View
+                      style={{
+                        position: 'absolute',
+                        top: -6,
+                        right: -8,
+                        minWidth: 16,
+                        height: 16,
+                        borderRadius: 8,
+                        backgroundColor: '#ef4444',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingHorizontal: 3,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: '#fff',
+                          fontSize: 10,
+                          fontWeight: '700',
+                        }}
+                      >
+                        {Number(unRead) > 99 ? '99+' : Number(unRead)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              );
             case 'Tài khoản':
               return <IconFeature name="user" {...props} />;
             default:

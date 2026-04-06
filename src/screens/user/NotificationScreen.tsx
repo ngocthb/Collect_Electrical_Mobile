@@ -16,12 +16,15 @@ import {
 import { useSelector } from 'react-redux';
 import { Notification } from '../../types/Notification';
 import { useNavigation } from '@react-navigation/native';
+import { readNotis } from '../../store/slices/notificationSlice';
+import { useAppDispatch } from '../../store/hooks';
 const NotificationScreen: React.FC = () => {
   const user = useSelector((state: any) => state.auth.user);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<any>();
+  const dispatch = useAppDispatch();
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -73,8 +76,22 @@ const NotificationScreen: React.FC = () => {
     }
   };
 
+  const handleUnRead = () => {
+    dispatch(readNotis(2));
+  };
+
   return (
-    <MainLayout headerTitle="Thông báo" onRefresh={onRefresh}>
+    <MainLayout
+      headerTitle="Thông báo"
+      onRefresh={onRefresh}
+      headerRightComponent={
+        notifications.length > 0 && (
+          <TouchableOpacity onPress={handleUnRead} className="px-2 py-1">
+            <Text className="text-primary-100">Làm mới</Text>
+          </TouchableOpacity>
+        )
+      }
+    >
       <View className="flex-1 bg-gray-50">
         {loading ? (
           <View className="flex-1 justify-center items-center">

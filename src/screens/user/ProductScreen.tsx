@@ -248,13 +248,14 @@ const ProductScreen = () => {
   };
 
   const renderEmpty = () => {
-    if (loading) {
+    if (loading && products.length === 0) {
       return (
         <View className="items-center justify-center py-12">
           <Text className="text-text-muted mt-4 text-center">Đang tải...</Text>
         </View>
       );
     }
+
     return (
       <View className="items-center justify-center py-12">
         <Icon name="inbox" size={64} color="#DDD" />
@@ -288,7 +289,6 @@ const ProductScreen = () => {
     </View>
   );
 
-  console.log(filteredProducts);
   return (
     <MainLayout
       headerTitle="Yêu cầu của bạn"

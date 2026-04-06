@@ -241,8 +241,6 @@ export default function DeliveryStats() {
     >
       <ScrollView className="flex-1 px-6 pt-2">
         <View className="bg-white rounded-lg p-4 shadow-sm">
-          <Text className="text-sm text-gray-600 mb-2">Tóm tắt</Text>
-
           {loading ? (
             <View className="py-8 items-center justify-center">
               <ActivityIndicator size="small" color="#e85a4f" />
@@ -269,14 +267,14 @@ export default function DeliveryStats() {
           )}
         </View>
 
-        <View className="bg-white rounded-lg p-4 shadow-sm mb-6 mt-4">
+        <View className="bg-white rounded-lg p-4 shadow-sm mb-4 mt-4">
           <Text className="text-sm text-gray-600 mb-2">
             Số đơn (Hoàn thành)
           </Text>
           {renderChart(chartData, 'Không có dữ liệu')}
         </View>
 
-        <View className="bg-white rounded-lg p-4 shadow-sm mb-6">
+        <View className="bg-white rounded-lg p-4 shadow-sm ">
           <Text className="text-sm text-gray-600 mb-2">Số đơn (Thất bại)</Text>
           {renderChart(failedChartData, 'Không có dữ liệu')}
         </View>

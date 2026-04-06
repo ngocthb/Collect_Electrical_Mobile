@@ -16,6 +16,7 @@ import AppAvatar from '../../components/ui/AppAvatar';
 import { getLeaderboard, getMyRank } from '../../services/leaderboardService';
 import { LeaderboardItem } from '../../types/LeaderboardItem';
 import { useAppSelector } from '../../store/hooks';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const cup = require('../../assets/images/cup.png');
 type MyRank = {
   userId: string;
@@ -62,6 +63,10 @@ export default function LeaderboardScreen() {
 
       setLeaderboardData(list);
       setMyRank(myRankData);
+      await AsyncStorage.setItem(
+        `current_rank_${userId}`,
+        myRankData?.currentRankName,
+      );
     } catch (error) {
       console.warn('[Leaderboard] Failed to fetch leaderboard', error);
     } finally {

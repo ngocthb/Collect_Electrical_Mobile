@@ -139,9 +139,11 @@ export const signInWithGoogle = async (): Promise<any> => {
     console.log('response', response);
     const _res: any = response;
     const token = _res.token.accessToken;
+    const refreshToken = _res.token.refreshToken;
 
     if (token) {
       await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('refreshToken', refreshToken);
       axiosClient.defaults.headers.Authorization = `Bearer ${token}`;
       console.log('🚀 [11] Token saved');
     }
@@ -159,14 +161,16 @@ export const signIn = async (
   password: string,
 ): Promise<DeliveryLoginResponse> => {
   try {
-    console.log(username, password);
     const res = (await axiosClient.post('/auth/login', {
       username,
       password,
     })) as any;
+    console.log(res);
     const token: string = res.accessToken;
+    const refreshToken: string = res.refreshToken;
     if (token) {
       await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('refreshToken', refreshToken);
 
       axiosClient.defaults.headers.Authorization = `Bearer ${token}`;
     }
@@ -313,7 +317,6 @@ export const bootstrapAuth = async (): Promise<{
     return { success: false };
   }
 };
-
 export default {
   signInWithGoogle,
   signOutGoogle,

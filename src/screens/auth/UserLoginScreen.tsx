@@ -18,7 +18,8 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { Platform } from 'react-native';
 
 import { setUser, setLoading } from '../../store/slices/authSlice';
-import Toast from 'react-native-toast-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import {
   signInWithGoogle,
   fetchUserProfile,
@@ -28,6 +29,7 @@ import {
 import AppButton from '../../components/ui/AppButton';
 import { getUserAddresses } from '../../services/addressService';
 import { setAddressList } from '../../store/slices/addressSlice';
+import { getMyRank } from '../../services/leaderboardService';
 const { width, height } = Dimensions.get('window');
 const simpleLogin = require('../../assets/images/simplelogin.png');
 const google = require('../../assets/images/google.jpg');
@@ -45,11 +47,14 @@ export default function UserLoginScreen() {
       await signInWithGoogle();
 
       const profileData: any = await fetchUserProfile();
-      console.log(profileData);
       dispatch(setUser(profileData));
       const addresses = await getUserAddresses(profileData.userId);
       dispatch(setAddressList(addresses || []));
-
+      const myRank = await getMyRank(profileData.userId);
+      await AsyncStorage.setItem(
+        `current_rank_${profileData.userId}`,
+        myRank?.currentRankName,
+      );
       // @ts-ignore
       globalThis.navigation?.replace('MainTabs');
 
@@ -85,7 +90,8 @@ export default function UserLoginScreen() {
       // 3. Lấy profile
       const profileData: any = await fetchUserProfile();
       dispatch(setUser(profileData));
-
+      const myRank = await getMyRank(profileData.userId);
+      await AsyncStorage.setItem(`current_rank`, myRank?.currentRankName);
       // @ts-ignore
       globalThis.navigation?.replace('MainTabs');
 

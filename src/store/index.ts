@@ -5,6 +5,7 @@ import addressReducer from './slices/addressSlice';
 import timeSlots from './slices/timeSlotSlice';
 import deliveryConfirmImage from './slices/deliveryConfirmImage';
 import systemConfig from './slices/systemSlice';
+import notificationReducer from './slices/notificationSlice';
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -13,6 +14,7 @@ export const store = configureStore({
     timeSlots: timeSlots,
     deliveryConfirmImage: deliveryConfirmImage,
     systemConfig: systemConfig,
+    notification: notificationReducer,
   },
 });
 
