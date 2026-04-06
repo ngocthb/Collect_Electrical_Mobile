@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 const notificationSlice = createSlice({
   name: 'notification',
   initialState: {
-    unRead: 20,
+    unRead: 0,
   },
   reducers: {
     setUnRead(state, action: PayloadAction<number>) {

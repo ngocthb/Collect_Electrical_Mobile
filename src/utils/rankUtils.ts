@@ -3,6 +3,7 @@ export type RankName = 'dong' | 'bac' | 'vang' | 'kimcuong';
 export type RankUpPayload = {
   fromRank: RankName;
   toRank: RankName;
+  text?: string;
 };
 
 export const PENDING_RANK_UP_KEY = 'pending_rank_up_payload';
@@ -44,6 +45,17 @@ const pickString = (value: unknown): string | undefined => {
   return typeof value === 'string' ? value : undefined;
 };
 
+const pickNumberish = (value: unknown): string | undefined => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value);
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  return undefined;
+};
+
 export const getRankUpPayload = (
   data?: Record<string, unknown>,
 ): RankUpPayload | null => {
@@ -66,8 +78,25 @@ export const getRankUpPayload = (
 
   const fromRank = normalizeRank(fromRaw);
   const toRank = normalizeRank(toRaw);
+  let text =
+    pickString(data.text) ??
+    pickString(data.rankUpText) ??
+    pickString(data.totalCo2);
+
+  if (!text) {
+    const totalCo2Raw = pickNumberish(data.currentCo2);
+
+    if (totalCo2Raw) {
+      const total = Number(totalCo2Raw);
+      const formattedTotal = Number.isFinite(total)
+        ? total.toLocaleString('vi-VN')
+        : totalCo2Raw;
+
+      text = `Bạn đã tiết kiệm được tổng cộng ${formattedTotal} kg CO2 cho đến hiện tại!`;
+    }
+  }
 
   if (!fromRank || !toRank || fromRank === toRank) return null;
 
-  return { fromRank, toRank };
+  return { fromRank, toRank, text };
 };

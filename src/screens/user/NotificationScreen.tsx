@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  ScrollView,
+  FlatList,
   ActivityIndicator,
   TouchableOpacity,
-  RefreshControl,
 } from 'react-native';
 import { formatTimestamp } from '../../utils/dateUtils';
 import MainLayout from '../../layout/MainLayout';
@@ -13,34 +12,65 @@ import {
   getNotificationByUserId,
   markNotificationAsRead,
 } from '../../services/notificationServices';
-import { useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { Notification } from '../../types/Notification';
-import { useNavigation } from '@react-navigation/native';
 import { readNotis } from '../../store/slices/notificationSlice';
-import { useAppDispatch } from '../../store/hooks';
 const NotificationScreen: React.FC = () => {
-  const user = useSelector((state: any) => state.auth.user);
+  const user = useAppSelector((state: any) => state.auth.user);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const navigation = useNavigation<any>();
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const dispatch = useAppDispatch();
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const data = await getNotificationByUserId(user.userId);
-        setNotifications(data);
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadNotifications = async (
+    pageNum: number = 1,
+    append: boolean = false,
+  ) => {
+    if (pageNum === 1) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
 
-    fetchNotifications();
+    try {
+      const data = await getNotificationByUserId(user.userId, pageNum);
+      const newNotifications = Array.isArray(data) ? data : [];
+
+      if (append) {
+        setNotifications(prev => {
+          const existingIds = new Set(prev.map(n => n.notificationId));
+          const uniqueNew = newNotifications.filter(
+            n => !existingIds.has(n.notificationId),
+          );
+          return [...prev, ...uniqueNew];
+        });
+      } else {
+        setNotifications(newNotifications);
+      }
+
+      setHasMore(newNotifications.length >= 10);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      if (!append) {
+        setNotifications([]);
+      }
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    loadNotifications(1, false);
   }, [user.userId]);
 
-  const handleReadNotification = async (notificationId: string) => {
+  const handleReadNotification = async (noti: Notification) => {
+    if (noti.isRead) return;
+
+    const notificationId = noti.notificationId;
     try {
       setNotifications(prev =>
         prev.map(notif =>
@@ -51,6 +81,7 @@ const NotificationScreen: React.FC = () => {
       );
 
       await markNotificationAsRead(notificationId);
+      dispatch(readNotis(1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
 
@@ -65,32 +96,24 @@ const NotificationScreen: React.FC = () => {
   };
 
   const onRefresh = async () => {
-    setRefreshing(true);
-    try {
-      const data = await getNotificationByUserId(user.userId);
-      setNotifications(data);
-    } catch (error) {
-      console.error('Error refreshing notifications:', error);
-    } finally {
-      setRefreshing(false);
-    }
+    setPage(1);
+    setHasMore(true);
+    await loadNotifications(1, false);
   };
 
-  const handleUnRead = () => {
-    dispatch(readNotis(2));
+  const loadMore = () => {
+    if (!loading && !loadingMore && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      loadNotifications(nextPage, true);
+    }
   };
 
   return (
     <MainLayout
       headerTitle="Thông báo"
       onRefresh={onRefresh}
-      headerRightComponent={
-        notifications.length > 0 && (
-          <TouchableOpacity onPress={handleUnRead} className="px-2 py-1">
-            <Text className="text-primary-100">Làm mới</Text>
-          </TouchableOpacity>
-        )
-      }
+      useScrollView={false}
     >
       <View className="flex-1 bg-gray-50">
         {loading ? (
@@ -102,12 +125,13 @@ const NotificationScreen: React.FC = () => {
             <Text className="text-gray-500">Không có thông báo nào</Text>
           </View>
         ) : (
-          <ScrollView contentContainerStyle={{ paddingVertical: 12 }}>
-            {notifications.map(item => (
+          <FlatList
+            data={notifications}
+            keyExtractor={item => item.notificationId}
+            renderItem={({ item }) => (
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => handleReadNotification(item.notificationId)}
-                key={item.notificationId}
+                onPress={() => handleReadNotification(item)}
                 className="mx-4 mb-2 rounded-lg bg-white border border-gray-200 overflow-hidden"
               >
                 <View className="flex-row">
@@ -127,8 +151,20 @@ const NotificationScreen: React.FC = () => {
                   </View>
                 </View>
               </TouchableOpacity>
-            ))}
-          </ScrollView>
+            )}
+            contentContainerStyle={{ paddingVertical: 12 }}
+            refreshing={loading}
+            onRefresh={onRefresh}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={
+              loadingMore ? (
+                <View className="py-4">
+                  <ActivityIndicator size="small" color="#e85a4f" />
+                </View>
+              ) : null
+            }
+          />
         )}
       </View>
     </MainLayout>

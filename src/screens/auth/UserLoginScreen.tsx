@@ -16,6 +16,8 @@ import appleAuth, {
 import { useNavigation } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { Platform } from 'react-native';
+import { getUnReadNotis } from '../../services/notificationServices';
+import { setUnRead } from '../../store/slices/notificationSlice';
 
 import { setUser, setLoading } from '../../store/slices/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -55,6 +57,8 @@ export default function UserLoginScreen() {
         `current_rank_${profileData.userId}`,
         myRank?.currentRankName,
       );
+      const unReadNoti = await getUnReadNotis(profileData.userId);
+      dispatch(setUnRead(unReadNoti?.unreadCount || 0));
       // @ts-ignore
       globalThis.navigation?.replace('MainTabs');
 
@@ -92,6 +96,8 @@ export default function UserLoginScreen() {
       dispatch(setUser(profileData));
       const myRank = await getMyRank(profileData.userId);
       await AsyncStorage.setItem(`current_rank`, myRank?.currentRankName);
+      const unReadNoti = await getUnReadNotis(profileData.userId);
+      dispatch(setUnRead(unReadNoti.unreadCount || 0));
       // @ts-ignore
       globalThis.navigation?.replace('MainTabs');
 

@@ -11,18 +11,27 @@ export const useNotificationHandler = (
     // Foreground
     const unsubscribe = messaging().onMessage(async remoteMessage => {
       console.log('Notification nhận được ở foreground:', remoteMessage);
-      const { productId, type, routeId, oldRankName, newRankName, isRankUp } =
-        remoteMessage.data || {};
+      const {
+        productId,
+        type,
+        routeId,
+        oldRankName,
+        newRankName,
+        isRankUp,
+        totalCo2,
+      } = remoteMessage.data || {};
       console.log(remoteMessage.data);
       if (
         type === 'CO2_SAVED' &&
         isRankUp === 'true' &&
         oldRankName &&
-        newRankName
+        newRankName &&
+        totalCo2
       ) {
         const rankUpPayload = getRankUpPayload({
           fromRank: oldRankName,
           toRank: newRankName,
+          text: totalCo2,
         });
         if (rankUpPayload) {
           onRankUp?.(rankUpPayload);
@@ -66,9 +75,27 @@ export const useNotificationHandler = (
     const unsubscribeOpenedApp = messaging().onNotificationOpenedApp(
       remoteMessage => {
         console.log('App opened from BACKGROUND notification:', remoteMessage);
-        const { productId, type, routeId } = remoteMessage.data || {};
-        if (type === 'CO2_SAVED') {
-          const rankUpPayload = getRankUpPayload(remoteMessage.data);
+        const {
+          productId,
+          type,
+          routeId,
+          oldRankName,
+          newRankName,
+          isRankUp,
+          totalCo2,
+        } = remoteMessage.data || {};
+        if (
+          type === 'CO2_SAVED' &&
+          isRankUp === 'true' &&
+          oldRankName &&
+          newRankName &&
+          totalCo2
+        ) {
+          const rankUpPayload = getRankUpPayload({
+            fromRank: oldRankName,
+            toRank: newRankName,
+            text: totalCo2,
+          });
           if (rankUpPayload) {
             onRankUp?.(rankUpPayload);
           }

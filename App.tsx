@@ -1,3 +1,4 @@
+// @ts-ignore
 import './global.css';
 import './src/theme/font';
 
@@ -48,6 +49,7 @@ function AppContent({ activeRouteName }: { activeRouteName: string }) {
         visible={rankUpModal.visible}
         fromRank={rankUpModal.fromRank}
         toRank={rankUpModal.toRank}
+        text={rankUpModal.text}
         onClose={closeRankUpModal}
       />
     </>

@@ -15,6 +15,11 @@ type RankUpModalState = {
   visible: boolean;
   fromRank: RankName;
   toRank: RankName;
+  text?: string;
+};
+
+type RankUpModalPayload = RankUpPayload & {
+  text?: string;
 };
 
 export const useRankUpModal = (userId?: string, canShowModal = false) => {
@@ -23,19 +28,20 @@ export const useRankUpModal = (userId?: string, canShowModal = false) => {
     fromRank: 'dong',
     toRank: 'bac',
   });
-  const [pendingRankUp, setPendingRankUp] = useState<RankUpPayload | null>(
+  const [pendingRankUp, setPendingRankUp] = useState<RankUpModalPayload | null>(
     null,
   );
 
   const rankStorageKey = `current_rank_${userId}`;
 
   const showOrQueueModal = useCallback(
-    (payload: RankUpPayload) => {
+    (payload: RankUpModalPayload) => {
       if (canShowModal) {
         setRankUpModal({
           visible: true,
           fromRank: payload.fromRank,
           toRank: payload.toRank,
+          text: payload.text,
         });
         setPendingRankUp(null);
       } else {
@@ -46,10 +52,10 @@ export const useRankUpModal = (userId?: string, canShowModal = false) => {
   );
 
   const showRankUpModal = useCallback(
-    async ({ fromRank, toRank }: RankUpPayload) => {
+    async ({ fromRank, toRank, text }: RankUpPayload) => {
       if (!isRankUp(fromRank, toRank)) return;
 
-      showOrQueueModal({ fromRank, toRank });
+      showOrQueueModal({ fromRank, toRank, text });
 
       await AsyncStorage.setItem(rankStorageKey, toRank);
     },
@@ -97,7 +103,12 @@ export const useRankUpModal = (userId?: string, canShowModal = false) => {
     const checkRankProgress = async () => {
       try {
         const rankResponse = await getMyRank(userId);
-        const rankData = rankResponse?.data ?? rankResponse;
+        const rankData = rankResponse;
+        const co2 = Number(rankData?.currentCo2 ?? 0);
+        const safeCo2 = Number.isFinite(co2) ? co2 : 0;
+        const co2Text = `Bạn đã tiết kiệm được tổng cộng ${safeCo2.toLocaleString(
+          'vi-VN',
+        )} kg CO2 cho đến hiện tại!`;
         const currentRank = normalizeRank(rankData?.currentRankName);
         if (!currentRank || !mounted) return;
 
@@ -108,6 +119,7 @@ export const useRankUpModal = (userId?: string, canShowModal = false) => {
           showOrQueueModal({
             fromRank: savedRank,
             toRank: currentRank,
+            text: co2Text,
           });
         }
 
@@ -144,6 +156,7 @@ export const useRankUpModal = (userId?: string, canShowModal = false) => {
       visible: true,
       fromRank: pendingRankUp.fromRank,
       toRank: pendingRankUp.toRank,
+      text: pendingRankUp.text,
     });
     setPendingRankUp(null);
   }, [canShowModal, pendingRankUp, rankUpModal.visible]);

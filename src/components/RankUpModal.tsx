@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import {
+  Alert,
   Modal,
   View,
   Animated,
@@ -7,6 +8,7 @@ import {
   TouchableOpacity,
   Text,
 } from 'react-native';
+import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/Feather';
 
 interface RankUpModalProps {
@@ -14,6 +16,7 @@ interface RankUpModalProps {
   fromRank: 'dong' | 'bac' | 'vang' | 'kimcuong';
   toRank: 'dong' | 'bac' | 'vang' | 'kimcuong';
   onClose: () => void;
+  text?: string;
 }
 
 const cup1 = require('../assets/images/dong.png');
@@ -33,9 +36,11 @@ export default function RankUpModal({
   fromRank,
   toRank,
   onClose,
+  text,
 }: RankUpModalProps) {
   const iconAnim = useRef(new Animated.Value(0)).current;
   const fireworkAnim = useRef(new Animated.Value(0)).current;
+  const shareText = text?.trim();
 
   const particles = useMemo(
     () =>
@@ -136,6 +141,23 @@ export default function RankUpModal({
     outputRange: [0, 0, 1],
   });
 
+  const handleShareFacebook = async () => {
+    try {
+      await Share.shareSingle({
+        social: Share.Social.FACEBOOK as any,
+        url: `{https://ewise-phi.vercel.app/share/rank-up?from=${fromRank}&to=${toRank}&text=${encodeURIComponent(
+          shareText ?? '',
+        )}}`,
+      });
+    } catch {
+      await Share.open({
+        url: `{https://ewise-phi.vercel.app/share/rank-up?from=${fromRank}&to=${toRank}&text=${encodeURIComponent(
+          shareText ?? '',
+        )}}`,
+      });
+    }
+  };
+
   return (
     <Modal transparent visible={visible} animationType="fade">
       <View
@@ -146,6 +168,18 @@ export default function RankUpModal({
           backgroundColor: 'rgba(0,0,0,0.55)',
         }}
       >
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            backgroundColor: 'rgba(255,255,255,0.06)',
+          }}
+        />
+
         {/* CLOSE */}
         <TouchableOpacity
           onPress={onClose}
@@ -280,16 +314,51 @@ export default function RankUpModal({
             />
           </View>
         </View>
-        <Text className="mt-4 text-white text-4xl font-extrabold text-center tracking-wide drop-shadow-lg">
+        <Text className="mt-4 text-white text-xl font-extrabold text-center tracking-wide drop-shadow-lg">
           CHÚC MỪNG BẠN
         </Text>
 
         <Text
-          className="mt-1 text-2xl font-semibold text-center tracking-wide drop-shadow"
+          className="mt-1 text-lg font-semibold text-center tracking-wide drop-shadow"
           style={{ color: '#fbbf24' }}
         >
           ĐÃ THĂNG HẠNG!
         </Text>
+
+        {shareText ? (
+          <Text
+            className="mt-3 px-5 text-center text-xl font-semibold text-white tracking-wide drop-shadow"
+            style={{ lineHeight: 22 }}
+          >
+            {shareText}
+          </Text>
+        ) : null}
+
+        <TouchableOpacity
+          onPress={handleShareFacebook}
+          activeOpacity={0.85}
+          style={{
+            marginTop: 18,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
+            paddingHorizontal: 18,
+            paddingVertical: 12,
+            borderRadius: 999,
+            backgroundColor: '#1877F2',
+            shadowColor: '#000',
+            shadowOpacity: 0.18,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 6 },
+            elevation: 5,
+          }}
+        >
+          <Icon name="share-2" size={18} color="#fff" />
+          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
+            Chia sẻ Facebook
+          </Text>
+        </TouchableOpacity>
       </View>
     </Modal>
   );
