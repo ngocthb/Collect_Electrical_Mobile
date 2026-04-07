@@ -3364,7 +3364,7 @@ PODS:
     - Yoga
   - react-native-vector-icons-evil-icons (12.3.0)
   - react-native-vector-icons-fontawesome6 (12.2.0)
-  - react-native-zego-callkit (1.0.6):
+  - react-native-zego-callkit (1.0.6-alpha):
     - React
   - react-native-zego-express-engine (3.22.0):
     - React
@@ -3945,6 +3945,8 @@ PODS:
   - RecaptchaInterop (101.0.0)
   - RNAppleAuthentication (2.5.0):
     - React-Core
+  - RNCallKeep (4.3.16):
+    - React
   - RNCAsyncStorage (2.2.0):
     - boost
     - DoubleConversion
@@ -4260,6 +4262,34 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - RNShare (12.2.6):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - RNSound (0.13.0):
     - boost
     - DoubleConversion
@@ -4468,7 +4498,7 @@ PODS:
   - zego-uikit-prebuilt-call-rn (6.6.2):
     - React-Core
     - zego-uikit-rn
-  - zego-uikit-rn (2.18.8):
+  - zego-uikit-rn (2.19.1):
     - React-Core
     - ZegoUIKitReport (= 0.5.1)
   - ZegoExpressEngine (3.22.0)
@@ -4566,6 +4596,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - ReactNativeCameraKit (from `../node_modules/react-native-camera-kit`)
   - "RNAppleAuthentication (from `../node_modules/@invertase/react-native-apple-authentication`)"
+  - RNCallKeep (from `../node_modules/react-native-callkeep`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
@@ -4578,6 +4609,7 @@ DEPENDENCIES:
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - RNShare (from `../node_modules/react-native-share`)
   - RNSound (from `../node_modules/react-native-sound`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
@@ -4800,6 +4832,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-camera-kit"
   RNAppleAuthentication:
     :path: "../node_modules/@invertase/react-native-apple-authentication"
+  RNCallKeep:
+    :path: "../node_modules/react-native-callkeep"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNDeviceInfo:
@@ -4824,6 +4858,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNShare:
+    :path: "../node_modules/react-native-share"
   RNSound:
     :path: "../node_modules/react-native-sound"
   RNSVG:
@@ -4918,7 +4954,7 @@ SPEC CHECKSUMS:
   react-native-safe-area-context: fea29ae0275beaa22f72d0a8be1eb0ab09c3feae
   react-native-vector-icons-evil-icons: 74d1fe2b104d1b4286359313713c7a4a9dcef1be
   react-native-vector-icons-fontawesome6: 1b667969bef2f430d1d7515163b980b856f58670
-  react-native-zego-callkit: db5d284343461b3dfee4953bd5ef8eb9de64b4be
+  react-native-zego-callkit: 2ea617fed30282b6fc37feffe498fd5d9dfa9fac
   react-native-zego-express-engine: c63ab5d1df87806097649cc486f9a7020c36a659
   react-native-zego-zim: 5b6c825e2097d043c985c90b563959baba0d0484
   react-native-zego-zpns: d807ab7929a7e32ee5004eb8f9cf3aaee5f80d43
@@ -4957,6 +4993,7 @@ SPEC CHECKSUMS:
   ReactNativeCameraKit: f3642fd510ec0d6d5811bc48c0817e99da0f3809
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   RNAppleAuthentication: c088adfc7b371d44eb3da20c38d450d5543e5a0a
+  RNCallKeep: 94bbe46b807ccf58e9f6ec11bc4d6087323a1954
   RNCAsyncStorage: 8857fb173af29664cb90897903902dc8533e36cc
   RNDeviceInfo: 8b6fa8379062949dd79a009cf3d6b02a9c03ca59
   RNFBApp: 89523a4912396a34fc60727c39835c0473dccddd
@@ -4969,6 +5006,7 @@ SPEC CHECKSUMS:
   RNPermissions: df015932d169304af82179439da3c357ca6cbe2d
   RNReanimated: c001acbdd8aac49995f6cc3da704d0cc9d70df7a
   RNScreens: de996b48c82245c0b68c677da3334c2061e2a951
+  RNShare: bbc9184b120629890834764a14050df179e0ce0c
   RNSound: 9a85701a35e3132484515e73b694610997c7fdfb
   RNSVG: c9eb879f90cc3cd5f81d987f39eae35f3b108618
   RNVectorIcons: 96c832d9134dfee90ce0be7a1e0bf4c1e41a8d11
@@ -4977,7 +5015,7 @@ SPEC CHECKSUMS:
   Turf: c9eb11a65d96af58cac523460fd40fec5061b081
   Yoga: 526f25666395d30c297d53154398ffd249eaf9e1
   zego-uikit-prebuilt-call-rn: 0f0f2acff028af4e8f8557113098bd01149fe200
-  zego-uikit-rn: accc653cbb1b99eca212ec450106e53349949820
+  zego-uikit-rn: f4827a4cf1407f4b7e131e073c235fad717409fd
   ZegoExpressEngine: c1b01551fc817e6fd32b3a877a9d15de6d93f68e
   ZegoUIKitReport: 36f4bc9a02a4fdd5d1eda1bf665b42c54cbbfd89
   ZIM: 7a72983c32831bb57cd05edb180f060263733515

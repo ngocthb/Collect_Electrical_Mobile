@@ -142,18 +142,24 @@ export default function RankUpModal({
   });
 
   const handleShareFacebook = async () => {
+    let url = "https://res.cloudinary.com/dqdporzhx/image/upload/v1775544936/Screenshot_2026-04-07_135029_f75pp8.png"
     try {
+      
+      if (toRank === 'kimcuong') {
+        url = "https://res.cloudinary.com/dqdporzhx/image/upload/v1775544932/Screenshot_2026-04-07_135118_oi4h5x.png"
+        }else if (toRank === 'vang') {
+          url = "https://res.cloudinary.com/dqdporzhx/image/upload/v1775544933/Screenshot_2026-04-07_134928_h3reoq.png"
+        }else if (toRank === 'bac') {
+          url = "https://res.cloudinary.com/dqdporzhx/image/upload/v1775544932/Screenshot_2026-04-07_135051_w5cqow.png"
+        }
+
       await Share.shareSingle({
         social: Share.Social.FACEBOOK as any,
-        url: `{https://ewise-phi.vercel.app/share/rank-up?from=${fromRank}&to=${toRank}&text=${encodeURIComponent(
-          shareText ?? '',
-        )}}`,
+        url: url,
       });
     } catch {
       await Share.open({
-        url: `{https://ewise-phi.vercel.app/share/rank-up?from=${fromRank}&to=${toRank}&text=${encodeURIComponent(
-          shareText ?? '',
-        )}}`,
+        url: url,
       });
     }
   };
