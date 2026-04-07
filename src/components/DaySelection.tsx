@@ -22,11 +22,18 @@ const DaySelection: React.FC<DaySelectionProps> = ({
   console.log(publicHoliday);
 
   const dispatch = useAppDispatch();
+
+  const getServerNow = (): Date => {
+    if (timeSever?.serverTime) return new Date(timeSever.serverTime);
+    if (timeSever?.serverDate) return new Date(timeSever.serverDate);
+    return new Date();
+  };
+
   // Get today's day name
 
   const getTodayDayName = (): Day => {
     const dayMap: Day[] = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-    const today = timeSever ? new Date(timeSever?.serverDate) : new Date();
+    const today = getServerNow();
     return dayMap[today.getDay()];
   };
 
@@ -34,7 +41,7 @@ const DaySelection: React.FC<DaySelectionProps> = ({
 
   // Check if current time in Vietnam is after cutoff
   const isAfterCutoff = (): boolean => {
-    const now = timeSever ? new Date(timeSever?.serverDate) : new Date();
+    const now = getServerNow();
     const parts = new Intl.DateTimeFormat('en-US', {
       timeZone: 'Asia/Ho_Chi_Minh',
       hour: '2-digit',
@@ -79,7 +86,7 @@ const DaySelection: React.FC<DaySelectionProps> = ({
 
   // Safe function to get today's date in Vietnam timezone
   const getTodayInVietnam = (): Date => {
-    const now = timeSever ? new Date(timeSever?.serverDate) : new Date();
+    const now = getServerNow();
     const parts = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Asia/Ho_Chi_Minh',
       year: 'numeric',

@@ -205,7 +205,7 @@ export default function DeliveryListScreen() {
   useEffect(() => {
     fetchAllConfig();
   }, []);
-
+  console.log(filteredOrders);
   return (
     <MainLayout
       headerTitle="Đơn hàng"
