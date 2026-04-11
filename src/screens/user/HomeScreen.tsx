@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { setUser } from '../../store/slices/authSlice';
@@ -19,7 +18,6 @@ const homepage1 = require('../../assets/images/homepage1.png');
 const homepage2 = require('../../assets/images/homepage2.png');
 const homepage3 = require('../../assets/images/homepage3.png');
 const homepage4 = require('../../assets/images/homepage4.png');
-const DEVELOP_MODE_KEY = 'develop_mode';
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
@@ -27,7 +25,7 @@ export default function HomeScreen() {
   const dispatch = useAppDispatch();
 
   const [todayProducts, setTodayProducts] = useState<any[]>([]);
-  const [isDevelopMode, setIsDevelopMode] = useState(false);
+
   const [isRefreshingProducts, setIsRefreshingProducts] = useState(false);
 
   const getTodayProducts = useCallback(async () => {
@@ -49,7 +47,7 @@ export default function HomeScreen() {
       }
 
       await getTodayProducts();
-      checkIsDevelopMode();
+
       await fetchAllConfig();
     } catch (e) {
       console.warn('[Home] refresh profile failed', e);
@@ -77,20 +75,16 @@ export default function HomeScreen() {
       image: homepage1,
     },
 
-    ...(isDevelopMode
-      ? [
-          {
-            id: 3,
-            title: 'Bảng xếp hạng',
-            image: homepage3,
-          },
-          {
-            id: 4,
-            title: 'Phản ánh',
-            image: homepage4,
-          },
-        ]
-      : []),
+    {
+      id: 3,
+      title: 'Bảng xếp hạng',
+      image: homepage3,
+    },
+    {
+      id: 4,
+      title: 'Phản ánh',
+      image: homepage4,
+    },
   ];
 
   const handleMenuPress = (id: number) => {
@@ -125,30 +119,8 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    checkIsDevelopMode();
-  }, []);
-
-  useEffect(() => {
     fetchAllConfig();
   }, []);
-  const checkIsDevelopMode = () => {
-    let mounted = true;
-
-    (async () => {
-      try {
-        const savedMode = await AsyncStorage.getItem(DEVELOP_MODE_KEY);
-        if (mounted) {
-          setIsDevelopMode(savedMode === 'true');
-        }
-      } catch (error) {
-        console.warn('[DeliveryOrderCard] Failed to load develop mode', error);
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
-  };
 
   return (
     <MainLayout hideHeader={true} useScrollView={false}>

@@ -4,7 +4,7 @@ import { Warehouse } from '../types/Warehouse';
 export const getWarehouses = async (): Promise<Warehouse[]> => {
   try {
     const response = await axiosClient.get<Warehouse[]>(
-      '/collectionUnit/active',
+      '/smallCollectionPoint/active',
     );
     return (response as any) || [];
   } catch (error) {
