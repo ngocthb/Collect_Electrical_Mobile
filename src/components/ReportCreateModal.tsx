@@ -4,9 +4,11 @@ import {
   Text,
   Modal,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import reportService from '../services/reportService';
@@ -115,97 +117,108 @@ export default function ReportCreateModal({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-4 pb-6 max-h-[80%]">
-            {/* Header */}
-            <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-lg font-bold text-primary-100">
-                Phản ánh dịch vụ
-              </Text>
-              <TouchableOpacity onPress={onClose}>
-                <Icon name="x" size={24} color="#666" />
-              </TouchableOpacity>
-            </View>
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={24}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View className="flex-1 bg-black/50 justify-end">
+            <View className="bg-white rounded-t-3xl p-4 pb-6 max-h-[80%]">
+              {/* Header */}
+              <View className="flex-row justify-between items-center mb-4">
+                <Text className="text-lg font-bold text-primary-100">
+                  Phản ánh dịch vụ
+                </Text>
+                <TouchableOpacity onPress={onClose}>
+                  <Icon name="x" size={24} color="#666" />
+                </TouchableOpacity>
+              </View>
 
-            {/* Content */}
-            <View className="mb-4">
-              {showTypeSelector && (
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                {/* Content */}
                 <View className="mb-4">
-                  <Text className="text-sm font-semibold text-gray-700 mb-2">
-                    Chọn loại phản ánh
-                  </Text>
-                  <View className="flex-row gap-2">
-                    {typeOptions.map(option => {
-                      const isSelected = selectedReportType === option;
-                      return (
-                        <TouchableOpacity
-                          key={option}
-                          onPress={() => setSelectedReportType(option)}
-                          className={`flex-1 rounded-lg border px-3 py-3 items-center ${
-                            isSelected
-                              ? 'border-primary-100 bg-primary-50'
-                              : 'border-gray-200 bg-white'
-                          }`}
-                        >
-                          <Text
-                            className={`text-sm font-semibold text-center ${
-                              isSelected ? 'text-white' : 'text-gray-700'
-                            }`}
-                          >
-                            {option}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
+                  {showTypeSelector && (
+                    <View className="mb-4">
+                      <Text className="text-sm font-semibold text-gray-700 mb-2">
+                        Chọn loại phản ánh
+                      </Text>
+                      <View className="flex-row gap-2">
+                        {typeOptions.map(option => {
+                          const isSelected = selectedReportType === option;
+                          return (
+                            <TouchableOpacity
+                              key={option}
+                              onPress={() => setSelectedReportType(option)}
+                              className={`flex-1 rounded-lg border px-3 py-3 items-center ${
+                                isSelected
+                                  ? 'border-primary-100 bg-primary-50'
+                                  : 'border-gray-200 bg-white'
+                              }`}
+                            >
+                              <Text
+                                className={`text-sm font-semibold text-center ${
+                                  isSelected ? 'text-white' : 'text-gray-700'
+                                }`}
+                              >
+                                {option}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Description Input */}
+                  <View className="mb-4">
+                    <AppInput
+                      label="Mô tả chi tiết"
+                      required
+                      placeholder="Nhập nội dung phản ánh của bạn..."
+                      value={description}
+                      onChangeText={setDescription}
+                      multiline
+                      numberOfLines={5}
+                      textAlignVertical="top"
+                      editable={!isSubmitting}
+                    />
+                    <Text className="text-xs text-gray-500 mt-1">
+                      {description.length}/500 ký tự
+                    </Text>
                   </View>
                 </View>
-              )}
+              </ScrollView>
 
-              {/* Description Input */}
-              <View className="mb-4">
-                <AppInput
-                  label="Mô tả chi tiết"
-                  required
-                  placeholder="Nhập nội dung phản ánh của bạn..."
-                  value={description}
-                  onChangeText={setDescription}
-                  multiline
-                  numberOfLines={5}
-                  textAlignVertical="top"
-                  editable={!isSubmitting}
-                />
-                <Text className="text-xs text-gray-500 mt-1">
-                  {description.length}/500 ký tự
-                </Text>
-              </View>
-            </View>
+              {/* Button */}
+              <View className="flex-row gap-2">
+                <View className="flex-1">
+                  <AppButton
+                    title="Hủy"
+                    onPress={onClose}
+                    disabled={isSubmitting}
+                    className="rounded-lg border-0"
+                  />
+                </View>
 
-            {/* Button */}
-            <View className="flex-row gap-2">
-              <View className="flex-1">
-                <AppButton
-                  title="Hủy"
-                  onPress={onClose}
-                  disabled={isSubmitting}
-                  className="rounded-lg border-0"
-                />
-              </View>
-
-              <View className="flex-1">
-                <AppButton
-                  title={isSubmitting ? 'Đang gửi...' : 'Gửi phản ánh'}
-                  onPress={handleSubmit}
-                  loading={isSubmitting}
-                  disabled={isSubmitting || !description.trim()}
-                  color="#2563EB"
-                  className="rounded-lg border-0"
-                />
+                <View className="flex-1">
+                  <AppButton
+                    title={isSubmitting ? 'Đang gửi...' : 'Gửi phản ánh'}
+                    onPress={handleSubmit}
+                    loading={isSubmitting}
+                    disabled={isSubmitting || !description.trim()}
+                    color="#2563EB"
+                    className="rounded-lg border-0"
+                  />
+                </View>
               </View>
             </View>
           </View>
-        </View>
-      </TouchableWithoutFeedback>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

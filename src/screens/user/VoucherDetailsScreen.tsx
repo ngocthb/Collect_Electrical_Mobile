@@ -13,6 +13,7 @@ interface VoucherDetailsRouteProp {
     name: string;
     description: string;
     pointsToRedeem: number;
+    imageUrl: string;
     status: string;
     startAt: string;
     endAt: string;
@@ -51,7 +52,6 @@ export default function VoucherDetailsScreen() {
               <QRCode
                 value={voucher.code}
                 size={200}
-                color="#e85a4f"
                 backgroundColor="white"
                 logoSize={60}
                 logoBorderRadius={30}

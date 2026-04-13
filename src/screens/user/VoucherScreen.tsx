@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 
 import toast from 'react-native-toast-message';
@@ -148,6 +149,43 @@ export default function VoucherScreen() {
     const color = COLORS[colorIndex];
     const userPoints = user?.points || 0;
     const insufficientPoints = userPoints < item.pointsToRedeem;
+    const hasImage = !!item.imageUrl;
+
+    const Content = (
+      <View className="w-full">
+        <Text className="text-gray-900 font-semibold text-sm">{item.name}</Text>
+
+        <Text className="text-gray-700 text-xs mt-1" numberOfLines={3}>
+          {item.description}
+        </Text>
+
+        <Text className="text-gray-900 font-bold text-sm mt-2">
+          {item.pointsToRedeem.toLocaleString()} <Text>🪙</Text>
+        </Text>
+
+        {viewMode !== 'my' && (
+          <View className="mt-2">
+            <TouchableOpacity
+              onPress={() => handleRedeemPress(item)}
+              disabled={insufficientPoints}
+              className={`py-1.5 rounded-full border items-center ${
+                insufficientPoints
+                  ? 'bg-gray-200 border-gray-200'
+                  : 'border-primary-100 bg-primary-100'
+              }`}
+            >
+              <Text
+                className={`font-semibold text-xs ${
+                  insufficientPoints ? 'text-gray-400' : 'text-white'
+                }`}
+              >
+                {insufficientPoints ? 'Không đủ xu' : 'Đổi Voucher'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    );
 
     return (
       <TouchableOpacity
@@ -168,47 +206,28 @@ export default function VoucherScreen() {
           </Text>
         </View>
 
-        {/* Perforation (serrated edge) */}
-        <View className="flex-col justify-between items-center ">
+        <View className="flex-col justify-between items-center">
           {Array.from({ length: 8 }).map((_, i) => (
             <View key={i} className="w-1.5 h-2.5 bg-gray-400" />
           ))}
         </View>
 
-        {/* Right card */}
         <View
-          className="flex-1 px-4 py-3 bg-white rounded-r-2xl"
+          className="flex-1 px-3 py-3 bg-white rounded-r-2xl"
           style={{ borderWidth: 1, borderColor: color }}
         >
-          <Text className="text-gray-900 font-semibold text-sm">
-            {item.name}
-          </Text>
-
-          <Text className="text-gray-700 text-xs mt-1">{item.description}</Text>
-
-          <Text className="text-gray-900 font-bold text-sm mt-2">
-            {item.pointsToRedeem.toLocaleString()} <Text>🪙</Text>
-          </Text>
-
-          <View className="mt-2">
-            <TouchableOpacity
-              onPress={() => handleRedeemPress(item)}
-              disabled={insufficientPoints}
-              className={`py-1.5 rounded-full border items-center ${
-                insufficientPoints
-                  ? 'bg-gray-200 border-gray-200'
-                  : 'border-primary-100 bg-primary-100'
-              }`}
-            >
-              <Text
-                className={`font-semibold text-xs ${
-                  insufficientPoints ? 'text-gray-400' : 'text-white'
-                }`}
-              >
-                {insufficientPoints ? 'Không đủ xu' : 'Đổi Voucher'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          {hasImage ? (
+            <View className="flex-col">
+              <Image
+                source={{ uri: item.imageUrl }}
+                className="w-full h-32 rounded-md mb-3"
+                resizeMode="cover"
+              />
+              {Content}
+            </View>
+          ) : (
+            Content
+          )}
         </View>
       </TouchableOpacity>
     );
