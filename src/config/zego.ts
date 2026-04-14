@@ -63,26 +63,25 @@ export const initZegoService = async (
       userName,
       [ZIM, ZPNs], // ✅ ZPNs sẽ tự động enable offline push
       {
+        resouceID: "thugom",
         ringtoneConfig: {
           incomingCallFileName: 'zego_incoming.mp3',
           outgoingCallFileName: 'zego_incoming.mp3',
         },
+        enableLog: true,
         notifyWhenAppRunningInBackgroundOrQuit: true,
-        isIOSSandboxEnvironment: false,
+        isIOSSandboxEnvironment: true,
+        iOSOfflinePushConfig: {
+    pushID: 'thugom', // cái bạn set trên Zego Console
+  },
         androidNotificationConfig: {
           channelID: 'ZegoUIKit',
           channelName: 'ZegoUIKit',
         },
       },
     );
-    // .then(() => {
-    //   ZegoUIKitPrebuiltCallService.requestSystemAlertWindow({
-    //     message:
-    //       'App cần quyền hiển thị trên các ứng dụng khác để thực hiện cuộc gọi.',
-    //     allow: 'Cho phép',
-    //     deny: 'Từ chối',
-    //   });
-    // });
+
+
 
     isInitialized = true;
     currentUserId = userId;

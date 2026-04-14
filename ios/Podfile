@@ -27,7 +27,8 @@ target 'mobile' do
   pod 'Firebase/Auth'
   pod 'GoogleSignIn'
   # ⬆️ KẾT THÚC PHẦN THÊM ⬆️
-  
+
+
   pre_install do |installer|
     $RNMapboxMaps.pre_install(installer)
   end

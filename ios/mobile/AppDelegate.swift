@@ -5,13 +5,21 @@ import React_RCTAppDelegate
 import ReactAppDependencyProvider
 import UserNotifications
 import FirebaseMessaging
+import PushKit
 
 @main
-class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
+@objc(AppDelegate)
+class AppDelegate: UIResponder,
+  UIApplicationDelegate,
+  UNUserNotificationCenterDelegate,
+  MessagingDelegate,
+  PKPushRegistryDelegate {
 
   var window: UIWindow?
   var reactNativeDelegate: ReactNativeDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
+
+  var voipRegistry: PKPushRegistry?
 
   // MARK: - App Launch
   func application(
@@ -21,26 +29,29 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
     FirebaseApp.configure()
 
-    // 🔔 Notification Permission
+    // 🔔 Notification permission
     UNUserNotificationCenter.current().delegate = self
-
     UNUserNotificationCenter.current().requestAuthorization(
       options: [.alert, .badge, .sound]
     ) { granted, error in
-        print("🔔 Permission granted:", granted)
+      print("🔔 Permission granted:", granted)
     }
 
     application.registerForRemoteNotifications()
 
-    // 🔥 Firebase Messaging Delegate
+    // 🔥 Firebase Messaging
     Messaging.messaging().delegate = self
 
-    // 🔥 DISABLE ZPNS SWIZZLING ON SIMULATOR
-    #if targetEnvironment(simulator)
-    UserDefaults.standard.set(true, forKey: "ZPNsDisableSwizzling")
-    #endif
+    // =================================================
+    // 🚀 PUSHKIT (VOIP) - CHỈ LẤY TOKEN, KHÔNG HANDLE CALL
+    // =================================================
+    voipRegistry = PKPushRegistry(queue: DispatchQueue.main)
+    voipRegistry?.delegate = self
+    voipRegistry?.desiredPushTypes = [.voIP]
 
-    // React Native setup
+    // =================================================
+    // ⚛️ React Native setup
+    // =================================================
     let delegate = ReactNativeDelegate()
     let factory = RCTReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()
@@ -59,10 +70,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     return true
   }
 
-  // MARK: - APNs Token (Device Only)
-  #if !targetEnvironment(simulator)
-
-  @objc(application:didRegisterForRemoteNotificationsWithDeviceToken:)
+  // MARK: - APNs Token (FCM)
   func application(
     _ application: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
@@ -73,25 +81,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     print("📲 APNs token:", tokenString)
   }
 
-  @objc(application:didFailToRegisterForRemoteNotificationsWithError:)
   func application(
     _ application: UIApplication,
     didFailToRegisterForRemoteNotificationsWithError error: Error
   ) {
     print("❌ Failed to register APNs:", error.localizedDescription)
   }
-
-  @objc(application:didReceiveRemoteNotification:fetchCompletionHandler:)
-  func application(
-    _ application: UIApplication,
-    didReceiveRemoteNotification userInfo: [AnyHashable: Any],
-    fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
-  ) {
-    print("📩 Remote notification received (background):", userInfo)
-    completionHandler(.newData)
-  }
-
-  #endif
 
   // MARK: - FCM Token
   func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
@@ -104,10 +99,50 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     willPresent notification: UNNotification,
     withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
   ) {
-    print("📩 Notification received (foreground):",
-          notification.request.content.userInfo)
-
+    print("📩 Foreground notification:", notification.request.content.userInfo)
     completionHandler([.banner, .sound, .badge])
+  }
+
+  // =================================================
+  // 📞 PUSHKIT - NHẬN VOIP TOKEN
+  // =================================================
+  func pushRegistry(
+    _ registry: PKPushRegistry,
+    didUpdate pushCredentials: PKPushCredentials,
+    for type: PKPushType
+  ) {
+    let token = pushCredentials.token.map { String(format: "%02x", $0) }.joined()
+    print("📞 VoIP Token:", token)
+
+    // ❗ KHÔNG cần set token cho Zego
+    // ZPNs sẽ tự handle bên RN
+  }
+
+  // =================================================
+  // 📞 NHẬN PUSH (Zego sẽ tự handle CallKit)
+  // =================================================
+  func pushRegistry(
+    _ registry: PKPushRegistry,
+    didReceiveIncomingPushWith payload: PKPushPayload,
+    for type: PKPushType,
+    completion: @escaping () -> Void
+  ) {
+    print("📞 VoIP push received:", payload.dictionaryPayload)
+
+    // ❗ QUAN TRỌNG:
+    // KHÔNG tự show CallKit ở đây
+    // Để Zego handle
+
+    completion()
+  }
+
+  // iOS < 13 (optional)
+  func pushRegistry(
+    _ registry: PKPushRegistry,
+    didReceiveIncomingPushWith payload: PKPushPayload,
+    for type: PKPushType
+  ) {
+    print("📞 VoIP push (old):", payload.dictionaryPayload)
   }
 }
 

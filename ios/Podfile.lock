@@ -4498,7 +4498,7 @@ PODS:
   - zego-uikit-prebuilt-call-rn (6.6.2):
     - React-Core
     - zego-uikit-rn
-  - zego-uikit-rn (2.19.1):
+  - zego-uikit-rn (2.19.2):
     - React-Core
     - ZegoUIKitReport (= 0.5.1)
   - ZegoExpressEngine (3.22.0)
@@ -5015,12 +5015,12 @@ SPEC CHECKSUMS:
   Turf: c9eb11a65d96af58cac523460fd40fec5061b081
   Yoga: 526f25666395d30c297d53154398ffd249eaf9e1
   zego-uikit-prebuilt-call-rn: 0f0f2acff028af4e8f8557113098bd01149fe200
-  zego-uikit-rn: f4827a4cf1407f4b7e131e073c235fad717409fd
+  zego-uikit-rn: 3de6d90c6214d145b0e6d4f39f859cdef44de5af
   ZegoExpressEngine: c1b01551fc817e6fd32b3a877a9d15de6d93f68e
   ZegoUIKitReport: 36f4bc9a02a4fdd5d1eda1bf665b42c54cbbfd89
   ZIM: 7a72983c32831bb57cd05edb180f060263733515
   ZPNs: 73bad0046a74e37315201053f9a0e7ac625d9436
 
-PODFILE CHECKSUM: a644acd8cc485d27584d5565787da41adcb26484
+PODFILE CHECKSUM: 56d3697a6897a4f2efce085be67ce81aab6e7f4c
 
 COCOAPODS: 1.16.2
