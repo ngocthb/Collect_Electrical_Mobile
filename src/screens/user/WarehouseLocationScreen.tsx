@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import IconIon from 'react-native-vector-icons/Ionicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+
 import { useNavigation } from '@react-navigation/native';
 import toast from 'react-native-toast-message';
 
@@ -30,15 +30,25 @@ const WarehouseLocationScreen = () => {
   const [warehousesWithDistance, setWarehousesWithDistance] = useState<
     Warehouse[]
   >([]);
-  const [selectedRatingFilter, setSelectedRatingFilter] = useState('');
+  const [selectedDistanceFilter, setSelectedDistanceFilter] = useState('all');
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc'); // 'asc' = gần nhất, 'desc' = xa nhất
+  const [expandedWarehouseId, setExpandedWarehouseId] = useState<string | null>(
+    null,
+  );
 
-  const ratingFilterOptions = [
-    { value: '', label: 'Tất cả', color: 'gray' },
-    { value: '4.5', label: '4.5+ sao', color: 'green' },
-    { value: '4.0', label: '4.0+ sao', color: 'blue' },
-    { value: '3.5', label: '3.5+ sao', color: 'yellow' },
+  const distanceFilterOptions = [
+    { value: 'all', label: 'Tất cả', color: 'gray', min: 0, max: Infinity },
+    { value: '0-5', label: '0 - 5 km', color: 'green', min: 0, max: 5000 },
+    { value: '5-10', label: '5 - 10 km', color: 'blue', min: 5000, max: 10000 },
+    {
+      value: '10-15',
+      label: '10 - 15 km',
+      color: 'yellow',
+      min: 10000,
+      max: 15000,
+    },
+    { value: '15+', label: '15 km+', color: 'red', min: 15000, max: Infinity },
   ];
 
   const loadWarehouses = async () => {
@@ -58,8 +68,6 @@ const WarehouseLocationScreen = () => {
 
       const warehouse = warehouseData.map(wh => ({
         ...wh,
-        rating: Math.random() * 2 + 3,
-
         distanceMeters: calculateDistance(
           latitude,
           longitude,
@@ -87,12 +95,16 @@ const WarehouseLocationScreen = () => {
   // ---------------------------
   // FILTER + SORT
   // ---------------------------
-  let filteredWarehouses =
-    selectedRatingFilter === ''
-      ? warehousesWithDistance
-      : warehousesWithDistance.filter(
-          w => w.rating >= parseFloat(selectedRatingFilter),
-        );
+  const selectedDistanceOption = distanceFilterOptions.find(
+    d => d.value === selectedDistanceFilter,
+  );
+  let filteredWarehouses = warehousesWithDistance.filter(wh => {
+    const distance = wh.distanceMeters || 0;
+    return (
+      distance >= selectedDistanceOption!.min &&
+      distance <= selectedDistanceOption!.max
+    );
+  });
 
   // Sort theo khoảng cách
   filteredWarehouses = [...filteredWarehouses].sort((a, b) => {
@@ -102,20 +114,6 @@ const WarehouseLocationScreen = () => {
       return (b.distanceMeters || 0) - (a.distanceMeters || 0); // Xa nhất đến gần nhất
     }
   });
-
-  const getColorClass = (color: string) => {
-    const classes: any = {
-      gray: 'bg-gray-400',
-      blue: 'bg-blue-500',
-      yellow: 'bg-amber-500',
-      green: 'bg-green-500',
-    };
-    return classes[color] || 'bg-gray-400';
-  };
-
-  const selectedOption = ratingFilterOptions.find(
-    r => r.value === selectedRatingFilter,
-  );
 
   return (
     <SubLayout
@@ -134,66 +132,6 @@ const WarehouseLocationScreen = () => {
               color="#e85a4f"
             />
           </TouchableOpacity>
-
-          {/* FILTER DROPDOWN */}
-          <View className="relative">
-            <TouchableOpacity
-              onPress={() => setFilterDropdownOpen(!filterDropdownOpen)}
-              className="flex-row items-center px-3 py-1.5 rounded-lg border border-gray-200 bg-primary-100"
-            >
-              <View
-                className={`w-2 h-2 rounded-full mr-1.5 ${getColorClass(
-                  selectedOption?.color || 'gray',
-                )}`}
-              />
-              <Text className="text-xs font-medium text-white mr-2">
-                {selectedOption?.label || 'Tất cả'}
-              </Text>
-              <IconIon name="funnel-outline" size={16} color="#fff" />
-            </TouchableOpacity>
-
-            {filterDropdownOpen && (
-              <>
-                <TouchableOpacity
-                  style={{
-                    position: 'absolute',
-                    top: -1000,
-                    left: -1000,
-                    right: -1000,
-                    bottom: -1000,
-                    zIndex: 998,
-                  }}
-                  activeOpacity={1}
-                  onPress={() => setFilterDropdownOpen(false)}
-                />
-
-                <View
-                  className="absolute top-11 right-0 w-40 bg-white rounded-lg border border-gray-200 shadow-lg"
-                  style={{ zIndex: 999, elevation: 5 }}
-                >
-                  {ratingFilterOptions.map(option => (
-                    <TouchableOpacity
-                      key={option.value}
-                      onPress={() => {
-                        setSelectedRatingFilter(option.value);
-                        setFilterDropdownOpen(false);
-                      }}
-                      className="flex-row items-center px-3 py-2 border-b border-gray-100"
-                    >
-                      <View
-                        className={`w-2 h-2 rounded-full mr-2 ${getColorClass(
-                          option.color,
-                        )}`}
-                      />
-                      <Text className="text-[13px] text-gray-700">
-                        {option.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </>
-            )}
-          </View>
         </View>
       }
     >
@@ -220,14 +158,7 @@ const WarehouseLocationScreen = () => {
                 className="bg-white border-2 border-red-200 rounded-xl p-4 mb-3 shadow-sm"
               >
                 {/* HEADER */}
-                <View className="flex-row items-start">
-                  <View className="flex-row w-12 h-12 rounded-full bg-red-100 items-center justify-center mr-3">
-                    <Text className="text-xs text-gray-600 ">
-                      {wh?.rating?.toFixed(1)}
-                    </Text>
-                    <FontAwesome name="star" size={12} color="#F59E0B" />
-                  </View>
-
+                <View className="flex-row items-start justify-between mb-3">
                   <View className="flex-1">
                     <Text className="text-base font-bold text-primary-100 mb-1">
                       {wh.name}
@@ -255,11 +186,74 @@ const WarehouseLocationScreen = () => {
                         console.warn('Cannot open maps', e);
                       }
                     }}
-                    className="w-10 h-10 rounded-full items-center justify-center bg-primary-100 border-2 border-red-200"
+                    className="w-10 h-10 rounded-full items-center justify-center bg-primary-100 border-2 border-red-200 ml-2"
                   >
                     <Icon name="navigation" size={18} color="#fff" />
                   </TouchableOpacity>
                 </View>
+
+                {/* ACCEPTED CATEGORIES */}
+                {wh.acceptedCategories && wh.acceptedCategories.length > 0 && (
+                  <View className="border-t border-gray-200 pt-3">
+                    <View className="flex-row items-center justify-between mb-2">
+                      <Text className="text-xs font-semibold text-gray-700">
+                        Danh mục chấp nhận ({wh.acceptedCategories.length}):
+                      </Text>
+                      {wh.acceptedCategories.length > 3 && (
+                        <TouchableOpacity
+                          onPress={() =>
+                            setExpandedWarehouseId(
+                              expandedWarehouseId === wh.id ? null : wh.id,
+                            )
+                          }
+                          className="p-1"
+                        >
+                          <Icon
+                            name={
+                              expandedWarehouseId === wh.id
+                                ? 'chevron-up'
+                                : 'chevron-down'
+                            }
+                            size={16}
+                            color="#3b82f6"
+                          />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    {/* First row of categories */}
+                    <View className="flex-row flex-wrap gap-1.5 mb-2">
+                      {wh.acceptedCategories
+                        .slice(0, 3)
+                        .map((category: any) => (
+                          <View
+                            key={category.id}
+                            className="bg-blue-100 rounded-full px-2.5 py-1"
+                          >
+                            <Text className="text-xs text-blue-700 font-medium">
+                              {category.name}
+                            </Text>
+                          </View>
+                        ))}
+                    </View>
+
+                    {/* Expanded categories */}
+                    {expandedWarehouseId === wh.id && (
+                      <View className="flex-row flex-wrap gap-1.5 mt-2 pt-2 border-t border-gray-100">
+                        {wh.acceptedCategories.slice(3).map((category: any) => (
+                          <View
+                            key={category.id}
+                            className="bg-blue-100 rounded-full px-2.5 py-1"
+                          >
+                            <Text className="text-xs text-blue-700 font-medium">
+                              {category.name}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                )}
               </View>
             ))
           )}

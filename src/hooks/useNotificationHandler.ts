@@ -36,9 +36,7 @@ export const useNotificationHandler = (
         if (rankUpPayload) {
           onRankUp?.(rankUpPayload);
         }
-      }
-
-      if (type === 'SHIPPER_ARRIVAL' && productId) {
+      } else if (type === 'SHIPPER_ARRIVAL' && productId) {
         Toast.show({
           type: 'info',
           text1: remoteMessage.notification?.title || 'Thông báo',
@@ -62,6 +60,17 @@ export const useNotificationHandler = (
         });
       } else if (type === 'COLLECTOR_CALL' && routeId) {
         return;
+      } else if (type === 'NOTIFICATION') {
+        Toast.show({
+          type: 'info',
+          text1: remoteMessage.notification?.title || 'Thông báo',
+          text2: remoteMessage.notification?.body || '',
+          onPress: () => {
+            if (navigationRef.isReady()) {
+              navigationRef.navigate('Thông báo' as any);
+            }
+          },
+        });
       } else {
         Toast.show({
           type: 'info',
@@ -99,9 +108,7 @@ export const useNotificationHandler = (
           if (rankUpPayload) {
             onRankUp?.(rankUpPayload);
           }
-        }
-
-        if (productId && type === 'SHIPPER_ARRIVAL') {
+        } else if (productId && type === 'SHIPPER_ARRIVAL') {
           // Navigation đã sẵn sàng vì app đang chạy
           if (navigationRef.isReady()) {
             console.log('Navigate từ background');
@@ -115,6 +122,11 @@ export const useNotificationHandler = (
           }
         } else if (type === 'COLLECTOR_CALL' && routeId) {
           return;
+        } else if (type === 'NOTIFICATION') {
+          if (navigationRef.isReady()) {
+            console.log('Navigate từ background');
+            navigationRef.navigate('Thông báo' as any);
+          }
         }
       },
     );
@@ -164,6 +176,19 @@ export const useNotificationHandler = (
             setTimeout(() => clearInterval(checkNavReady), 5000);
           } else if (type === 'COLLECTOR_CALL' && routeId) {
             return;
+          } else if (type === 'NOTIFICATION') {
+            const checkNavReady = setInterval(() => {
+              if (navigationRef.isReady()) {
+                console.log('Navigation ready! Navigate now');
+                clearInterval(checkNavReady);
+                navigationRef.navigate('Thông báo' as any);
+              } else {
+                console.log('Navigation not ready yet...');
+              }
+            }, 100);
+
+            // Timeout sau 5s để tránh loop vô hạn
+            setTimeout(() => clearInterval(checkNavReady), 5000);
           }
         }
       });

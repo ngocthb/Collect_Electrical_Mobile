@@ -97,6 +97,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
     }
   }, [resetQrTrigger, distanceInMeters]);
 
+  console.log(normalizedRequest);
   // Only check on mount or when entering the threshold for the first time
   useEffect(() => {
     // Chỉ chạy khi không có resetQrTrigger (tức là lần đầu mount)
@@ -284,7 +285,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
                   <ZegoSendCallInvitationButton
                     invitees={invitees}
                     isVideoCall={false}
-                    resourceID="thu_gom_data"
+                    resourceID="thugom"
                     timeout={120}
                   />
                 </View>

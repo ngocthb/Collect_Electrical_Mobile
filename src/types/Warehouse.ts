@@ -1,3 +1,10 @@
+export interface Category {
+  id: string;
+  name: string;
+  parentCategoryId: string | null;
+  status: string | null;
+}
+
 export interface Warehouse {
   id: string;
   name: string;
@@ -10,4 +17,5 @@ export interface Warehouse {
   rating: number;
   distanceMeters?: number | 0;
   distanceText?: string | '';
+  acceptedCategories?: Category[];
 }
