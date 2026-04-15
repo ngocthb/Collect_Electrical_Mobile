@@ -133,7 +133,7 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
             <ZegoSendCallInvitationButton
               invitees={invitees}
               isVideoCall={false}
-              resourceID="thugom"
+              resourceID={"thugom"}
               timeout={120}
             />
           ) : invitees.length > 0 ? (

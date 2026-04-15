@@ -23,28 +23,37 @@ import { navigationRef } from './src/navigation/navigationService';
 import { useNotificationHandler } from './src/hooks/useNotificationHandler';
 import RankUpModal from './src/components/RankUpModal';
 import { useRankUpModal } from './src/hooks/useRankUpModal';
-
 function AppContent({ activeRouteName }: { activeRouteName: string }) {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector(s => s.auth);
+
   const canShowRankModal =
     activeRouteName !== '' && activeRouteName !== 'CreateRequest';
-  const { rankUpModal, showRankUpModal, closeRankUpModal } = useRankUpModal(
-    user?.userId,
-    canShowRankModal,
-  );
 
+  const { rankUpModal, showRankUpModal, closeRankUpModal } =
+    useRankUpModal(user?.userId, canShowRankModal);
+
+  // 👉 init Zego cơ bản (login, plugin…)
   useZegoService();
+
+  // 👉 notification handler
   useNotificationHandler(showRankUpModal);
 
+  // 👉 bootstrap app
   useEffect(() => {
     bootstrapApp(dispatch);
   }, [dispatch]);
 
+ 
   return (
     <>
+      {/* 👉 Zego incoming (chỉ dùng khi app đang mở) */}
       <ZegoCallInvitationDialog />
+
+      {/* 👉 Navigation */}
       <RootNavigator />
+
+      {/* 👉 Rank modal */}
       <RankUpModal
         visible={rankUpModal.visible}
         fromRank={rankUpModal.fromRank}

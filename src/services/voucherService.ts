@@ -1,9 +1,8 @@
 import axiosClient from '../config/axios';
 
-const getVoucher = async (page: number = 1, name: string) => {
+const getVoucher = async (page: number = 1, name: string, userId : string) => {
   try {
-    console.log('call api');
-    const resp = await axiosClient.get(`/voucher/paged`, {
+    const resp = await axiosClient.get(`/voucher/${userId}/paged`, {
       params: { Page: page, Limit: 10, Name: name },
     });
     return Array.isArray(resp) ? resp : resp?.data ?? [];

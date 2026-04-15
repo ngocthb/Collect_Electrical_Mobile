@@ -6,6 +6,7 @@ import ReactAppDependencyProvider
 import UserNotifications
 import FirebaseMessaging
 import PushKit
+import CallKit
 
 @main
 @objc(AppDelegate)
@@ -13,7 +14,8 @@ class AppDelegate: UIResponder,
   UIApplicationDelegate,
   UNUserNotificationCenterDelegate,
   MessagingDelegate,
-  PKPushRegistryDelegate {
+  PKPushRegistryDelegate,
+  CXProviderDelegate {
 
   var window: UIWindow?
   var reactNativeDelegate: ReactNativeDelegate?
@@ -21,7 +23,13 @@ class AppDelegate: UIResponder,
 
   var voipRegistry: PKPushRegistry?
 
-  // MARK: - App Launch
+  // MARK: - CallKit
+  var provider: CXProvider!
+  var currentCallID: String?
+
+  // =================================================
+  // 🚀 APP START
+  // =================================================
   func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
@@ -29,29 +37,29 @@ class AppDelegate: UIResponder,
 
     FirebaseApp.configure()
 
-    // 🔔 Notification permission
+    // Notification
     UNUserNotificationCenter.current().delegate = self
     UNUserNotificationCenter.current().requestAuthorization(
       options: [.alert, .badge, .sound]
-    ) { granted, error in
-      print("🔔 Permission granted:", granted)
+    ) { granted, _ in
+      print("🔔 Permission:", granted)
     }
 
     application.registerForRemoteNotifications()
-
-    // 🔥 Firebase Messaging
     Messaging.messaging().delegate = self
 
-    // =================================================
-    // 🚀 PUSHKIT (VOIP) - CHỈ LẤY TOKEN, KHÔNG HANDLE CALL
-    // =================================================
+    // PushKit
     voipRegistry = PKPushRegistry(queue: DispatchQueue.main)
     voipRegistry?.delegate = self
     voipRegistry?.desiredPushTypes = [.voIP]
 
-    // =================================================
-    // ⚛️ React Native setup
-    // =================================================
+    // CallKit
+    let config = CXProviderConfiguration(localizedName: "Ewise")
+    config.supportsVideo = false
+    provider = CXProvider(configuration: config)
+    provider.setDelegate(self, queue: nil)
+
+    // React Native
     let delegate = ReactNativeDelegate()
     let factory = RCTReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()
@@ -70,41 +78,18 @@ class AppDelegate: UIResponder,
     return true
   }
 
-  // MARK: - APNs Token (FCM)
+  // =================================================
+  // 📲 APNs
+  // =================================================
   func application(
     _ application: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
     Messaging.messaging().apnsToken = deviceToken
-
-    let tokenString = deviceToken.map { String(format: "%02x", $0) }.joined()
-    print("📲 APNs token:", tokenString)
-  }
-
-  func application(
-    _ application: UIApplication,
-    didFailToRegisterForRemoteNotificationsWithError error: Error
-  ) {
-    print("❌ Failed to register APNs:", error.localizedDescription)
-  }
-
-  // MARK: - FCM Token
-  func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-    print("🔥 FCM TOKEN:", fcmToken ?? "nil")
-  }
-
-  // MARK: - Foreground Notification
-  func userNotificationCenter(
-    _ center: UNUserNotificationCenter,
-    willPresent notification: UNNotification,
-    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
-  ) {
-    print("📩 Foreground notification:", notification.request.content.userInfo)
-    completionHandler([.banner, .sound, .badge])
   }
 
   // =================================================
-  // 📞 PUSHKIT - NHẬN VOIP TOKEN
+  // 📞 PUSHKIT TOKEN
   // =================================================
   func pushRegistry(
     _ registry: PKPushRegistry,
@@ -113,40 +98,105 @@ class AppDelegate: UIResponder,
   ) {
     let token = pushCredentials.token.map { String(format: "%02x", $0) }.joined()
     print("📞 VoIP Token:", token)
-
-    // ❗ KHÔNG cần set token cho Zego
-    // ZPNs sẽ tự handle bên RN
   }
 
   // =================================================
-  // 📞 NHẬN PUSH (Zego sẽ tự handle CallKit)
+  // 📞 RECEIVE PUSH
   // =================================================
-  func pushRegistry(
-    _ registry: PKPushRegistry,
-    didReceiveIncomingPushWith payload: PKPushPayload,
-    for type: PKPushType,
-    completion: @escaping () -> Void
-  ) {
-    print("📞 VoIP push received:", payload.dictionaryPayload)
+func pushRegistry(
+  _ registry: PKPushRegistry,
+  didReceiveIncomingPushWith payload: PKPushPayload,
+  for type: PKPushType,
+  completion: @escaping () -> Void
+) {
 
-    // ❗ QUAN TRỌNG:
-    // KHÔNG tự show CallKit ở đây
-    // Để Zego handle
+  let data = payload.dictionaryPayload
+  print("🔥 PUSH RAW:", data)
 
-    completion()
+  // ✅ Parse data đúng format mới
+  let callID = data["call_id"] as? String ?? UUID().uuidString
+  let callerID = data["caller_id"] as? String ?? "Unknown"
+  let callerName = data["caller_name"] as? String ?? callerID
+
+  var roomID = ""
+  if let zegoData = data["zego_data"] as? [String: Any] {
+    roomID = zegoData["room_id"] as? String ?? ""
   }
 
-  // iOS < 13 (optional)
-  func pushRegistry(
-    _ registry: PKPushRegistry,
-    didReceiveIncomingPushWith payload: PKPushPayload,
-    for type: PKPushType
-  ) {
-    print("📞 VoIP push (old):", payload.dictionaryPayload)
+  print("📞 callID:", callID)
+  print("👤 callerName:", callerName)
+  print("🏠 roomID:", roomID)
+
+  self.currentCallID = callID
+
+  // 👉 Lưu thêm để dùng khi accept
+  UserDefaults.standard.set(roomID, forKey: "CALL_ROOM_ID")
+
+  // =================================================
+  // 📞 CallKit
+  // =================================================
+  let uuid = UUID()
+  let update = CXCallUpdate()
+  update.remoteHandle = CXHandle(type: .generic, value: callerName)
+  update.hasVideo = false
+
+  provider.reportNewIncomingCall(with: uuid, update: update) { error in
+    if let error = error {
+      print("❌ CallKit error:", error)
+    } else {
+      print("✅ CallKit shown")
+    }
   }
+
+  completion()
 }
 
-// MARK: - React Native Delegate
+  // =================================================
+  // 📞 ACCEPT CALL
+  // =================================================
+func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
+  print("✅ Accepted")
+
+  let roomID = UserDefaults.standard.string(forKey: "CALL_ROOM_ID") ?? ""
+
+  DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+    guard let bridge = self.reactNativeFactory?.bridge else {
+      print("❌ Bridge not ready")
+      return
+    }
+
+    if let emitter = bridge.module(for: CallEventEmitter.self) as? CallEventEmitter {
+
+      let body: [String: Any] = [
+        "call_id": self.currentCallID ?? "",
+        "room_id": roomID
+      ]
+
+      emitter.sendEvent("CALL_ACCEPTED", body: body)
+      print("🔥 Sent CALL_ACCEPTED:", body)
+    }
+  }
+
+  action.fulfill()
+}
+  // =================================================
+  // 📞 END CALL
+  // =================================================
+ func providerDidReset(_ provider: CXProvider) {
+  print("🔄 Provider reset")
+}
+
+
+
+func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
+  print("❌ Ended")
+  action.fulfill()
+}
+}
+
+// =================================================
+// ⚛️ React Native Delegate
+// =================================================
 class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
 
   override func sourceURL(for bridge: RCTBridge) -> URL? {

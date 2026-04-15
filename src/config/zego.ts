@@ -71,9 +71,6 @@ export const initZegoService = async (
         enableLog: true,
         notifyWhenAppRunningInBackgroundOrQuit: true,
         isIOSSandboxEnvironment: true,
-        iOSOfflinePushConfig: {
-    pushID: 'thugom', // cái bạn set trên Zego Console
-  },
         androidNotificationConfig: {
           channelID: 'ZegoUIKit',
           channelName: 'ZegoUIKit',

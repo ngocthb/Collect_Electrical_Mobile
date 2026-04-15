@@ -59,7 +59,7 @@ export default function VoucherScreen() {
         const userId = user?.userId || '';
         resp = await getVoucher.getVoucherByUser(userId, pageNum, searchTerm);
       } else {
-        resp = await getVoucher.getVoucher(pageNum, searchTerm);
+        resp = await getVoucher.getVoucher(pageNum, searchTerm, user?.userId || '');
       }
       const vouchersData = Array.isArray(resp) ? resp : [];
 
@@ -274,7 +274,6 @@ export default function VoucherScreen() {
     setModalType('confirm');
     setConfirmModalVisible(true);
   };
-
   const handleConfirmRedeem = async () => {
     if (!selectedVoucher) return;
     setRedeeming(true);
@@ -307,6 +306,7 @@ export default function VoucherScreen() {
       setRedeeming(false);
     }
   };
+console.log('Selected Voucher:', allVouchersData);
 
   return (
     <SubLayout
