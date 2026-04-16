@@ -5,6 +5,7 @@ import ZegoUIKitPrebuiltCallService from '@zegocloud/zego-uikit-prebuilt-call-rn
 import { NativeEventEmitter, NativeModules } from 'react-native';
 import Config from './env';
 import { navigationRef } from '../navigation/navigationService';
+import { endCall } from '../services/callService';
 const { CallModule } = NativeModules;
 
 const APP_ID = Config.ZEGO_APP_ID;
@@ -13,6 +14,38 @@ const APP_SIGN = Config.ZEGO_APP_SIGN;
 let isInitialized = false;
 let currentUserId: string | null = null;
 let callEndedSub: any = null;
+let currentCallId: string | null = null;
+let currentCalleeId: string | null = null;
+let callStartTime: number | null = null;
+
+//
+// ================= SET CURRENT CALL INFO =================
+//
+export const setCurrentCallInfo = (callId: string, calleeId: string) => {
+  currentCallId = callId;
+  currentCalleeId = calleeId;
+  callStartTime = Date.now();
+  console.log('[Zego] 📞 Call started:', {
+    callId,
+    calleeId,
+    startTime: callStartTime,
+  });
+};
+
+//
+// ================= CLEAR CURRENT CALL INFO =================
+//
+export const clearCurrentCallInfo = () => {
+  const duration = callStartTime ? (Date.now() - callStartTime) / 1000 : 0;
+  console.log('[Zego] 📵 Call ended:', {
+    currentCallId,
+    currentCalleeId,
+    duration: `${duration}s`,
+  });
+  currentCallId = null;
+  currentCalleeId = null;
+  callStartTime = null;
+};
 
 //
 // ================= UNINIT =================
@@ -40,6 +73,8 @@ export const uninitZegoService = async (): Promise<void> => {
 
     isInitialized = false;
     currentUserId = null;
+    currentCallId = null;
+    currentCalleeId = null;
 
     console.log('[Zego] Uninit completed ✅');
   } catch (error) {
@@ -47,6 +82,8 @@ export const uninitZegoService = async (): Promise<void> => {
 
     isInitialized = false;
     currentUserId = null;
+    currentCallId = null;
+    currentCalleeId = null;
     callEndedSub = null;
   }
 };
@@ -104,7 +141,7 @@ export const initZegoService = async (
           channelID: 'ZegoUIKit',
           channelName: 'ZegoUIKit',
         },
-      }
+      },
     );
 
     //
@@ -118,33 +155,53 @@ export const initZegoService = async (
 
     const emitter = new NativeEventEmitter(CallModule);
 
-    callEndedSub = emitter.addListener('CALL_ENDED', (event) => {
-  const duration = event?.duration ?? 0;
+    callEndedSub = emitter.addListener('CALL_ENDED', async event => {
+      const duration = event?.duration ?? 0;
 
-  console.log('📴 Native CALL_ENDED:', duration);
+      console.log('📴 Native CALL_ENDED:', {
+        duration,
+        currentCallId,
+        currentCalleeId,
+      });
 
-  onCallEnd && onCallEnd(duration);
+      // 👉 Call endCall API if we have call info
+      if (currentCallId && currentCalleeId && currentUserId) {
+        try {
+          console.log('[Zego] Calling endCall API:', {
+            currentCallId,
+            currentCalleeId,
+          });
+          const response = await endCall(currentCallId, currentCalleeId);
+          console.log('[Zego] ✅ endCall API response:', response);
+        } catch (err) {
+          console.error('[Zego] ❌ endCall API error:', err);
+        }
+      } else {
+        console.log('[Zego] ⏭️ Skipping endCall API - missing call info');
+      }
 
-  if (isInitialized) {
-    try {
-      ZegoUIKitPrebuiltCallService.hangUp();
-      console.log('[Zego] Hung up call from CALL_ENDED event');
-      if (navigationRef.isReady()) {
-  navigationRef.reset({
-  index: 0,
-  routes: [
-    {
-      name: 'MainTabs',
-    },
-  ],
-});
-  }
+      onCallEnd && onCallEnd(duration);
 
-    } catch (e) {
-      console.log('[Zego] hangUp skipped');
-    }
-  }
-});
+      if (isInitialized) {
+        try {
+          ZegoUIKitPrebuiltCallService.hangUp();
+          console.log('[Zego] Hung up call from CALL_ENDED event');
+          clearCurrentCallInfo();
+          if (navigationRef.isReady()) {
+            navigationRef.reset({
+              index: 0,
+              routes: [
+                {
+                  name: 'MainTabs',
+                },
+              ],
+            });
+          }
+        } catch (e) {
+          console.log('[Zego] hangUp skipped');
+        }
+      }
+    });
 
     //
     // ================= DONE =================

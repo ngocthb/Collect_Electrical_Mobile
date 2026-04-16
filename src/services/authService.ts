@@ -42,6 +42,7 @@ export const requestNotificationPermission = async (): Promise<void> => {
 
 export const registerFcmToken = async (
   userId: string,
+  voipToken: string,
 ): Promise<string | null> => {
   try {
     // 🔹 ANDROID 13+
@@ -71,8 +72,9 @@ export const registerFcmToken = async (
     // 🔹 Lấy FCM token
     const fcmToken = await messaging().getToken();
     console.log('📱 FCM token:', fcmToken);
-
+    console.log('voip ', voipToken);
     await axiosClient.post('/notifications/register-device', {
+      voipToken,
       fcmToken,
       platform: Platform.OS,
       userId,

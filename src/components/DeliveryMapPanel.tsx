@@ -19,6 +19,9 @@ import { Linking } from 'react-native';
 import { sendNotification } from '../services/notificationServices';
 import { formatDate } from '../utils/dateUtils';
 import { useSelector } from 'react-redux';
+import { callUser } from '../services/callService';
+import { useAppSelector } from '../store/hooks';
+import { setCurrentCallInfo } from '../config/zego';
 
 type Props = {
   normalizedRequest: any;
@@ -43,6 +46,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
   const [ARRIVAL_DISTANCE_THRESHOLD] = useSelector((s: any) => [
     s?.systemConfig?.radiusMeter?.value,
   ]);
+  const { user } = useAppSelector(s => s.auth);
   console.log(ARRIVAL_DISTANCE_THRESHOLD);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showActionButtons, setShowActionButtons] = useState(false);
@@ -50,6 +54,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
   const hasNotifiedArrivalRef = React.useRef(false);
   const hasReceivedSocketConfirmationRef = React.useRef(false);
   const [isSendNoti, setIsSendNoti] = useState(false);
+  const [isCallingUser, setIsCallingUser] = useState(false);
   // Reset QR modal flag when resetQrTrigger changes (manual refresh only)
   useEffect(() => {
     if (resetQrTrigger && resetQrTrigger > 0) {
@@ -176,6 +181,59 @@ const DeliveryMapPanel: React.FC<Props> = ({
     }
   };
 
+  const handleInitiateCall = async () => {
+    if (isCallingUser || !user?.userId) {
+      console.warn('[DeliveryMapPanel] Already calling or no user');
+      return;
+    }
+
+    const receiver = normalizedRequest?.sender;
+    const calleeId = receiver?.userId?.replace(/[^a-zA-Z0-9_]/g, '') || '';
+
+    if (!calleeId) {
+      console.warn('[DeliveryMapPanel] No callee ID available');
+      return;
+    }
+
+    try {
+      setIsCallingUser(true);
+      const callId = `call_${Date.now()}_${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+      const roomId = `room_${
+        normalizedRequest?.collectionRouteId || 'default'
+      }`;
+
+      console.log('[DeliveryMapPanel] 📞 Initiating call with:', {
+        callerId: user.userId,
+        callerName: user.name || 'Caller',
+        calleeId,
+        callId,
+        roomId,
+      });
+
+      // 👉 Store call info in Zego service for later endCall API
+      setCurrentCallInfo(callId, calleeId);
+
+      const response = await callUser(
+        user.userId,
+        user.name || 'Caller',
+        receiver?.userId,
+        callId,
+        roomId,
+      );
+
+      console.log(
+        '[DeliveryMapPanel] ✅ Call initiated successfully:',
+        response,
+      );
+    } catch (err) {
+      console.error('[DeliveryMapPanel] ❌ Error initiating call:', err);
+    } finally {
+      setIsCallingUser(false);
+    }
+  };
+
   const handleRefreshInternal = async () => {
     if (!onRefresh) return;
     try {
@@ -285,8 +343,9 @@ const DeliveryMapPanel: React.FC<Props> = ({
                   <ZegoSendCallInvitationButton
                     invitees={invitees}
                     isVideoCall={false}
-                    resourceID={"thugom"}
+                    resourceID={'thugom'}
                     timeout={120}
+                    onPress={handleInitiateCall}
                   />
                 </View>
               </View>

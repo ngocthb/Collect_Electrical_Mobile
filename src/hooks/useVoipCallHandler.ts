@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import {  NativeModules } from 'react-native';
+import { NativeModules } from 'react-native';
 import { navigationRef } from '../navigation/navigationService';
 import { useSelector } from 'react-redux';
 
@@ -22,25 +22,32 @@ export const useVoipCallHandler = () => {
       console.log('📞 Resume call:', roomID);
 
       if (!roomID) return;
-const cleanUserIdForZego = (userId: string) => {
-  return userId.replace(/[^a-zA-Z0-9_]/g, '');
-};
+      const cleanUserIdForZego = (userId: string) => {
+        return userId.replace(/[^a-zA-Z0-9_]/g, '');
+      };
 
       const tryNavigate = async () => {
         if (navigationRef.isReady()) {
           console.log('✅ Navigation ready → navigate');
-console.log("Navigating to ZegoUIKitPrebuiltCallInCallScreen with roomID:", roomID, "callerName:", callerName, "callerId:", callerId);
-   navigationRef.navigate('ZegoUIKitPrebuiltCallInCallScreen', {
-    invitees : [
-      {
-        userID: cleanUserIdForZego(String(callerId)),
-        userName: String(callerName),
-      },
-    ],
-  callID: roomID,
-  userID: cleanUserIdForZego(String(user?.userId)),
-  userName: String(user?.name),
-});
+          console.log(
+            'Navigating to ZegoUIKitPrebuiltCallInCallScreen with roomID:',
+            roomID,
+            'callerName:',
+            callerName,
+            'callerId:',
+            callerId,
+          );
+          navigationRef.navigate('ZegoUIKitPrebuiltCallInCallScreen', {
+            invitees: [
+              {
+                userID: cleanUserIdForZego(String(callerId)),
+                userName: String(callerName),
+              },
+            ],
+            callID: roomID,
+            userID: cleanUserIdForZego(String(user?.userId)),
+            userName: String(user?.name),
+          });
 
           // 👉 chỉ xoá sau khi navigate thành công
           await CallModule.removeItem('HAS_PENDING_CALL');
@@ -57,5 +64,3 @@ console.log("Navigating to ZegoUIKitPrebuiltCallInCallScreen with roomID:", room
     checkCall();
   }, []);
 };
-
-

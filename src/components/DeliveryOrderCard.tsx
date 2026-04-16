@@ -11,7 +11,6 @@ import {
 import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import { useNavigation } from '@react-navigation/native';
 
-
 const cleanUserIdForZego = (userId: string) => {
   return userId.replace(/[^a-zA-Z0-9_]/g, '');
 };
@@ -40,8 +39,6 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
       },
     ];
   }, [cleanReceiverId, receiver?.name]);
-
-
 
   const handleEyePress = () => {
     navigation.navigate('DeliveryDetails', {
@@ -85,9 +82,9 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
       <View className="flex-1 flex-row items-center">
         <TouchableOpacity
           onPress={handleEyePress}
-          disabled={
-              isSelectedDateToday || !actionsDisabled 
-          }
+          // disabled={
+          //     isSelectedDateToday || !actionsDisabled
+          // }
           className="flex-1"
         >
           <View className="flex-row justify-between items-center mb-1">
@@ -113,7 +110,7 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
             <ZegoSendCallInvitationButton
               invitees={invitees}
               isVideoCall={false}
-              resourceID={"thugom"}
+              resourceID={'thugom'}
               timeout={120}
             />
           ) : invitees.length > 0 ? (

@@ -6,6 +6,7 @@ import { getMyRank } from './leaderboardService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUnReadNotis } from './notificationServices';
 import { setUnRead } from '../store/slices/notificationSlice';
+import { connectCallHub } from './signalrService';
 import type { AppDispatch } from '../store';
 
 export const bootstrapApp = async (dispatch: AppDispatch) => {
@@ -27,6 +28,13 @@ export const bootstrapApp = async (dispatch: AppDispatch) => {
 
         dispatch(setUnRead(unReadNoti.unreadCount || 0));
       }
+
+      // 👉 Connect to call hub (ONLINE connection)
+      console.log(
+        '[Bootstrap] Connecting to call hub with userId:',
+        result.profile.userId,
+      );
+      await connectCallHub(result.profile.userId);
     }
   } catch (e) {
     console.warn('[Bootstrap] error', e);

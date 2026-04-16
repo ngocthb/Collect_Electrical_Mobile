@@ -8,6 +8,7 @@ import toast from 'react-native-toast-message';
 import Config from './env';
 import { store } from '../store';
 import { logout } from '../store/slices/authSlice';
+import { connectCallHub } from '../services/signalrService';
 
 // 👉 Tạo instance chính
 const axiosClient = axios.create({
@@ -49,6 +50,7 @@ axiosClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     try {
       const token = await AsyncStorage.getItem('token');
+
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }

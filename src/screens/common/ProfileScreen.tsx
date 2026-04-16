@@ -18,6 +18,7 @@ import { logout } from '../../store/slices/authSlice';
 import { signOut } from '../../services/authService';
 import { useAppDispatch } from '../../store/hooks';
 import Toast from 'react-native-toast-message';
+import { disconnect } from '../../services/signalrService';
 
 const menuItems = [
   { id: 1, title: 'Hồ sơ của tôi', icon: 'user', color: '#3366FF' },
@@ -34,13 +35,10 @@ const ProfileScreen = () => {
   const { user } = useAppSelector(s => s.auth);
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  
+
   const isUser = String(user?.role ?? '').toLowerCase() === 'user';
   const dispatch = useAppDispatch();
   console.log(user);
-
-
-
 
   useEffect(() => {
     let mounted = true;
@@ -63,7 +61,6 @@ const ProfileScreen = () => {
       mounted = false;
     };
   }, [isUser, user]);
-
 
   const filteredMenu = menuItems.filter(item => {
     if (isUser) {
@@ -111,15 +108,12 @@ const ProfileScreen = () => {
     }
   };
 
-
-  
-
   const handleLogout = async () => {
     try {
       await uninitZegoService();
       // Clear token and sign out from services first
       await signOut();
-
+      await disconnect();
       dispatch(logout());
     } catch (e) {
       // ignore
@@ -147,8 +141,7 @@ const ProfileScreen = () => {
                 </View>
 
                 <View className="flex-1">
-                  <View
-                  >
+                  <View>
                     <Text
                       className="text-xl font-bold text-white mb-1"
                       numberOfLines={1}
@@ -182,7 +175,6 @@ const ProfileScreen = () => {
 
           {/* Menu Section */}
           <View className="px-6 pb-6">
-    
             <View className="bg-white border-2 border-red-200 rounded-2xl shadow-sm overflow-hidden">
               {filteredMenu.map((item, index) => (
                 <TouchableOpacity

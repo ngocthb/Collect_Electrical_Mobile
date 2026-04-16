@@ -22,6 +22,7 @@ import { setUnRead } from '../../store/slices/notificationSlice';
 
 import { setUser, setLoading } from '../../store/slices/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { connectCallHub } from '../../services/signalrService';
 
 import {
   signInWithGoogle,
@@ -65,9 +66,10 @@ export default function UserLoginScreen() {
       dispatch(setUnRead(unReadNoti?.unreadCount || 0));
       // @ts-ignore
       globalThis.navigation?.replace('MainTabs');
-const voipToken = await CallModule.getVoipToken();
-console.log ('📞 VoIP Token from native module:', voipToken);
-      await registerFcmToken(profileData.userId);
+      const voipToken = (await CallModule?.getVoipToken()) || '';
+
+      await registerFcmToken(profileData.userId, voipToken);
+      await connectCallHub(profileData?.userId);
     } catch (error: any) {
       console.log('Google login error', error);
     } finally {
@@ -105,8 +107,9 @@ console.log ('📞 VoIP Token from native module:', voipToken);
       dispatch(setUnRead(unReadNoti.unreadCount || 0));
       // @ts-ignore
       globalThis.navigation?.replace('MainTabs');
-
-      await registerFcmToken(profileData.userId);
+      const voipToken = (await CallModule?.getVoipToken()) || '';
+      await registerFcmToken(profileData.userId, voipToken);
+      await connectCallHub(profileData?.userId);
     } catch (error) {
       console.log('Apple login error', error);
     } finally {

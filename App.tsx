@@ -24,6 +24,9 @@ import { useNotificationHandler } from './src/hooks/useNotificationHandler';
 import RankUpModal from './src/components/RankUpModal';
 import { useVoipCallHandler } from './src/hooks/useVoipCallHandler';
 import { useRankUpModal } from './src/hooks/useRankUpModal';
+import { useCallHandlers } from './src/hooks/useCallHandlers';
+import { Platform } from 'react-native';
+
 function AppContent({ activeRouteName }: { activeRouteName: string }) {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector(s => s.auth);
@@ -31,13 +34,18 @@ function AppContent({ activeRouteName }: { activeRouteName: string }) {
   const canShowRankModal =
     activeRouteName !== '' && activeRouteName !== 'CreateRequest';
 
-  const { rankUpModal, showRankUpModal, closeRankUpModal } =
-    useRankUpModal(user?.userId, canShowRankModal);
-
+  const { rankUpModal, showRankUpModal, closeRankUpModal } = useRankUpModal(
+    user?.userId,
+    canShowRankModal,
+  );
 
   // 👉 init Zego cơ bản (login, plugin…)
   useZegoService();
-    useVoipCallHandler();    
+  // 👉 handle call events from SignalR
+  useCallHandlers();
+  if (Platform.OS === 'ios') {
+    useVoipCallHandler();
+  }
   // 👉 notification handler
   useNotificationHandler(showRankUpModal);
 
@@ -46,7 +54,6 @@ function AppContent({ activeRouteName }: { activeRouteName: string }) {
     bootstrapApp(dispatch);
   }, [dispatch]);
 
- 
   return (
     <>
       {/* 👉 Zego incoming (chỉ dùng khi app đang mở) */}
