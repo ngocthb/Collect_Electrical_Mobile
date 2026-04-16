@@ -1,10 +1,3 @@
-//
-//  CallEventEmitter.swift
-//  mobile
-//
-//  Created by Tấn Phát on 16/4/26.
-//
-
 import Foundation
 import React
 
@@ -19,7 +12,7 @@ class CallEventEmitter: RCTEventEmitter {
     return ["CALL_ACCEPTED"]
   }
 
-  @objc func sendEvent(_ name: String, body: Any) {
-    self.sendEvent(withName: name, body: body)
+  @objc func sendEvent(_ name: String, body: Any?) {
+    sendEvent(withName: name, body: body)
   }
 }

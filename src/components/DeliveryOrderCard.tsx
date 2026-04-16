@@ -10,9 +10,7 @@ import {
 // @ts-ignore
 import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const DEVELOP_MODE_KEY = 'develop_mode';
 
 const cleanUserIdForZego = (userId: string) => {
   return userId.replace(/[^a-zA-Z0-9_]/g, '');
@@ -25,7 +23,6 @@ type Props = {
 
 const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
   const navigation = useNavigation<any>();
-  const [isDevelopMode, setIsDevelopMode] = useState(false);
   const status = resolveStatus(order);
   const actionsDisabled = status === 'failed' || status === 'completed';
 
@@ -44,24 +41,7 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
     ];
   }, [cleanReceiverId, receiver?.name]);
 
-  useEffect(() => {
-    let mounted = true;
 
-    (async () => {
-      try {
-        const savedMode = await AsyncStorage.getItem(DEVELOP_MODE_KEY);
-        if (mounted) {
-          setIsDevelopMode(savedMode === 'true');
-        }
-      } catch (error) {
-        console.warn('[DeliveryOrderCard] Failed to load develop mode', error);
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   const handleEyePress = () => {
     navigation.navigate('DeliveryDetails', {
@@ -106,7 +86,7 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
         <TouchableOpacity
           onPress={handleEyePress}
           disabled={
-            !isDevelopMode ? !isSelectedDateToday || actionsDisabled : false
+              isSelectedDateToday || !actionsDisabled 
           }
           className="flex-1"
         >

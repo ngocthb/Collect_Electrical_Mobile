@@ -157,25 +157,7 @@ func pushRegistry(
 func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
   print("✅ Accepted")
 
-  let roomID = UserDefaults.standard.string(forKey: "CALL_ROOM_ID") ?? ""
 
-  DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-    guard let bridge = self.reactNativeFactory?.bridge else {
-      print("❌ Bridge not ready")
-      return
-    }
-
-    if let emitter = bridge.module(for: CallEventEmitter.self) as? CallEventEmitter {
-
-      let body: [String: Any] = [
-        "call_id": self.currentCallID ?? "",
-        "room_id": roomID
-      ]
-
-      emitter.sendEvent("CALL_ACCEPTED", body: body)
-      print("🔥 Sent CALL_ACCEPTED:", body)
-    }
-  }
 
   action.fulfill()
 }

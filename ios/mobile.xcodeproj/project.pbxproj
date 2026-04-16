@@ -18,7 +18,6 @@
 		146F69072F4DCBB60020D338 /* zego_incoming.wav in Resources */ = {isa = PBXBuildFile; fileRef = 146F69062F4DCBB60020D338 /* zego_incoming.wav */; };
 		146F69092F4DCBB70020D338 /* zego_incoming.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 146F69082F4DCBB70020D338 /* zego_incoming.mp3 */; };
 		14D91ED12F8E08BF00993A83 /* CallKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 14D91ED02F8E08BF00993A83 /* CallKit.framework */; };
-		14D91ED52F8F405200993A83 /* CallEventEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D91ED42F8F405000993A83 /* CallEventEmitter.swift */; };
 		14D91EDA2F8F508C00993A83 /* PushKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 14D91ECE2F8E08B500993A83 /* PushKit.framework */; };
 		15705A6331954C3290E2619D /* Roboto_SemiCondensed-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1747244092944FC08F5C48CB /* Roboto_SemiCondensed-LightItalic.ttf */; };
 		1B84D745903C49658A6A9672 /* Roboto-ExtraBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47A327B3A8E241A0BA693CD0 /* Roboto-ExtraBoldItalic.ttf */; };
@@ -88,7 +87,6 @@
 		146F69082F4DCBB70020D338 /* zego_incoming.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = zego_incoming.mp3; sourceTree = "<group>"; };
 		14D91ECE2F8E08B500993A83 /* PushKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PushKit.framework; path = System/Library/Frameworks/PushKit.framework; sourceTree = SDKROOT; };
 		14D91ED02F8E08BF00993A83 /* CallKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CallKit.framework; path = System/Library/Frameworks/CallKit.framework; sourceTree = SDKROOT; };
-		14D91ED42F8F405000993A83 /* CallEventEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallEventEmitter.swift; sourceTree = "<group>"; };
 		14D91ED62F8F4F9A00993A83 /* ZIM.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = ZIM.xcframework; path = Pods/ZIM/release/ZIM.xcframework; sourceTree = "<group>"; };
 		1620695509F5444EAF46549C /* Feather.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Feather.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Feather.ttf"; sourceTree = "<group>"; };
 		1747244092944FC08F5C48CB /* Roboto_SemiCondensed-LightItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto_SemiCondensed-LightItalic.ttf"; path = "../src/assets/fonts/Roboto_SemiCondensed-LightItalic.ttf"; sourceTree = "<group>"; };
@@ -185,7 +183,6 @@
 		13B07FAE1A68108700A75B9A /* mobile */ = {
 			isa = PBXGroup;
 			children = (
-				14D91ED42F8F405000993A83 /* CallEventEmitter.swift */,
 				145474332EFD039B0051C836 /* mobile.entitlements */,
 				143E1C812EF971E000EE76E1 /* GoogleService-Info.plist */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -560,7 +557,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
-				14D91ED52F8F405200993A83 /* CallEventEmitter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -586,7 +582,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.2;
+				MARKETING_VERSION = 1.1.31;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -619,7 +615,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.2;
+				MARKETING_VERSION = 1.1.31;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
