@@ -125,6 +125,13 @@ export const initZegoService = async (
       onCallEnd: () => {
         console.log('📴 Zego ended → end CallKit');
         CallModule.endCallKit();
+        if (navigationRef.isReady()) {
+      navigationRef.reset({
+        index: 0,
+        routes: [{ name: 'MainTabs' }],
+      });
+    }
+
       },
     }),
   }),
@@ -154,7 +161,7 @@ export const initZegoService = async (
       callEndedSub.remove();
       callEndedSub = null;
     }
-
+console.log("1111111")
     const emitter = new NativeEventEmitter(CallModule);
 
     callEndedSub = emitter.addListener('CALL_ENDED', async event => {
