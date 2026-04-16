@@ -43,9 +43,9 @@ function AppContent({ activeRouteName }: { activeRouteName: string }) {
   useZegoService();
   // 👉 handle call events from SignalR
   useCallHandlers();
-  if (Platform.OS === 'ios') {
-    useVoipCallHandler();
-  }
+  // if (Platform.OS === 'ios') {
+  //   useVoipCallHandler();
+  // }
   // 👉 notification handler
   useNotificationHandler(showRankUpModal);
 

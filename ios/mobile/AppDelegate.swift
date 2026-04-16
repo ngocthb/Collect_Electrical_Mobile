@@ -119,12 +119,7 @@ class AppDelegate: UIResponder,
 
     let callID = data["call_id"] as? String ?? UUID().uuidString
     let callerName = data["caller_name"] as? String ?? "Unknown"
-
-    var roomID = ""
-    if let zegoData = data["zego_data"] as? [String: Any] {
-      roomID = zegoData["room_id"] as? String ?? ""
-    }
-
+    var roomID = data["room_id"] as? String ?? ""
     let callerId = data["caller_id"] as? String ?? ""
 
     print("📞 callID:", callID)
@@ -167,12 +162,14 @@ class AppDelegate: UIResponder,
     let roomID = UserDefaults.standard.string(forKey: "CALL_ROOM_ID") ?? ""
     let callerName = UserDefaults.standard.string(forKey: "CALLER_NAME") ?? ""
     let callerId = UserDefaults.standard.string(forKey: "CALLER_ID") ?? ""
+    let callId = UserDefaults.standard.string(forKey: "CALL_ID") ?? ""
 
     // 👉 gửi cho React Native
     UserDefaults.standard.set(true, forKey: "HAS_PENDING_CALL")
     UserDefaults.standard.set(roomID, forKey: "PENDING_ROOM_ID")
     UserDefaults.standard.set(callerName, forKey: "PENDING_CALLER_NAME")
     UserDefaults.standard.set(callerId, forKey: "PENDING_CALLER_ID")
+    UserDefaults.standard.set(callId, forKey: "PENDING_CALL_ID")
 
     action.fulfill()
   }

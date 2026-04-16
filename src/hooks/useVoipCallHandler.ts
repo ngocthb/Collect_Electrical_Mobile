@@ -18,7 +18,7 @@ export const useVoipCallHandler = () => {
       const roomID = await CallModule.getItem('PENDING_ROOM_ID');
       const callerName = await CallModule.getItem('PENDING_CALLER_NAME');
       const callerId = await CallModule.getItem('PENDING_CALLER_ID');
-
+const callId = await CallModule.getItem('PENDING_CALL_ID');
       console.log('📞 Resume call:', roomID);
 
       if (!roomID) return;
@@ -44,7 +44,8 @@ export const useVoipCallHandler = () => {
                 userName: String(callerName),
               },
             ],
-            callID: roomID,
+            callID: callId,
+            roomID: roomID,
             userID: cleanUserIdForZego(String(user?.userId)),
             userName: String(user?.name),
           });

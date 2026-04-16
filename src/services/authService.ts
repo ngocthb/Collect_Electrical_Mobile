@@ -73,12 +73,13 @@ export const registerFcmToken = async (
     const fcmToken = await messaging().getToken();
     console.log('📱 FCM token:', fcmToken);
     console.log('voip ', voipToken);
-    await axiosClient.post('/notifications/register-device', {
+   const res= await axiosClient.post('/notifications/register-device', {
       voipToken,
       fcmToken,
       platform: Platform.OS,
       userId,
     });
+    console.log('✅ Device registered for notifications:', res);
 
     return fcmToken;
   } catch (error) {

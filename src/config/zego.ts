@@ -6,6 +6,7 @@ import { NativeEventEmitter, NativeModules } from 'react-native';
 import Config from './env';
 import { navigationRef } from '../navigation/navigationService';
 import { endCall } from '../services/callService';
+import {Platform } from 'react-native';
 const { CallModule } = NativeModules;
 
 const APP_ID = Config.ZEGO_APP_ID;
@@ -102,7 +103,7 @@ export const initZegoService = async (
     if (isInitialized && currentUserId === userId) {
       console.log('[Zego] Already initialized for user:', userId);
       return;
-    }
+    } 
 
     // ✅ nếu user khác → reset
     if (isInitialized && currentUserId !== userId) {
@@ -119,13 +120,14 @@ export const initZegoService = async (
       userName,
       [ZIM, ZPNs],
       {
-        requireConfig: () => ({
-          onCallEnd: () => {
-            console.log('📴 Zego ended → end CallKit');
-            CallModule.endCallKit();
-          },
-        }),
-
+  //     ...(Platform.OS === 'ios' && {
+  //   requireConfig: () => ({
+  //     onCallEnd: () => {
+  //       console.log('📴 Zego ended → end CallKit');
+  //       CallModule.endCallKit();
+  //     },
+  //   }),
+  // }),
         resourceID: 'thugom',
 
         ringtoneConfig: {
@@ -148,60 +150,60 @@ export const initZegoService = async (
     // ================= LISTENER =================
     //
     // ✅ tránh duplicate listener
-    if (callEndedSub) {
-      callEndedSub.remove();
-      callEndedSub = null;
-    }
+  //  if (Platform.OS === 'ios' ) { if (callEndedSub) {
+  //     callEndedSub.remove();
+  //     callEndedSub = null;
+  //   }
 
-    const emitter = new NativeEventEmitter(CallModule);
+  //   const emitter = new NativeEventEmitter(CallModule);
 
-    callEndedSub = emitter.addListener('CALL_ENDED', async event => {
-      const duration = event?.duration ?? 0;
+  //   callEndedSub = emitter.addListener('CALL_ENDED', async event => {
+  //     const duration = event?.duration ?? 0;
 
-      console.log('📴 Native CALL_ENDED:', {
-        duration,
-        currentCallId,
-        currentCalleeId,
-      });
+  //     console.log('📴 Native CALL_ENDED:', {
+  //       duration,
+  //       currentCallId,
+  //       currentCalleeId,
+  //     });
 
-      // 👉 Call endCall API if we have call info
-      if (currentCallId && currentCalleeId && currentUserId) {
-        try {
-          console.log('[Zego] Calling endCall API:', {
-            currentCallId,
-            currentCalleeId,
-          });
-          const response = await endCall(currentCallId, currentCalleeId);
-          console.log('[Zego] ✅ endCall API response:', response);
-        } catch (err) {
-          console.error('[Zego] ❌ endCall API error:', err);
-        }
-      } else {
-        console.log('[Zego] ⏭️ Skipping endCall API - missing call info');
-      }
+  //     // 👉 Call endCall API if we have call info
+  //     if (currentCallId && currentCalleeId && currentUserId) {
+  //       try {
+  //         console.log('[Zego] Calling endCall API:', {
+  //           currentCallId,
+  //           currentCalleeId,
+  //         });
+  //         const response = await endCall(currentCallId, currentCalleeId);
+  //         console.log('[Zego] ✅ endCall API response:', response);
+  //       } catch (err) {
+  //         console.error('[Zego] ❌ endCall API error:', err);
+  //       }
+  //     } else {
+  //       console.log('[Zego] ⏭️ Skipping endCall API - missing call info');
+  //     }
 
-      onCallEnd && onCallEnd(duration);
+  //     onCallEnd && onCallEnd(duration);
 
-      if (isInitialized) {
-        try {
-          ZegoUIKitPrebuiltCallService.hangUp();
-          console.log('[Zego] Hung up call from CALL_ENDED event');
-          clearCurrentCallInfo();
-          if (navigationRef.isReady()) {
-            navigationRef.reset({
-              index: 0,
-              routes: [
-                {
-                  name: 'MainTabs',
-                },
-              ],
-            });
-          }
-        } catch (e) {
-          console.log('[Zego] hangUp skipped');
-        }
-      }
-    });
+  //     if (isInitialized) {
+  //       try {
+  //         ZegoUIKitPrebuiltCallService.hangUp();
+  //         console.log('[Zego] Hung up call from CALL_ENDED event');
+  //         clearCurrentCallInfo();
+  //         if (navigationRef.isReady()) {
+  //           navigationRef.reset({
+  //             index: 0,
+  //             routes: [
+  //               {
+  //                 name: 'MainTabs',
+  //               },
+  //             ],
+  //           });
+  //         }
+  //       } catch (e) {
+  //         console.log('[Zego] hangUp skipped');
+  //       }
+  //     }
+  //   });}
 
     //
     // ================= DONE =================
