@@ -6,6 +6,7 @@ import CreateRequestScreen from '../screens/user/CreateRequestScreen';
 
 import DeliveryListScreen from '../screens/delivery/DeliveryListScreen';
 import ProductDetailsScreen from '../screens/user/ProductDetailsScreen';
+import CallScreen from '../screens/common/CallScreen';
 
 import DeliveryPhotoConfirmScreen from '../screens/delivery/DeliveryPhotoConfirmScreen';
 import UserConfirmScreen from '../screens/user/UserConfirmScreen';
@@ -105,7 +106,7 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
           <Stack.Screen name="ReportList" component={ReportListScreen} />
         </>
       )}
-
+<Stack.Screen name="CallScreen" component={CallScreen} />
       <Stack.Screen name="EditProfile" component={ProfileEditScreen} />
       <Stack.Screen
         options={{ headerShown: false }}

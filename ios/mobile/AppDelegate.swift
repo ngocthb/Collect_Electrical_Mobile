@@ -25,7 +25,7 @@ class AppDelegate: UIResponder,
 
   // MARK: - CallKit
   var provider: CXProvider!
-  var currentCallID: String?
+  var currentUUID: UUID?   // 🔥 QUAN TRỌNG
 
   // =================================================
   // 🚀 APP START
@@ -56,8 +56,11 @@ class AppDelegate: UIResponder,
     // CallKit
     let config = CXProviderConfiguration(localizedName: "Ewise")
     config.supportsVideo = false
+    config.maximumCallsPerCallGroup = 1
+    config.maximumCallGroups = 1
+
     provider = CXProvider(configuration: config)
-    provider.setDelegate(self, queue: nil)
+    provider.setDelegate(self, queue: DispatchQueue.main)
 
     // React Native
     let delegate = ReactNativeDelegate()
@@ -98,87 +101,100 @@ class AppDelegate: UIResponder,
   ) {
     let token = pushCredentials.token.map { String(format: "%02x", $0) }.joined()
     print("📞 VoIP Token:", token)
+     UserDefaults.standard.set(token, forKey: "VOIP_TOKEN")
   }
 
   // =================================================
   // 📞 RECEIVE PUSH
   // =================================================
-func pushRegistry(
-  _ registry: PKPushRegistry,
-  didReceiveIncomingPushWith payload: PKPushPayload,
-  for type: PKPushType,
-  completion: @escaping () -> Void
-) {
+  func pushRegistry(
+    _ registry: PKPushRegistry,
+    didReceiveIncomingPushWith payload: PKPushPayload,
+    for type: PKPushType,
+    completion: @escaping () -> Void
+  ) {
 
-  let data = payload.dictionaryPayload
-  print("🔥 PUSH RAW:", data)
+    let data = payload.dictionaryPayload
+    print("🔥 PUSH RAW:", data)
 
-  // ✅ Parse data đúng format mới
-  let callID = data["call_id"] as? String ?? UUID().uuidString
-  let callerID = data["caller_id"] as? String ?? "Unknown"
-  let callerName = data["caller_name"] as? String ?? callerID
+    let callID = data["call_id"] as? String ?? UUID().uuidString
+    let callerName = data["caller_name"] as? String ?? "Unknown"
 
-  var roomID = ""
-  if let zegoData = data["zego_data"] as? [String: Any] {
-    roomID = zegoData["room_id"] as? String ?? ""
-  }
-
-  print("📞 callID:", callID)
-  print("👤 callerName:", callerName)
-  print("🏠 roomID:", roomID)
-
-  self.currentCallID = callID
-
-  // 👉 Lưu thêm để dùng khi accept
-  UserDefaults.standard.set(roomID, forKey: "CALL_ROOM_ID")
-
-  // =================================================
-  // 📞 CallKit
-  // =================================================
-  let uuid = UUID()
-  let update = CXCallUpdate()
-  update.remoteHandle = CXHandle(type: .generic, value: callerName)
-  update.hasVideo = false
-
-  provider.reportNewIncomingCall(with: uuid, update: update) { error in
-    if let error = error {
-      print("❌ CallKit error:", error)
-    } else {
-      print("✅ CallKit shown")
+    var roomID = ""
+    if let zegoData = data["zego_data"] as? [String: Any] {
+      roomID = zegoData["room_id"] as? String ?? ""
     }
+
+    let callerId = data["caller_id"] as? String ?? ""
+
+    print("📞 callID:", callID)
+    print("👤 callerName:", callerName)
+    print("🏠 roomID:", roomID)
+
+    // 👉 lưu data
+    UserDefaults.standard.set(roomID, forKey: "CALL_ROOM_ID")
+    UserDefaults.standard.set(callID, forKey: "CALL_ID")
+    UserDefaults.standard.set(callerId, forKey: "CALLER_ID")
+    UserDefaults.standard.set(callerName, forKey: "CALLER_NAME")
+
+    // =================================================
+    // 📞 CallKit
+    // =================================================
+    let uuid = UUID()
+    self.currentUUID = uuid
+
+    let update = CXCallUpdate()
+    update.remoteHandle = CXHandle(type: .generic, value: callerName)
+    update.hasVideo = false
+
+    provider.reportNewIncomingCall(with: uuid, update: update) { error in
+      if let error = error {
+        print("❌ CallKit error:", error)
+      } else {
+        print("✅ CallKit shown")
+      }
+    }
+
+    completion()
   }
 
-  completion()
-}
+  // =================================================
+  // 📞 ACCEPT
+  // =================================================
+  func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
+    print("✅ Accepted")
+
+    let roomID = UserDefaults.standard.string(forKey: "CALL_ROOM_ID") ?? ""
+    let callerName = UserDefaults.standard.string(forKey: "CALLER_NAME") ?? ""
+    let callerId = UserDefaults.standard.string(forKey: "CALLER_ID") ?? ""
+
+    // 👉 gửi cho React Native
+    UserDefaults.standard.set(true, forKey: "HAS_PENDING_CALL")
+    UserDefaults.standard.set(roomID, forKey: "PENDING_ROOM_ID")
+    UserDefaults.standard.set(callerName, forKey: "PENDING_CALLER_NAME")
+    UserDefaults.standard.set(callerId, forKey: "PENDING_CALLER_ID")
+
+    action.fulfill()
+  }
 
   // =================================================
-  // 📞 ACCEPT CALL
+  // 📞 END (CallKit → React)
   // =================================================
-func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
-  print("✅ Accepted")
+  func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
+    print("❌ CallKit Ended")
 
+    // 👉 notify React Native
+    CallModule.emitter?.sendEvent(withName: "CALL_ENDED", body: nil)
 
+    action.fulfill()
+  }
 
-  action.fulfill()
-}
-  // =================================================
-  // 📞 END CALL
-  // =================================================
- func providerDidReset(_ provider: CXProvider) {
-  print("🔄 Provider reset")
-}
-
-
-
-func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
-  print("❌ Ended")
-  action.fulfill()
-}
+  func providerDidReset(_ provider: CXProvider) {
+    print("🔄 Provider reset")
+  }
 }
 
-// =================================================
-// ⚛️ React Native Delegate
-// =================================================
+
 class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
 
   override func sourceURL(for bridge: RCTBridge) -> URL? {

@@ -13,6 +13,8 @@
 		0F58DF14394749FD8CD57321 /* Roboto_SemiCondensed-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4A2CAA453DA84BFD85D5BF68 /* Roboto_SemiCondensed-ThinItalic.ttf */; };
 		1088CEEE083E45779CA01BA3 /* Roboto-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AF35382586B4CC8ACA621D0 /* Roboto-ExtraBold.ttf */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		1424868B2F90B6CE000A2313 /* CallModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1424868A2F90B6CB000A2313 /* CallModule.swift */; };
+		1424868F2F90C82B000A2313 /* CallModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 1424868E2F90C82B000A2313 /* CallModule.m */; };
 		143E1C822EF971E000EE76E1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 143E1C812EF971E000EE76E1 /* GoogleService-Info.plist */; };
 		1460EFB981324335B64DD75C /* Roboto_SemiCondensed-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 940B63BDF72348F49718AEA2 /* Roboto_SemiCondensed-Medium.ttf */; };
 		146F69072F4DCBB60020D338 /* zego_incoming.wav in Resources */ = {isa = PBXBuildFile; fileRef = 146F69062F4DCBB60020D338 /* zego_incoming.wav */; };
@@ -81,6 +83,9 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = mobile/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = mobile/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = mobile/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		1424868A2F90B6CB000A2313 /* CallModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallModule.swift; sourceTree = "<group>"; };
+		1424868E2F90C82B000A2313 /* CallModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CallModule.m; sourceTree = "<group>"; };
+		142486902F90C82F000A2313 /* mobile-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "mobile-Bridging-Header.h"; sourceTree = "<group>"; };
 		143E1C812EF971E000EE76E1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		145474332EFD039B0051C836 /* mobile.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = mobile.entitlements; path = mobile/mobile.entitlements; sourceTree = "<group>"; };
 		146F69062F4DCBB60020D338 /* zego_incoming.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = zego_incoming.wav; sourceTree = "<group>"; };
@@ -183,6 +188,8 @@
 		13B07FAE1A68108700A75B9A /* mobile */ = {
 			isa = PBXGroup;
 			children = (
+				1424868E2F90C82B000A2313 /* CallModule.m */,
+				1424868A2F90B6CB000A2313 /* CallModule.swift */,
 				145474332EFD039B0051C836 /* mobile.entitlements */,
 				143E1C812EF971E000EE76E1 /* GoogleService-Info.plist */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -190,6 +197,7 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
+				142486902F90C82F000A2313 /* mobile-Bridging-Header.h */,
 			);
 			name = mobile;
 			sourceTree = "<group>";
@@ -361,7 +369,7 @@
 				LastUpgradeCheck = 1210;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 2620;
 					};
 				};
 			};
@@ -557,6 +565,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
+				1424868B2F90B6CE000A2313 /* CallModule.swift in Sources */,
+				1424868F2F90C82B000A2313 /* CallModule.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -591,6 +601,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.ngocthb.ewise;
 				PRODUCT_NAME = mobile;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "mobile-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -624,6 +635,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.ngocthb.ewise;
 				PRODUCT_NAME = mobile;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "mobile-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};

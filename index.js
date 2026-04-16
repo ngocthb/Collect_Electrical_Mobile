@@ -25,5 +25,5 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
   );
 });
 
-ZegoUIKitPrebuiltCallService.useSystemCallingUI([ZIM, ZPNs]);
+// ZegoUIKitPrebuiltCallService.useSystemCallingUI([ZIM, ZPNs]);
 AppRegistry.registerComponent(appName, () => App);

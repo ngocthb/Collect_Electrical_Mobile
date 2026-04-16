@@ -22,6 +22,7 @@ import { bootstrapApp } from './src/services/bootstrapService';
 import { navigationRef } from './src/navigation/navigationService';
 import { useNotificationHandler } from './src/hooks/useNotificationHandler';
 import RankUpModal from './src/components/RankUpModal';
+import { useVoipCallHandler } from './src/hooks/useVoipCallHandler';
 import { useRankUpModal } from './src/hooks/useRankUpModal';
 function AppContent({ activeRouteName }: { activeRouteName: string }) {
   const dispatch = useAppDispatch();
@@ -33,9 +34,10 @@ function AppContent({ activeRouteName }: { activeRouteName: string }) {
   const { rankUpModal, showRankUpModal, closeRankUpModal } =
     useRankUpModal(user?.userId, canShowRankModal);
 
+
   // 👉 init Zego cơ bản (login, plugin…)
   useZegoService();
-
+    useVoipCallHandler();    
   // 👉 notification handler
   useNotificationHandler(showRankUpModal);
 

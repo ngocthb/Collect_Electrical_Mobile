@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   ActivityIndicator,
   Dimensions,
+  NativeModules,
 } from 'react-native';
 import { useState } from 'react';
 import appleAuth, {
@@ -36,6 +37,9 @@ const { width, height } = Dimensions.get('window');
 const simpleLogin = require('../../assets/images/simplelogin.png');
 const google = require('../../assets/images/google.jpg');
 const logo = require('../../assets/images/logo.png');
+
+const { CallModule } = NativeModules;
+
 export default function UserLoginScreen() {
   const dispatch = useAppDispatch();
   const auth = useAppSelector(s => s.auth);
@@ -61,7 +65,8 @@ export default function UserLoginScreen() {
       dispatch(setUnRead(unReadNoti?.unreadCount || 0));
       // @ts-ignore
       globalThis.navigation?.replace('MainTabs');
-
+const voipToken = await CallModule.getVoipToken();
+console.log ('📞 VoIP Token from native module:', voipToken);
       await registerFcmToken(profileData.userId);
     } catch (error: any) {
       console.log('Google login error', error);
