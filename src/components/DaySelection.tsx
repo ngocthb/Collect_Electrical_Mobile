@@ -58,7 +58,7 @@ const DaySelection: React.FC<DaySelectionProps> = ({
       10,
     );
 
-    const [cutoffHourStr, cutoffMinuteStr] = CUTOFF_TIME.split(':');
+    const [cutoffHourStr, cutoffMinuteStr] = CUTOFF_TIME?.split(':');
     const cutoffHour = parseInt(cutoffHourStr || '0', 10);
     const cutoffMinute = parseInt(cutoffMinuteStr || '0', 10);
 

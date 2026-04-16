@@ -88,8 +88,8 @@ android {
         abiFilters "arm64-v8a"
     }
 
-    versionCode 30
-    versionName "1.1.30"
+    versionCode 31
+    versionName "1.1.31"
 }
 
     signingConfigs {

@@ -42,7 +42,7 @@ export const getTimeSever = async (): Promise<ServerTime> => {
     const response = await axiosClient.get<ServerTime>(
       '/system-config/server-time',
     );
-
+    console.log(response);
     return response as any;
   } catch (error) {
     console.error('Error fetching server time:', error);
