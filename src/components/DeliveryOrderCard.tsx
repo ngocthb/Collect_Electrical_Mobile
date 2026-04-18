@@ -7,9 +7,11 @@ import {
   resolveStatus,
   getStatusColor,
 } from '../utils/deliveryHelpers';
+import { callUser } from '../services/callService';
 // @ts-ignore
 import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import { useNavigation } from '@react-navigation/native';
+import { useAppSelector } from '../store/hooks';
 
 const cleanUserIdForZego = (userId: string) => {
   return userId.replace(/[^a-zA-Z0-9_]/g, '');
@@ -21,6 +23,7 @@ type Props = {
 };
 
 const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
+  const user = useAppSelector(state => state.auth.user);
   const navigation = useNavigation<any>();
   const status = resolveStatus(order);
   const actionsDisabled = status === 'failed' || status === 'completed';
@@ -82,9 +85,7 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
       <View className="flex-1 flex-row items-center">
         <TouchableOpacity
           onPress={handleEyePress}
-          disabled={
-              isSelectedDateToday || !actionsDisabled
-          }
+          disabled={isSelectedDateToday || !actionsDisabled}
           className="flex-1"
         >
           <View className="flex-row justify-between items-center mb-1">
@@ -112,6 +113,24 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
               isVideoCall={false}
               resourceID={'thugom'}
               timeout={120}
+              onWillPressed={async () => {
+                console.log('📞 Call button will be pressed');
+                try {
+                  await callUser(
+                    String(user?.userId),
+                    String(user?.name),
+                    String(receiver?.userId),
+                    `call_${Date.now()}`,
+                    `room_${Date.now()}`,
+                  );
+                  return true;
+                } catch (e) {
+                  return false;
+                } finally {
+                  console.log('📞 Call button press handling completed');
+                  return true;
+                }
+              }}
             />
           ) : invitees.length > 0 ? (
             <View
