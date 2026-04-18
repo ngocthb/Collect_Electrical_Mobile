@@ -5,6 +5,7 @@ import QRCode from 'react-native-qrcode-svg';
 import Icon from 'react-native-vector-icons/Feather';
 import { formatDate } from '../../utils/dateUtils';
 import SubLayout from '../../layout/SubLayout';
+import { useAppSelector } from '../../store/hooks';
 
 interface VoucherDetailsRouteProp {
   voucher: {
@@ -25,11 +26,12 @@ export default function VoucherDetailsScreen() {
   const route = useRoute();
   const navigation = useNavigation<any>();
   const { voucher } = route.params as VoucherDetailsRouteProp;
+  const user = useAppSelector(s => s.auth.user);
 
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Voucher: ${voucher.code}\n${voucher.name}\nGiá: ${voucher.pointsToRedeem} xu`,
+        message: `Voucher: ${voucher.code}\n${voucher.name}\nGiá: ${voucher.pointsToRedeem} điểm`,
         title: voucher.name,
       });
     } catch (error) {
@@ -50,7 +52,7 @@ export default function VoucherDetailsScreen() {
           <View className="rounded-2xl  items-center">
             <View className="p-4 rounded-xl mb-4">
               <QRCode
-                value={voucher.code}
+                value={`${voucher.code} - ${user?.userId}`} // You can customize this value as needed
                 size={200}
                 backgroundColor="white"
                 logoSize={60}

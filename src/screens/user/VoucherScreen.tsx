@@ -59,7 +59,11 @@ export default function VoucherScreen() {
         const userId = user?.userId || '';
         resp = await getVoucher.getVoucherByUser(userId, pageNum, searchTerm);
       } else {
-        resp = await getVoucher.getVoucher(pageNum, searchTerm, user?.userId || '');
+        resp = await getVoucher.getVoucher(
+          pageNum,
+          searchTerm,
+          user?.userId || '',
+        );
       }
       const vouchersData = Array.isArray(resp) ? resp : [];
 
@@ -179,7 +183,7 @@ export default function VoucherScreen() {
                   insufficientPoints ? 'text-gray-400' : 'text-white'
                 }`}
               >
-                {insufficientPoints ? 'Không đủ xu' : 'Đổi Voucher'}
+                {insufficientPoints ? 'Không đủ điểm' : 'Đổi Voucher'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -306,7 +310,7 @@ export default function VoucherScreen() {
       setRedeeming(false);
     }
   };
-console.log('Selected Voucher:', allVouchersData);
+  console.log('Selected Voucher:', allVouchersData);
 
   return (
     <SubLayout
@@ -315,7 +319,7 @@ console.log('Selected Voucher:', allVouchersData);
       rightComponent={
         <View className="flex justify-center items-center ">
           <Text className="text-base text-text-main font-semibold">
-            Tổng xu:{' '}
+            Tổng điểm:{' '}
             <Text className="font-bold text-primary-100">{user?.points}</Text>{' '}
             🪙
           </Text>

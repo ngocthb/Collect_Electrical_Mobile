@@ -35,7 +35,7 @@ const onboardingData: OnboardingItem[] = [
   },
   {
     id: '2',
-    title: 'Nhận xu đổi quà',
+    title: 'Nhận điểm đổi quà',
     description: 'Rất nhiều phần thưởng đang đợi bạn',
     image: onboarding2,
     backgroundColor: '#d8c3a5',

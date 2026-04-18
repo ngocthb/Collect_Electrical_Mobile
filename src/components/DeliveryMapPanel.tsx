@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
-
 import AppButton from './ui/AppButton';
 import AppAvatar from './ui/AppAvatar';
 import ImageGalleryViewer from './ui/ImageGalleryViewer';
@@ -19,9 +18,8 @@ import { Linking } from 'react-native';
 import { sendNotification } from '../services/notificationServices';
 import { formatDate } from '../utils/dateUtils';
 import { useSelector } from 'react-redux';
-import { callUser } from '../services/callService';
 import { useAppSelector } from '../store/hooks';
-import { setCurrentCallInfo } from '../config/zego';
+import { callUser } from '../services/callService';
 
 type Props = {
   normalizedRequest: any;
@@ -46,16 +44,14 @@ const DeliveryMapPanel: React.FC<Props> = ({
   const [ARRIVAL_DISTANCE_THRESHOLD] = useSelector((s: any) => [
     s?.systemConfig?.radiusMeter?.value,
   ]);
-  const { user } = useAppSelector(s => s.auth);
-  console.log(ARRIVAL_DISTANCE_THRESHOLD);
+  const [user] = useAppSelector(s => [s.auth.user]);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showActionButtons, setShowActionButtons] = useState(false);
   const hasShownQrModalRef = React.useRef(false);
   const hasNotifiedArrivalRef = React.useRef(false);
   const hasReceivedSocketConfirmationRef = React.useRef(false);
   const [isSendNoti, setIsSendNoti] = useState(false);
-  const [isCallingUser, setIsCallingUser] = useState(false);
-  // Reset QR modal flag when resetQrTrigger changes (manual refresh only)
+
   useEffect(() => {
     if (resetQrTrigger && resetQrTrigger > 0) {
       console.log(
@@ -102,8 +98,6 @@ const DeliveryMapPanel: React.FC<Props> = ({
     }
   }, [resetQrTrigger, distanceInMeters]);
 
-  console.log(normalizedRequest);
-  // Only check on mount or when entering the threshold for the first time
   useEffect(() => {
     // Chỉ chạy khi không có resetQrTrigger (tức là lần đầu mount)
     if (
@@ -178,59 +172,6 @@ const DeliveryMapPanel: React.FC<Props> = ({
     } catch (err) {
       console.warn('Failed to notify arrival:', err);
       setIsSendNoti(false);
-    }
-  };
-
-  const handleInitiateCall = async () => {
-    if (isCallingUser || !user?.userId) {
-      console.warn('[DeliveryMapPanel] Already calling or no user');
-      return;
-    }
-
-    const receiver = normalizedRequest?.sender;
-    const calleeId = receiver?.userId?.replace(/[^a-zA-Z0-9_]/g, '') || '';
-
-    if (!calleeId) {
-      console.warn('[DeliveryMapPanel] No callee ID available');
-      return;
-    }
-
-    try {
-      setIsCallingUser(true);
-      const callId = `call_${Date.now()}_${Math.random()
-        .toString(36)
-        .substr(2, 9)}`;
-      const roomId = `room_${
-        normalizedRequest?.collectionRouteId || 'default'
-      }`;
-
-      console.log('[DeliveryMapPanel] 📞 Initiating call with:', {
-        callerId: user.userId,
-        callerName: user.name || 'Caller',
-        calleeId,
-        callId,
-        roomId,
-      });
-
-      // 👉 Store call info in Zego service for later endCall API
-      setCurrentCallInfo(callId, calleeId);
-
-      const response = await callUser(
-        user.userId,
-        user.name || 'Caller',
-        receiver?.userId,
-        callId,
-        roomId,
-      );
-
-      console.log(
-        '[DeliveryMapPanel] ✅ Call initiated successfully:',
-        response,
-      );
-    } catch (err) {
-      console.error('[DeliveryMapPanel] ❌ Error initiating call:', err);
-    } finally {
-      setIsCallingUser(false);
     }
   };
 
@@ -345,7 +286,24 @@ const DeliveryMapPanel: React.FC<Props> = ({
                     isVideoCall={false}
                     resourceID={'thugom'}
                     timeout={120}
-                    onPress={handleInitiateCall}
+                    onWillPressed={async () => {
+                      console.log('📞 Call button will be pressed');
+                      try {
+                        await callUser(
+                          String(user?.userId),
+                          String(user?.name),
+                          String(receiver?.userId),
+                          `call_${Date.now()}`,
+                          `room_${Date.now()}`,
+                        );
+                        return true;
+                      } catch (e) {
+                        return false;
+                      } finally {
+                        console.log('📞 Call button press handling completed');
+                        return true;
+                      }
+                    }}
                   />
                 </View>
               </View>

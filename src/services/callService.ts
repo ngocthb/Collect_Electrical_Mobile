@@ -8,13 +8,16 @@ export const callUser = async (
   roomId: string,
 ) => {
   try {
-    const response = await axiosClient.post('/call/call-user', {
-      callerId,
-      callerName,
-      calleeId,
-      callId,
-      roomId,
+    console.log(callerId, callerName, calleeId, callId, roomId);
+    const response = await axiosClient.post('/call/initiate', {
+      callerId: callerId,
+      callerName: callerName,
+      calleeId: calleeId,
+      callId: callId,
+      roomId: roomId,
     });
+    console.log('1111111111');
+    console.log(response);
     return response;
   } catch (error) {
     console.error('Error calling user:', error);
@@ -24,6 +27,7 @@ export const callUser = async (
 
 export const endCall = async (callId: string, partnerId: string) => {
   try {
+    console.log('---------------------');
     const response = await axiosClient.post('/call/end', { callId, partnerId });
     return response;
   } catch (error) {

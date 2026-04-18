@@ -123,7 +123,7 @@ export default function WalletScreen() {
               resizeMode="contain"
             />
             <View className="flex-1 justify-between">
-              <Text className="text-white text-sm">Tổng xu</Text>
+              <Text className="text-white text-sm">Tổng điểm</Text>
               <Text className="text-white text-2xl font-bold mt-2">
                 {loading ? (
                   <ActivityIndicator color="#fff" />
@@ -151,7 +151,7 @@ export default function WalletScreen() {
         </View>
 
         {/* History */}
-        <Text className="text-lg font-semibold mb-3">Lịch sử nhận xu</Text>
+        <Text className="text-lg font-semibold mb-3">Lịch sử nhận điểm</Text>
         <View>
           {loadingTransactions ? (
             <View className="py-8 items-center">

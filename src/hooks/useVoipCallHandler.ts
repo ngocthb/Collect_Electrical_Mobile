@@ -3,6 +3,9 @@ import { NativeModules } from 'react-native';
 import { navigationRef } from '../navigation/navigationService';
 import { useSelector } from 'react-redux';
 
+//@ts-ignore
+import { ZegoUIKitPrebuiltCallService } from '@zegocloud/zego-uikit-prebuilt-call-rn';
+
 const { CallModule } = NativeModules;
 
 export const useVoipCallHandler = () => {
@@ -18,7 +21,7 @@ export const useVoipCallHandler = () => {
       const roomID = await CallModule.getItem('PENDING_ROOM_ID');
       const callerName = await CallModule.getItem('PENDING_CALLER_NAME');
       const callerId = await CallModule.getItem('PENDING_CALLER_ID');
-const callId = await CallModule.getItem('PENDING_CALL_ID');
+      const callId = await CallModule.getItem('PENDING_CALL_ID');
       console.log('📞 Resume call:', roomID);
 
       if (!roomID) return;
@@ -37,17 +40,29 @@ const callId = await CallModule.getItem('PENDING_CALL_ID');
             'callerId:',
             callerId,
           );
-          navigationRef.navigate('ZegoUIKitPrebuiltCallInCallScreen', {
+          // navigationRef.navigate('ZegoUIKitPrebuiltCallInCallScreen', {
+          //   invitees: [
+          //     {
+          //       userID: cleanUserIdForZego(String(callerId)),
+          //       userName: String(callerName),
+          //     },
+          //   ],
+          //   callID: callId,
+          //   roomID: roomID,
+          //   userID: cleanUserIdForZego(String(user?.userId)),
+          //   userName: String(user?.name),
+          // });
+          ZegoUIKitPrebuiltCallService.joinCall({
+            callID: callId,
+            userID: cleanUserIdForZego(String(user?.userId)),
+            userName: String(user?.name),
+
             invitees: [
               {
                 userID: cleanUserIdForZego(String(callerId)),
                 userName: String(callerName),
               },
             ],
-            callID: callId,
-            roomID: roomID,
-            userID: cleanUserIdForZego(String(user?.userId)),
-            userName: String(user?.name),
           });
 
           // 👉 chỉ xoá sau khi navigate thành công
