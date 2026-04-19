@@ -23,6 +23,7 @@ import { uploadImageToCloudinary } from '../../config/cloudinary';
 import { setUser } from '../../store/slices/authSlice';
 import { logout } from '../../store/slices/authSlice';
 import { signOut } from '../../services/authService';
+import { validatePhoneNumber } from '../../utils/validations/index';
 const { width, height } = Dimensions.get('window');
 const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
   const user = useAppSelector(s => s.auth.user);
@@ -54,6 +55,20 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
             type: 'error',
             text1: 'Lỗi',
             text2: 'Không thể tải ảnh lên',
+          });
+          setSaving(false);
+          return;
+        }
+      }
+
+      // Validate phone number if it has changed
+      if (phone !== (user?.phone ?? '')) {
+        const phoneError = validatePhoneNumber(phone);
+        if (phoneError) {
+          toast.show({
+            type: 'error',
+            text1: 'Lỗi',
+            text2: phoneError,
           });
           setSaving(false);
           return;

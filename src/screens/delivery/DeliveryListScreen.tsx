@@ -189,6 +189,7 @@ export default function DeliveryListScreen() {
   const fetchAllConfig = async () => {
     try {
       const configData = await getAllConfig();
+      console.log('==========');
       console.log(configData);
       setSelectedDate(
         configData.timeServe

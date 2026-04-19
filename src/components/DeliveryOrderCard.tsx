@@ -7,9 +7,8 @@ import {
   resolveStatus,
   getStatusColor,
 } from '../utils/deliveryHelpers';
-import { callUser } from '../services/callService';
-// @ts-ignore
-import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
+
+import CallOptionsModal from './CallOptionsModal';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '../store/hooks';
 
@@ -25,7 +24,9 @@ type Props = {
 const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
   const user = useAppSelector(state => state.auth.user);
   const navigation = useNavigation<any>();
+  const [showCallModal, setShowCallModal] = useState(false);
   const status = resolveStatus(order);
+
   const actionsDisabled = status === 'failed' || status === 'completed';
 
   const receiver = order?.sender;
@@ -50,7 +51,7 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
       isRouteLoading: false,
     });
   };
-  console.log(order);
+
   return (
     <View className="flex-row mb-8 relative z-10">
       <View className="items-center mr-3">
@@ -85,7 +86,7 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
       <View className="flex-1 flex-row items-center">
         <TouchableOpacity
           onPress={handleEyePress}
-          disabled={isSelectedDateToday || !actionsDisabled}
+          disabled={!isSelectedDateToday || actionsDisabled}
           className="flex-1"
         >
           <View className="flex-row justify-between items-center mb-1">
@@ -108,30 +109,12 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
 
         <View className="ml-3">
           {invitees.length > 0 && isSelectedDateToday && !actionsDisabled ? (
-            <ZegoSendCallInvitationButton
-              invitees={invitees}
-              isVideoCall={false}
-              resourceID={'thugom'}
-              timeout={120}
-              onWillPressed={async () => {
-                console.log('📞 Call button will be pressed');
-                try {
-                  await callUser(
-                    String(user?.userId),
-                    String(user?.name),
-                    String(receiver?.userId),
-                    `call_${Date.now()}`,
-                    `room_${Date.now()}`,
-                  );
-                  return true;
-                } catch (e) {
-                  return false;
-                } finally {
-                  console.log('📞 Call button press handling completed');
-                  return true;
-                }
-              }}
-            />
+            <TouchableOpacity
+              onPress={() => setShowCallModal(true)}
+              className="w-12 h-12 rounded-full bg-white items-center justify-center"
+            >
+              <Icon name="phone-in-talk" size={26} color="#3366CC" />
+            </TouchableOpacity>
           ) : invitees.length > 0 ? (
             <View
               className="bg-gray-100 rounded-full p-2"
@@ -146,6 +129,15 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
           )}
         </View>
       </View>
+
+      <CallOptionsModal
+        visible={showCallModal}
+        onClose={() => setShowCallModal(false)}
+        receiver={receiver}
+        invitees={invitees}
+        user={user}
+        senderName={receiver?.name}
+      />
     </View>
   );
 };

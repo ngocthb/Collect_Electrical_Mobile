@@ -11,15 +11,14 @@ import AppButton from './ui/AppButton';
 import AppAvatar from './ui/AppAvatar';
 import ImageGalleryViewer from './ui/ImageGalleryViewer';
 import DeliveryQrModal from '../components/DeliveryQrModal';
-// @ts-ignore
-import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
+import CallOptionsModal from './CallOptionsModal';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axiosClient from '../config/axios';
 import { Linking } from 'react-native';
 import { sendNotification } from '../services/notificationServices';
 import { formatDate } from '../utils/dateUtils';
 import { useSelector } from 'react-redux';
 import { useAppSelector } from '../store/hooks';
-import { callUser } from '../services/callService';
 
 type Props = {
   normalizedRequest: any;
@@ -47,6 +46,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
   const [user] = useAppSelector(s => [s.auth.user]);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showActionButtons, setShowActionButtons] = useState(false);
+  const [showCallModal, setShowCallModal] = useState(false);
   const hasShownQrModalRef = React.useRef(false);
   const hasNotifiedArrivalRef = React.useRef(false);
   const hasReceivedSocketConfirmationRef = React.useRef(false);
@@ -236,7 +236,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
       console.warn('Cannot open Google Maps', e);
     }
   };
-
+  console.log(normalizedRequest);
   return (
     <ScrollView
       className="flex-1 bg-background-50"
@@ -281,30 +281,12 @@ const DeliveryMapPanel: React.FC<Props> = ({
                       </Text>
                     </TouchableOpacity>
                   </View>
-                  <ZegoSendCallInvitationButton
-                    invitees={invitees}
-                    isVideoCall={false}
-                    resourceID={'thugom'}
-                    timeout={120}
-                    onWillPressed={async () => {
-                      console.log('📞 Call button will be pressed');
-                      try {
-                        await callUser(
-                          String(user?.userId),
-                          String(user?.name),
-                          String(receiver?.userId),
-                          `call_${Date.now()}`,
-                          `room_${Date.now()}`,
-                        );
-                        return true;
-                      } catch (e) {
-                        return false;
-                      } finally {
-                        console.log('📞 Call button press handling completed');
-                        return true;
-                      }
-                    }}
-                  />
+                  <TouchableOpacity
+                    onPress={() => setShowCallModal(true)}
+                    className="w-12 h-12 rounded-full bg-white items-center justify-center"
+                  >
+                    <Icon name="phone-in-talk" size={26} color="#3366CC" />
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -380,6 +362,15 @@ const DeliveryMapPanel: React.FC<Props> = ({
             '✅ Socket confirmation received (skip) - modal will not show again',
           );
         }}
+      />
+
+      <CallOptionsModal
+        visible={showCallModal}
+        onClose={() => setShowCallModal(false)}
+        receiver={receiver}
+        invitees={invitees}
+        user={user}
+        senderName={normalizedRequest?.sender?.name}
       />
     </ScrollView>
   );

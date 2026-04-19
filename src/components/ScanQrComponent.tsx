@@ -10,6 +10,9 @@ interface ScanQrComponentProps {
   title?: string;
   subtitle?: string;
   instruction?: string;
+  scanResultMessage?: string;
+  resultColor?: string;
+  resultIcon?: string;
 }
 const { width, height } = Dimensions.get('window');
 const ScanQrComponent: React.FC<ScanQrComponentProps> = ({
@@ -18,6 +21,9 @@ const ScanQrComponent: React.FC<ScanQrComponentProps> = ({
   title = 'Quét mã QR của sản phẩm',
   subtitle = 'Đưa camera vào mã QR để định danh sản phẩm',
   instruction = 'Hướng camera vào mã QR của sản phẩm để quét và xác nhận thông tin sản phẩm',
+  scanResultMessage = 'Quét thành công!',
+  resultColor = '#10B981',
+  resultIcon = '✓',
 }) => {
   const [scanned, setScanned] = useState(false);
   const [qrId, setQrId] = useState<string | null>(null);
@@ -129,9 +135,14 @@ const ScanQrComponent: React.FC<ScanQrComponentProps> = ({
           </>
         ) : (
           <View className="flex-1 items-center justify-center bg-white p-4 w-full">
-            <Text className="text-5xl text-green-500 mb-2">✓</Text>
-            <Text className="text-lg font-semibold text-green-600 mb-2">
-              Quét thành công!
+            <Text style={{ fontSize: 40, color: resultColor }} className="mb-2">
+              {resultIcon}
+            </Text>
+            <Text
+              style={{ color: resultColor }}
+              className="text-lg font-semibold mb-2"
+            >
+              {scanResultMessage}
             </Text>
 
             <AppButton title="Quét lại" onPress={handleScanAgain} />

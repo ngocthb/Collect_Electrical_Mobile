@@ -10,6 +10,7 @@ import AppAvatar from '../../components/ui/AppAvatar';
 import ImageGalleryViewer from '../../components/ui/ImageGalleryViewer';
 import SubLayout from '../../layout/SubLayout';
 import { useSelector } from 'react-redux';
+import { isValidSystemQRCode } from '../../utils/qrUtils';
 const { width, height } = Dimensions.get('window');
 interface DeliveryScanQrScreenProps {
   navigation: any;
@@ -21,7 +22,7 @@ const DeliveryScanQrScreen = ({
   route,
 }: DeliveryScanQrScreenProps) => {
   const [shipperId, setShipperId] = useState<string | null>(null);
-
+  const [scanFailed, setScanFailed] = useState(false);
   const [showScanner, setShowScanner] = useState(true);
   const imageUrl: string[] = useSelector(
     (state: any) => state.deliveryConfirmImage.imageUrls,
@@ -82,6 +83,15 @@ const DeliveryScanQrScreen = ({
   }, [shipperId, senderInfo, route.params, routeRaw]);
 
   const handleScanSuccess = (id: string) => {
+    if (!isValidSystemQRCode(id)) {
+      setScanFailed(true);
+      setShowScanner(true);
+      setTimeout(() => {
+        setScanFailed(false);
+      }, 2000);
+      return;
+    }
+
     setShipperId(id);
     setShowScanner(false);
 
@@ -100,7 +110,6 @@ const DeliveryScanQrScreen = ({
     })();
   };
 
-  console.log(request);
   const handleScanClose = () => {
     toast.show({
       type: 'confirm',
@@ -246,6 +255,11 @@ const DeliveryScanQrScreen = ({
                   instruction="Nhân viên vui lòng quét mã QR trên sản phẩm để xác thực trước khi chuyển hàng về kho"
                   onScan={handleScanSuccess}
                   onClose={handleScanClose}
+                  scanResultMessage={
+                    scanFailed ? 'Mã QR không hợp lệ' : 'Quét thành công!'
+                  }
+                  resultColor={scanFailed ? '#e85a4f' : '#10B981'}
+                  resultIcon={scanFailed ? '✗' : '✓'}
                 />
               )}
             </>
