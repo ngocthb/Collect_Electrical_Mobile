@@ -67,7 +67,9 @@ export const useNotificationHandler = (
           text2: remoteMessage.notification?.body || '',
           onPress: () => {
             if (navigationRef.isReady()) {
-              navigationRef.navigate('Thông báo' as any);
+              navigationRef.navigate('MainTabs', {
+                screen: 'Thông báo',
+              });
             }
           },
         });
@@ -125,7 +127,9 @@ export const useNotificationHandler = (
         } else if (type === 'NOTIFICATION') {
           if (navigationRef.isReady()) {
             console.log('Navigate từ background');
-            navigationRef.navigate('Thông báo' as any);
+            navigationRef.navigate('MainTabs', {
+              screen: 'Thông báo',
+            });
           }
         }
       },
@@ -181,7 +185,9 @@ export const useNotificationHandler = (
               if (navigationRef.isReady()) {
                 console.log('Navigation ready! Navigate now');
                 clearInterval(checkNavReady);
-                navigationRef.navigate('Thông báo' as any);
+                navigationRef.navigate('MainTabs', {
+                  screen: 'Thông báo',
+                });
               } else {
                 console.log('Navigation not ready yet...');
               }

@@ -15,6 +15,8 @@ import AppButton from '../../components/ui/AppButton';
 import { useNavigation } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { setError, setLoading, setUser } from '../../store/slices/authSlice';
+import { getUnReadNotis } from '../../services/notificationServices';
+import { setUnRead } from '../../store/slices/notificationSlice';
 import Toast from 'react-native-toast-message';
 import { fetchUserProfile } from '../../services/authService';
 import { signIn } from '../../services/authService';
@@ -56,12 +58,14 @@ export default function DeliveryLoginScreen() {
       }
       const userProfile: any = await fetchUserProfile();
       dispatch(setUser(userProfile));
+      const unReadNoti = await getUnReadNotis(userProfile.userId);
+      dispatch(setUnRead(unReadNoti?.unreadCount || 0));
 
       if (userProfile.role === 'Collector') {
         // @ts-ignore
         globalThis.navigation?.replace('Dashboard');
       }
-      await registerFcmToken(userProfile.userId);
+      await registerFcmToken(userProfile.userId, '');
     } catch (error) {
       Toast.show({
         type: 'error',

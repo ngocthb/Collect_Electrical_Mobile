@@ -106,7 +106,7 @@ export default function MainNavigator({ delivery }: { delivery?: boolean }) {
           <Stack.Screen name="ReportList" component={ReportListScreen} />
         </>
       )}
-<Stack.Screen name="CallScreen" component={CallScreen} />
+      <Stack.Screen name="CallScreen" component={CallScreen} />
       <Stack.Screen name="EditProfile" component={ProfileEditScreen} />
       <Stack.Screen
         options={{ headerShown: false }}

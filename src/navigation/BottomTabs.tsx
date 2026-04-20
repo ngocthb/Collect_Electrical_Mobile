@@ -132,7 +132,38 @@ function BottomTabs() {
           switch (route.name) {
             case 'Đơn hàng':
               return <IconOcticons name="checklist" {...props} />;
-
+            case 'Thông báo':
+              return (
+                <View style={{ width: 24, height: 24 }}>
+                  <IconFeature name="bell" {...props} />
+                  {Number(unRead) > 0 && (
+                    <View
+                      style={{
+                        position: 'absolute',
+                        top: -6,
+                        right: -8,
+                        minWidth: 16,
+                        height: 16,
+                        borderRadius: 8,
+                        backgroundColor: '#ef4444',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingHorizontal: 3,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: '#fff',
+                          fontSize: 10,
+                          fontWeight: '700',
+                        }}
+                      >
+                        {Number(unRead) > 99 ? '99+' : Number(unRead)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              );
             case 'Tài khoản':
               return <IconFeature name="user" {...props} />;
             default:
@@ -142,6 +173,7 @@ function BottomTabs() {
       })}
     >
       <Tab.Screen name="Đơn hàng" component={DeliveryListScreen} />
+      <Tab.Screen name="Thông báo" component={NotificationScreen} />
       <Tab.Screen name="Tài khoản" component={ProfileScreen} />
     </Tab.Navigator>
   );
