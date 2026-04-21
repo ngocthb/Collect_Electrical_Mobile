@@ -15,6 +15,8 @@ export const mapStatus = (apiStatus: string | undefined) => {
     case 'Đang tiến hành':
     case 'Chưa bắt đầu':
       return 'pending';
+    case 'Thất bại':
+      return 'failed';
     default:
       return 'pending';
   }

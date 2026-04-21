@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import routeService from '../../services/routeService';
 import WeeklyCalendar from '../../components/ui/WeeklyCalendar';
@@ -36,6 +36,7 @@ export default function DeliveryListScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const dispatch = useAppDispatch();
+  const route = useRoute<any>();
 
   const user = useAppSelector(s => s.auth.user);
   const userId = user?.userId;
@@ -190,7 +191,7 @@ export default function DeliveryListScreen() {
     try {
       const configData = await getAllConfig();
       console.log('==========');
-      console.log(configData);
+
       setSelectedDate(
         configData.timeServe
           ? new Date(configData?.timeServe?.serverDate)
@@ -206,6 +207,23 @@ export default function DeliveryListScreen() {
   useEffect(() => {
     fetchAllConfig();
   }, []);
+
+  // Handle date parameter from route
+  useEffect(() => {
+    const dateParam = route.params?.date;
+    if (dateParam) {
+      try {
+        // Parse date string in "yyyy-MM-dd" format
+        const parsedDate = new Date(dateParam);
+        // Verify the date is valid
+        if (!isNaN(parsedDate.getTime())) {
+          setSelectedDate(parsedDate);
+        }
+      } catch (error) {
+        console.warn('Failed to parse date from route params:', error);
+      }
+    }
+  }, [route.params?.date]);
   console.log(filteredOrders);
   return (
     <MainLayout

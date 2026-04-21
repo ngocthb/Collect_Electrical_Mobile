@@ -129,7 +129,7 @@ const DeliveryCancelScreen = () => {
       });
       navigation.reset({
         index: 0,
-        routes: [{ name: 'DeliveryList' }],
+        routes: [{ name: 'MainTabs' }],
       });
     } catch (e) {
       console.warn('Failed to cancel route', e);

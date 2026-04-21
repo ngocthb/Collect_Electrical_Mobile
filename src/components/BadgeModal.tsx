@@ -12,9 +12,8 @@ interface BadgeModalProps {
 }
 
 export const DEFAULT_BADGES: Badge[] = [
-  { id: 'cancel_reason_delay', label: 'Khách hàng không có nhà' },
-  { id: 'cancel_reason_damaged', label: 'Hàng hư hỏng' },
-  { id: 'cancel_reason_other', label: 'Lý do khác' },
+  { id: 'cancel_reason_delay', label: 'Kích thước không đúng' },
+  { id: 'cancel_reason_damaged', label: 'Sản phẩm không khớp với hình ảnh' },
   { id: 'cancel_reason_refuse', label: 'Khách từ chối đưa hàng' },
 ];
 

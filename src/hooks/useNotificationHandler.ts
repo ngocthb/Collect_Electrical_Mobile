@@ -19,6 +19,7 @@ export const useNotificationHandler = (
         newRankName,
         isRankUp,
         totalCo2,
+        date,
       } = remoteMessage.data || {};
       console.log(remoteMessage.data);
       if (
@@ -67,8 +68,22 @@ export const useNotificationHandler = (
           text2: remoteMessage.notification?.body || '',
           onPress: () => {
             if (navigationRef.isReady()) {
-              navigationRef.navigate('MainTabs', {
+              navigationRef.navigate('BottomTabs', {
                 screen: 'Thông báo',
+              });
+            }
+          },
+        });
+      } else if (type === 'NEW_COLLECTION_ROUTE' && date) {
+        Toast.show({
+          type: 'info',
+          text1: remoteMessage.notification?.title || 'Thông báo',
+          text2: remoteMessage.notification?.body || '',
+          onPress: () => {
+            if (navigationRef.isReady()) {
+              navigationRef.navigate('BottomTabs', {
+                screen: 'Đơn hàng',
+                params: { date: date },
               });
             }
           },
@@ -94,6 +109,7 @@ export const useNotificationHandler = (
           newRankName,
           isRankUp,
           totalCo2,
+          date,
         } = remoteMessage.data || {};
         if (
           type === 'CO2_SAVED' &&
@@ -126,9 +142,15 @@ export const useNotificationHandler = (
           return;
         } else if (type === 'NOTIFICATION') {
           if (navigationRef.isReady()) {
-            console.log('Navigate từ background');
-            navigationRef.navigate('MainTabs', {
+            navigationRef.navigate('BottomTabs', {
               screen: 'Thông báo',
+            });
+          }
+        } else if (type === 'NEW_COLLECTION_ROUTE' && date) {
+          if (navigationRef.isReady()) {
+            navigationRef.navigate('BottomTabs', {
+              screen: 'Đơn hàng',
+              params: { date: date },
             });
           }
         }
@@ -141,7 +163,7 @@ export const useNotificationHandler = (
       .then(remoteMessage => {
         console.log('getInitialNotification:', remoteMessage);
         if (remoteMessage) {
-          const { productId, type, routeId } = remoteMessage.data || {};
+          const { productId, type, routeId, date } = remoteMessage.data || {};
           console.log('ProductId from killed state:', productId);
           if (type === 'CO2_SAVED') {
             const rankUpPayload = getRankUpPayload(remoteMessage.data);
@@ -185,8 +207,24 @@ export const useNotificationHandler = (
               if (navigationRef.isReady()) {
                 console.log('Navigation ready! Navigate now');
                 clearInterval(checkNavReady);
-                navigationRef.navigate('MainTabs', {
+                navigationRef.navigate('BottomTabs', {
                   screen: 'Thông báo',
+                });
+              } else {
+                console.log('Navigation not ready yet...');
+              }
+            }, 100);
+
+            // Timeout sau 5s để tránh loop vô hạn
+            setTimeout(() => clearInterval(checkNavReady), 5000);
+          } else if (type === 'NEW_COLLECTION_ROUTE' && date) {
+            const checkNavReady = setInterval(() => {
+              if (navigationRef.isReady()) {
+                console.log('Navigation ready! Navigate now');
+                clearInterval(checkNavReady);
+                navigationRef.navigate('BottomTabs', {
+                  screen: 'Đơn hàng',
+                  params: { date: date },
                 });
               } else {
                 console.log('Navigation not ready yet...');
