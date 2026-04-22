@@ -3,11 +3,19 @@ import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import DaySelection from './DaySelection';
 import CustomTimeModal from './CustomTimeModal';
-import { days, type Day, predefinedTimeSlots } from '../data/timeSlots';
+
+import { Day } from '../data/timeSlots';
+import {
+  getTimeSlotLabel,
+  buildPredefinedTimeSlots,
+} from '../utils/timeSlotUtils';
 import { useAppSelector } from '../store/hooks';
 import { useDispatch } from 'react-redux';
 import type { TimeSlot } from '../types/TimeSlot';
 import { toggleSyncSlots, updateTimeSlot } from '../store/slices/timeSlotSlice';
+const minTime = '08:00';
+const maxTime = '17:00';
+
 const PickupTimeSelector: React.FC = () => {
   const [sameTimeForAll, setSameTimeForAll] = useState(false);
   const [selectedDays, setSelectedDays] = useState<Day[]>([]);
@@ -19,21 +27,21 @@ const PickupTimeSelector: React.FC = () => {
     return new Date(a.pickUpDate).getTime() - new Date(b.pickUpDate).getTime();
   });
 
-  const getTimeSlotLabel = (slot: { startTime: string; endTime: string }) => {
-    if (!slot) return 'Chưa chọn';
-    const matchedSlot = predefinedTimeSlots.find(
-      ps =>
-        ps.times.length === 2 &&
-        ps.times[0] === slot.startTime &&
-        ps.times[1] === slot.endTime,
-    );
+  // const getTimeSlotLabel = (slot: { startTime: string; endTime: string }) => {
+  //   if (!slot) return 'Chưa chọn';
+  //   const matchedSlot = predefinedTimeSlot(minTime, maxTime).find(
+  //     ps =>
+  //       ps.times.length === 2 &&
+  //       ps.times[0] === slot.startTime &&
+  //       ps.times[1] === slot.endTime,
+  //   );
 
-    if (matchedSlot) return matchedSlot.label;
+  //   if (matchedSlot) return matchedSlot.label;
 
-    if (slot.startTime || slot.endTime) return 'Giờ tự chọn';
+  //   if (slot.startTime || slot.endTime) return 'Giờ tự chọn';
 
-    return 'Chưa chọn';
-  };
+  //   return 'Chưa chọn';
+  // };
 
   const formatTo24Hour = (time12h: string): string => {
     if (!time12h) return '';
@@ -70,17 +78,21 @@ const PickupTimeSelector: React.FC = () => {
     dayName: string,
     existing?: { startTime: string; endTime: string },
   ) => {
+    console.log(existing);
     setOpenForDay(openForDay === dayName ? null : dayName);
     if (existing) {
       setCustomStart(existing.startTime || '');
       setCustomEnd(existing.endTime || '');
-      const matched = predefinedTimeSlots.find(
-        ps =>
-          ps.times.length === 2 &&
-          ps.times[0] === existing.startTime &&
-          ps.times[1] === existing.endTime,
-      );
-      setSelectedPresetLabel(matched ? matched.label : 'Giờ tự chọn');
+      const label = getTimeSlotLabel(existing, minTime, maxTime);
+      setSelectedPresetLabel(label);
+
+      // const matched = predefinedTimeSlots.find(
+      //   ps =>
+      //     ps.times.length === 2 &&
+      //     ps.times[0] === existing.startTime &&
+      //     ps.times[1] === existing.endTime,
+      // );
+      // setSelectedPresetLabel(matched ? matched.label : 'Giờ tự chọn');
     } else {
       setCustomStart('');
       setCustomEnd('');
@@ -182,7 +194,7 @@ const PickupTimeSelector: React.FC = () => {
                   }
                 >
                   <Text className="text-sm text-text-main flex-1">
-                    {getTimeSlotLabel(timeSlot[0].slots)}
+                    {getTimeSlotLabel(timeSlot[0].slots, minTime, maxTime)}
                   </Text>
                   <Icon name={'chevron-down'} size={20} color="gray" />
                 </TouchableOpacity>
@@ -216,7 +228,7 @@ const PickupTimeSelector: React.FC = () => {
 
               {openForDay === timeSlot[0].dayName && (
                 <View className="mt-2 bg-white border border-gray-200 rounded-md p-2 shadow-md">
-                  {predefinedTimeSlots.map((ps, i) => (
+                  {buildPredefinedTimeSlots(minTime, maxTime).map((ps, i) => (
                     <TouchableOpacity
                       key={i}
                       className={`px-3 py-2 flex-row items-center rounded-md mb-1 ${
@@ -262,7 +274,7 @@ const PickupTimeSelector: React.FC = () => {
                   onPress={() => openDropdown(day.dayName, day.slots)}
                 >
                   <Text className="text-sm text-text-main flex-1">
-                    {getTimeSlotLabel(day.slots)}
+                    {getTimeSlotLabel(day.slots, minTime, maxTime)}
                   </Text>
                   <Icon name={'chevron-down'} size={18} color="gray" />
                 </TouchableOpacity>
@@ -292,7 +304,7 @@ const PickupTimeSelector: React.FC = () => {
 
               {openForDay === day.dayName && (
                 <View className="mt-2 bg-white border border-gray-200 rounded-md p-2 shadow-md ml-6">
-                  {predefinedTimeSlots.map((ps, i) => (
+                  {buildPredefinedTimeSlots(minTime, maxTime).map((ps, i) => (
                     <TouchableOpacity
                       key={i}
                       className={`px-3 py-2 flex-row items-center rounded-md mb-1 ${
@@ -323,6 +335,8 @@ const PickupTimeSelector: React.FC = () => {
         onSave={handleCustomSave}
         initialFrom={customStart}
         initialTo={customEnd}
+        minTime={minTime}
+        maxTime={maxTime}
       />
     </>
   );

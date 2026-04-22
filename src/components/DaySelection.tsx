@@ -9,6 +9,8 @@ interface DaySelectionProps {
   selectedDays: Day[];
   setSelectedDays: React.Dispatch<React.SetStateAction<Day[]>>;
 }
+const minTime = '08:00';
+const maxTime = '17:00';
 
 const DaySelection: React.FC<DaySelectionProps> = ({
   selectedDays,
@@ -167,7 +169,7 @@ const DaySelection: React.FC<DaySelectionProps> = ({
       clickDay({
         dayName: day,
         pickUpDate: getNextDateForDay(day),
-        slots: { startTime: '09:00', endTime: '17:00' },
+        slots: { startTime: minTime, endTime: maxTime },
       }),
     );
   };

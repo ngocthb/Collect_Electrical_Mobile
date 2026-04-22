@@ -73,7 +73,7 @@ export const registerFcmToken = async (
     const fcmToken = await messaging().getToken();
     console.log('📱 FCM token:', fcmToken);
     console.log('voip ', voipToken);
-   const res= await axiosClient.post('/notifications/register-device', {
+    const res = await axiosClient.post('/notifications/register-device', {
       voipToken,
       fcmToken,
       platform: Platform.OS,
@@ -221,9 +221,10 @@ export const signOutGoogle = async (): Promise<void> => {
 };
 
 // Sign out: remove token from storage and clear axios header, then sign out from firebase/google
-export const signOut = async (): Promise<void> => {
+export const signOut = async (userId: string): Promise<void> => {
   try {
-    await AsyncStorage.removeItem('token');
+    const res = await axiosClient.post('/auth/logout', userId);
+    await AsyncStorage.clear();
   } catch (error) {
     console.error('[signOut] Error:', error);
     throw error;

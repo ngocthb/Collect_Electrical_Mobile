@@ -22,16 +22,127 @@ interface CustomTimeModalProps {
   onSave: (fromTime: string, toTime: string) => void;
   initialFrom?: string;
   initialTo?: string;
+  minTime?: string;
+  maxTime?: string;
 }
 
 const ITEM_HEIGHT = 35;
 
 // Memoize arrays - chỉ tạo 1 lần
-const hours = Array.from({ length: 12 }, (_, i) =>
-  String(i + 1).padStart(2, '0'),
-);
 const minutes = ['00', '15', '30', '45'];
 const periods = ['AM', 'PM'];
+
+// Helper: Convert 24-hour to 12-hour
+const convertTo12Hour = (time24: string) => {
+  const match = time24.match(/(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2];
+  const period = hours >= 12 ? 'PM' : 'AM';
+
+  if (hours > 12) hours -= 12;
+  if (hours === 0) hours = 12;
+
+  return {
+    hour: String(hours).padStart(2, '0'),
+    minute: minutes,
+    period,
+  };
+};
+
+// Helper: Convert 12-hour + period to 24-hour format
+const convertTo24Hour = (hour: string, minute: string, period: string) => {
+  let hour24 = parseInt(hour, 10);
+
+  if (period === 'PM') {
+    if (hour24 !== 12) hour24 += 12;
+  } else {
+    if (hour24 === 12) hour24 = 0;
+  }
+
+  return `${String(hour24).padStart(2, '0')}:${minute}`;
+};
+
+// Helper: Build allowed hours based on minTime and maxTime
+const buildAllowedHours = (minTime?: string, maxTime?: string) => {
+  if (!minTime || !maxTime) {
+    return Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+  }
+
+  const minMatch = minTime.match(/(\d{1,2}):(\d{2})/);
+  const maxMatch = maxTime.match(/(\d{1,2}):(\d{2})/);
+
+  if (!minMatch || !maxMatch) {
+    return Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+  }
+
+  const minHour24 = parseInt(minMatch[1], 10);
+  const maxHour24 = parseInt(maxMatch[1], 10);
+
+  const allowed = new Set<string>();
+
+  // AM hours (1-12 AM = 00:00-11:59)
+  for (let h = 0; h < 12; h++) {
+    if (h >= minHour24 && h <= maxHour24) {
+      const hour12 = h === 0 ? 12 : h;
+      allowed.add(String(hour12).padStart(2, '0'));
+    }
+  }
+
+  // PM hours (1-12 PM = 12:00-23:59)
+  for (let h = 12; h < 24; h++) {
+    if (h >= minHour24 && h <= maxHour24) {
+      const hour12 = h === 12 ? 12 : h - 12;
+      allowed.add(String(hour12).padStart(2, '0'));
+    }
+  }
+
+  return Array.from(allowed).sort();
+};
+
+// Helper: Build allowed hours for "to time" based on "from time" + min/max
+const buildAllowedToHours = (
+  fromTime24: string,
+  minTime?: string,
+  maxTime?: string,
+) => {
+  if (!minTime || !maxTime) {
+    return Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+  }
+
+  const fromMatch = fromTime24.match(/(\d{1,2}):(\d{2})/);
+  const minMatch = minTime.match(/(\d{1,2}):(\d{2})/);
+  const maxMatch = maxTime.match(/(\d{1,2}):(\d{2})/);
+
+  if (!fromMatch || !minMatch || !maxMatch) {
+    return Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+  }
+
+  const fromHour24 = parseInt(fromMatch[1], 10);
+  const minHour24 = parseInt(minMatch[1], 10);
+  const maxHour24 = parseInt(maxMatch[1], 10);
+
+  const allowed = new Set<string>();
+
+  // AM hours (1-12 AM = 00:00-11:59)
+  for (let h = 0; h < 12; h++) {
+    if (h >= Math.max(fromHour24, minHour24) && h <= maxHour24) {
+      const hour12 = h === 0 ? 12 : h;
+      allowed.add(String(hour12).padStart(2, '0'));
+    }
+  }
+
+  // PM hours (1-12 PM = 12:00-23:59)
+  for (let h = 12; h < 24; h++) {
+    if (h >= Math.max(fromHour24, minHour24) && h <= maxHour24) {
+      const hour12 = h === 12 ? 12 : h - 12;
+      allowed.add(String(hour12).padStart(2, '0'));
+    }
+  }
+
+  return Array.from(allowed).sort();
+};
 
 // Component con được memoized để tránh re-render không cần thiết
 const ScrollPicker = React.memo<{
@@ -129,13 +240,62 @@ const CustomTimeModal: React.FC<CustomTimeModalProps> = ({
   onSave,
   initialFrom,
   initialTo,
+  minTime,
+  maxTime,
 }) => {
+  console.log(initialFrom, initialTo);
   const [fromHour, setFromHour] = useState('08');
   const [fromMinute, setFromMinute] = useState('00');
   const [fromPeriod, setFromPeriod] = useState('AM');
   const [toHour, setToHour] = useState('09');
   const [toMinute, setToMinute] = useState('00');
   const [toPeriod, setToPeriod] = useState('AM');
+
+  // Build allowed hours based on minTime/maxTime
+  const allowedHours = useMemo(
+    () => buildAllowedHours(minTime, maxTime),
+    [minTime, maxTime],
+  );
+
+  // Convert from time to 24-hour format
+  const fromTime24 = useMemo(
+    () => convertTo24Hour(fromHour, fromMinute, fromPeriod),
+    [fromHour, fromMinute, fromPeriod],
+  );
+
+  // Build allowed hours for "to time" based on "from time"
+  const allowedToHours = useMemo(
+    () => buildAllowedToHours(fromTime24, minTime, maxTime),
+    [fromTime24, minTime, maxTime],
+  );
+
+  // Helper: Auto-detect period based on hour and allowed range
+  const detectPeriodForHour = useCallback(
+    (hour: string) => {
+      if (!minTime || !maxTime) return 'AM';
+
+      const minMatch = minTime.match(/(\d{1,2}):(\d{2})/);
+      const maxMatch = maxTime.match(/(\d{1,2}):(\d{2})/);
+
+      if (!minMatch || !maxMatch) return 'AM';
+
+      const minHour24 = parseInt(minMatch[1], 10);
+      const maxHour24 = parseInt(maxMatch[1], 10);
+      const hour12 = parseInt(hour, 10);
+
+      // Try AM first (convert 12-hour AM to 24-hour)
+      let hour24Am = hour12 === 12 ? 0 : hour12;
+      if (hour24Am >= minHour24 && hour24Am <= maxHour24) return 'AM';
+
+      // Try PM (convert 12-hour PM to 24-hour)
+      let hour24Pm = hour12 === 12 ? 12 : hour12 + 12;
+      if (hour24Pm >= minHour24 && hour24Pm <= maxHour24) return 'PM';
+
+      // Fallback
+      return 'AM';
+    },
+    [minTime, maxTime],
+  );
 
   // Reset khi đóng modal
   useEffect(() => {
@@ -155,22 +315,113 @@ const CustomTimeModal: React.FC<CustomTimeModalProps> = ({
   // If modal opens and initial times are provided, prefill pickers
   useEffect(() => {
     if (visible && initialFrom) {
-      const m = initialFrom.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      // Try 12-hour format first (with AM/PM)
+      let m = initialFrom.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
       if (m) {
         setFromHour(m[1].padStart(2, '0'));
         setFromMinute(m[2]);
         setFromPeriod(m[3].toUpperCase());
+      } else {
+        // Try 24-hour format and convert
+        const converted = convertTo12Hour(initialFrom);
+        if (converted) {
+          setFromHour(converted.hour);
+          setFromMinute(converted.minute);
+          setFromPeriod(converted.period);
+        }
       }
     }
     if (visible && initialTo) {
-      const m = initialTo.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      // Try 12-hour format first (with AM/PM)
+      let m = initialTo.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
       if (m) {
         setToHour(m[1].padStart(2, '0'));
         setToMinute(m[2]);
         setToPeriod(m[3].toUpperCase());
+      } else {
+        // Try 24-hour format and convert
+        const converted = convertTo12Hour(initialTo);
+        if (converted) {
+          setToHour(converted.hour);
+          setToMinute(converted.minute);
+          setToPeriod(converted.period);
+        }
       }
     }
   }, [visible, initialFrom, initialTo]);
+
+  // Auto-detect period when hour changes
+  const handleFromHourChange = useCallback(
+    (hour: string) => {
+      setFromHour(hour);
+      const detectedPeriod = detectPeriodForHour(hour);
+      setFromPeriod(detectedPeriod);
+
+      // Validate toTime - if toTime < fromTime, adjust toTime
+      const newFromTime24 = convertTo24Hour(hour, fromMinute, detectedPeriod);
+      const currentToTime24 = convertTo24Hour(toHour, toMinute, toPeriod);
+
+      if (currentToTime24 < newFromTime24) {
+        // Set toTime to be same as fromTime
+        setToHour(hour);
+        setToMinute(fromMinute);
+        setToPeriod(detectedPeriod);
+      }
+    },
+    [fromMinute, toHour, toMinute, toPeriod, detectPeriodForHour],
+  );
+
+  const handleToHourChange = useCallback(
+    (hour: string) => {
+      setToHour(hour);
+      const detectedPeriod = detectPeriodForHour(hour);
+      setToPeriod(detectedPeriod);
+
+      // Validate: toTime must be >= fromTime
+      const toTime24 = convertTo24Hour(hour, toMinute, detectedPeriod);
+      if (toTime24 < fromTime24) {
+        // toTime is less than fromTime, adjust to match fromTime
+        setToHour(fromHour);
+        setToMinute(fromMinute);
+        setToPeriod(fromPeriod);
+      }
+    },
+    [
+      detectPeriodForHour,
+      toMinute,
+      fromTime24,
+      fromHour,
+      fromMinute,
+      fromPeriod,
+    ],
+  );
+
+  // Validate toTime when fromMinute changes
+  const handleFromMinuteChange = useCallback(
+    (minute: string) => {
+      setFromMinute(minute);
+      const newFromTime24 = convertTo24Hour(fromHour, minute, fromPeriod);
+      const currentToTime24 = convertTo24Hour(toHour, toMinute, toPeriod);
+
+      if (currentToTime24 < newFromTime24) {
+        setToMinute(minute);
+      }
+    },
+    [fromHour, fromPeriod, toHour, toMinute, toPeriod],
+  );
+
+  // Validate toTime when toMinute changes
+  const handleToMinuteChange = useCallback(
+    (minute: string) => {
+      const newToTime24 = convertTo24Hour(toHour, minute, toPeriod);
+      if (newToTime24 < fromTime24) {
+        // toTime is less than fromTime, don't update
+        return;
+      }
+      setToMinute(minute);
+    },
+    [toHour, toPeriod, fromTime24],
+  );
 
   const handleSave = useCallback(() => {
     const fromTime = `${fromHour}:${fromMinute} ${fromPeriod}`;
@@ -187,6 +438,22 @@ const CustomTimeModal: React.FC<CustomTimeModalProps> = ({
     onSave,
     onClose,
   ]);
+
+  // Check if save button should be disabled
+  const isSaveDisabled = useMemo(() => {
+    // Condition 1: toHour not in allowedToHours (toTime < fromTime)
+    if (!allowedToHours.includes(toHour)) {
+      return true;
+    }
+
+    // Condition 2: fromTime >= toTime
+    const toTime24 = convertTo24Hour(toHour, toMinute, toPeriod);
+    if (fromTime24 >= toTime24) {
+      return true;
+    }
+
+    return false;
+  }, [allowedToHours, toHour, toMinute, toPeriod, fromTime24]);
 
   // Memoize period buttons để tránh re-render
   const PeriodButtons = useMemo(
@@ -256,8 +523,8 @@ const CustomTimeModal: React.FC<CustomTimeModalProps> = ({
                 <View style={{ width: 44 }}>
                   <ScrollPicker
                     value={fromHour}
-                    setValue={setFromHour}
-                    options={hours}
+                    setValue={handleFromHourChange}
+                    options={allowedHours}
                     label="h"
                   />
                 </View>
@@ -265,7 +532,7 @@ const CustomTimeModal: React.FC<CustomTimeModalProps> = ({
                 <View style={{ width: 44 }}>
                   <ScrollPicker
                     value={fromMinute}
-                    setValue={setFromMinute}
+                    setValue={handleFromMinuteChange}
                     options={minutes}
                     label="m"
                   />
@@ -285,8 +552,8 @@ const CustomTimeModal: React.FC<CustomTimeModalProps> = ({
                 <View style={{ width: 44 }}>
                   <ScrollPicker
                     value={toHour}
-                    setValue={setToHour}
-                    options={hours}
+                    setValue={handleToHourChange}
+                    options={allowedToHours}
                     label="h"
                   />
                 </View>
@@ -294,7 +561,7 @@ const CustomTimeModal: React.FC<CustomTimeModalProps> = ({
                 <View style={{ width: 44 }}>
                   <ScrollPicker
                     value={toMinute}
-                    setValue={setToMinute}
+                    setValue={handleToMinuteChange}
                     options={minutes}
                     label="m"
                   />
@@ -312,10 +579,19 @@ const CustomTimeModal: React.FC<CustomTimeModalProps> = ({
               <Text className="text-gray-600 font-semibold">Hủy</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              className="px-6 py-3 bg-primary-100 rounded-xl"
+              disabled={isSaveDisabled}
+              className={`px-6 py-3 rounded-xl ${
+                isSaveDisabled ? 'bg-gray-300' : 'bg-primary-100'
+              }`}
               onPress={handleSave}
             >
-              <Text className="text-white font-semibold">Lưu</Text>
+              <Text
+                className={`font-semibold ${
+                  isSaveDisabled ? 'text-gray-500' : 'text-white'
+                }`}
+              >
+                Lưu
+              </Text>
             </TouchableOpacity>
           </View>
         </Pressable>

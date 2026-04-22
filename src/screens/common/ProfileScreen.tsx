@@ -112,7 +112,7 @@ const ProfileScreen = () => {
     try {
       await uninitZegoService();
       // Clear token and sign out from services first
-      await signOut();
+      await signOut(user?.userId ?? '');
       await disconnect();
       dispatch(logout());
     } catch (e) {
