@@ -16,6 +16,10 @@ import Toast from 'react-native-toast-message';
 import { useAppSelector } from '../store/hooks';
 import AppInput from './ui/AppInput';
 import AppButton from './ui/AppButton';
+import AppImageGallery from './ui/AppImageGallery';
+import { openGallery } from '../services/imagePickerService';
+import { validateImageSize } from '../utils/validations';
+import type { Asset } from 'react-native-image-picker';
 
 interface ReportCreateModalProps {
   visible: boolean;
@@ -42,10 +46,12 @@ export default function ReportCreateModal({
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedReportType, setSelectedReportType] = useState(reportType);
+  const [selectedImages, setSelectedImages] = useState<Asset[]>([]);
 
   useEffect(() => {
     if (!visible) {
       setDescription('');
+      setSelectedImages([]);
     }
     setSelectedReportType(reportType);
   }, [visible, reportType]);
@@ -61,6 +67,51 @@ export default function ReportCreateModal({
       return null;
     }
     return collectionRouteId;
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddImages = async () => {
+    try {
+      const allowed = Math.max(1, 3 - selectedImages.length);
+      const result = await openGallery(true, allowed);
+
+      if (result.success && result.images) {
+        const invalidImages = result.images.filter(
+          (img: Asset) => !validateImageSize(img.fileSize, 10),
+        );
+
+        if (invalidImages.length > 0) {
+          Toast.show({
+            type: 'warning',
+            text1: 'Ảnh quá lớn',
+            text2:
+              'Một số ảnh có kích thước >= 10MB. Vui lòng chọn ảnh nhỏ hơn 10MB.',
+          });
+          return;
+        }
+
+        setSelectedImages(prev => [
+          ...prev,
+          ...result.images!.slice(0, allowed),
+        ]);
+      } else if (result.error && result.error !== 'User cancelled') {
+        Toast.show({
+          type: 'error',
+          text1: 'Lỗi',
+          text2: 'Không thể chọn ảnh từ thư viện',
+        });
+      }
+    } catch (error) {
+      console.error('Error picking images:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể chọn ảnh từ thư viện',
+      });
+    }
   };
 
   const handleSubmit = async () => {
@@ -88,23 +139,15 @@ export default function ReportCreateModal({
         collectionRouteId: getCollectionRouteId(),
         description: description.trim(),
         reportType: selectedReportType,
-      });
-
-      Toast.show({
-        type: 'success',
-        text1: 'Gửi phản ánh thành công',
-        text2: 'Cảm ơn bạn đã góp ý!',
+        images: selectedImages,
       });
 
       setDescription('');
+      setSelectedImages([]);
       onClose();
       onSuccess?.();
     } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Gửi phản ánh thất bại',
-        text2: 'Vui lòng thử lại',
-      });
+      console.error('Report submission error:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -189,6 +232,16 @@ export default function ReportCreateModal({
                       {description.length}/500 ký tự
                     </Text>
                   </View>
+
+                  {/* Image Gallery */}
+                  <AppImageGallery
+                    images={selectedImages}
+                    onRemove={handleRemoveImage}
+                    onAddPress={handleAddImages}
+                    numberOfImages={3}
+                    haveColorText={false}
+                    isRequire={false}
+                  />
                 </View>
               </ScrollView>
 

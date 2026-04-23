@@ -73,11 +73,11 @@ const CreateRequestScreen = () => {
     }
   };
 
-  const isStep1Valid = true;
-  // selectedBrandId !== null &&
-  // selectedCategory !== null &&
-  // selectedImages.length > 0 &&
-  // selectedTags.length > 0;
+  const isStep1Valid =
+    selectedBrandId !== null &&
+    selectedCategory !== null &&
+    selectedImages.length > 0 &&
+    selectedTags.length > 0;
 
   const isStep2Valid = selectedAddress !== null && timeSlots.length > 0;
 
@@ -220,6 +220,7 @@ const CreateRequestScreen = () => {
                   images={selectedImages}
                   onRemove={handleRemoveImage}
                   onAddPress={() => setIsImagePickerVisible(true)}
+                  haveVideo={true}
                 />
               </View>
             </>

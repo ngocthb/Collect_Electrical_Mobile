@@ -1,6 +1,11 @@
 import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import axiosClient from '../config/axios';
-import { publicHoliday, systemConfig, ServerTime } from '../types/SystemConfig';
+import {
+  publicHoliday,
+  systemConfig,
+  ServerTime,
+  RangeTimeToPost,
+} from '../types/SystemConfig';
 
 export const getRadiusMeter = async (): Promise<systemConfig> => {
   try {
@@ -21,6 +26,26 @@ export const getTimeToPost = async (): Promise<systemConfig> => {
       '/system-config/CONFIG_TIME_ABLE_TO_POST',
     );
     return response as any;
+  } catch (error) {
+    console.error('Error fetching system config:', error);
+    throw error;
+  }
+};
+
+export const getRangeTimeToPost = async (): Promise<RangeTimeToPost> => {
+  try {
+    const response = (await axiosClient.get(
+      '/system-config/TIME_ABLE_TO_POST',
+    )) as any;
+
+    const value: string = response.value as string;
+
+    const [minTime, maxTime] = value.split(' - ').map(item => item.trim());
+
+    return {
+      minTime,
+      maxTime,
+    };
   } catch (error) {
     console.error('Error fetching system config:', error);
     throw error;
@@ -51,9 +76,14 @@ export const getTimeSever = async (): Promise<ServerTime> => {
 };
 
 export const getAllConfig = async () => {
-  const [radiusMeter, timeToPost, publicHoliday, timeServe] = await Promise.all(
-    [getRadiusMeter(), getTimeToPost(), getPublicHoliday(), getTimeSever()],
-  );
+  const [radiusMeter, timeToPost, publicHoliday, timeServe, rangeTimeToPost] =
+    await Promise.all([
+      getRadiusMeter(),
+      getTimeToPost(),
+      getPublicHoliday(),
+      getTimeSever(),
+      getRangeTimeToPost(),
+    ]);
 
-  return { radiusMeter, timeToPost, publicHoliday, timeServe };
+  return { radiusMeter, timeToPost, publicHoliday, timeServe, rangeTimeToPost };
 };

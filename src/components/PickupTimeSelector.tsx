@@ -13,35 +13,22 @@ import { useAppSelector } from '../store/hooks';
 import { useDispatch } from 'react-redux';
 import type { TimeSlot } from '../types/TimeSlot';
 import { toggleSyncSlots, updateTimeSlot } from '../store/slices/timeSlotSlice';
-const minTime = '08:00';
-const maxTime = '17:00';
-
+// const minTime = '5:00';
+// const maxTime = '20:00';
 const PickupTimeSelector: React.FC = () => {
   const [sameTimeForAll, setSameTimeForAll] = useState(false);
   const [selectedDays, setSelectedDays] = useState<Day[]>([]);
   const timeSlotRaw = useAppSelector(state => state.timeSlots.list);
   const dispatch = useDispatch();
+  const { minTime, maxTime } = useAppSelector(state => ({
+    minTime: state.systemConfig.rangeTimeToPost?.minTime || '00:00',
+    maxTime: state.systemConfig.rangeTimeToPost?.maxTime || '24:00',
+  }));
 
   const timeSlot = [...timeSlotRaw].sort((a, b) => {
     if (!a.pickUpDate || !b.pickUpDate) return 0;
     return new Date(a.pickUpDate).getTime() - new Date(b.pickUpDate).getTime();
   });
-
-  // const getTimeSlotLabel = (slot: { startTime: string; endTime: string }) => {
-  //   if (!slot) return 'Chưa chọn';
-  //   const matchedSlot = predefinedTimeSlot(minTime, maxTime).find(
-  //     ps =>
-  //       ps.times.length === 2 &&
-  //       ps.times[0] === slot.startTime &&
-  //       ps.times[1] === slot.endTime,
-  //   );
-
-  //   if (matchedSlot) return matchedSlot.label;
-
-  //   if (slot.startTime || slot.endTime) return 'Giờ tự chọn';
-
-  //   return 'Chưa chọn';
-  // };
 
   const formatTo24Hour = (time12h: string): string => {
     if (!time12h) return '';

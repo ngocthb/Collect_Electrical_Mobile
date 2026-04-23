@@ -3,25 +3,28 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { days, type Day } from '../data/timeSlots';
 import { useAppDispatch } from '../store/hooks';
 import { toggleSyncDays, clickDay } from '../store/slices/timeSlotSlice';
-import { useSelector } from 'react-redux';
+import { useAppSelector } from '../store/hooks';
 
 interface DaySelectionProps {
   selectedDays: Day[];
   setSelectedDays: React.Dispatch<React.SetStateAction<Day[]>>;
 }
-const minTime = '08:00';
-const maxTime = '17:00';
 
 const DaySelection: React.FC<DaySelectionProps> = ({
   selectedDays,
   setSelectedDays,
 }) => {
-  const [CUTOFF_TIME, timeSever, publicHoliday] = useSelector((state: any) => [
-    state?.systemConfig?.timeToPost?.value,
-    state?.systemConfig?.timeSever,
-    state?.systemConfig?.publicHoliday,
-  ]);
-  console.log(publicHoliday);
+  const [CUTOFF_TIME, timeSever, publicHoliday] = useAppSelector(
+    (state: any) => [
+      state?.systemConfig?.timeToPost?.value,
+      state?.systemConfig?.timeSever,
+      state?.systemConfig?.publicHoliday,
+    ],
+  );
+  const { minTime, maxTime } = useAppSelector(state => ({
+    minTime: state.systemConfig.rangeTimeToPost?.minTime || '00:00',
+    maxTime: state.systemConfig.rangeTimeToPost?.maxTime || '24:00',
+  }));
 
   const dispatch = useAppDispatch();
 

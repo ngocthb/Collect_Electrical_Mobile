@@ -26,3 +26,8 @@ export interface ServerTime {
   serverTime: string;
   serverDate: string;
 }
+
+export interface RangeTimeToPost {
+  minTime: string;
+  maxTime: string;
+}

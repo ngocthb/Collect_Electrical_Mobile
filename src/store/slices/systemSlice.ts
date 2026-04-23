@@ -3,6 +3,7 @@ import {
   publicHoliday,
   ServerTime,
   systemConfig,
+  RangeTimeToPost,
 } from '../../types/SystemConfig';
 
 interface SystemState {
@@ -10,6 +11,7 @@ interface SystemState {
   radiusMeter: systemConfig | null;
   timeToPost: systemConfig | null;
   timeSever: ServerTime | null;
+  rangeTimeToPost: RangeTimeToPost | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -19,6 +21,7 @@ const initialState: SystemState = {
   radiusMeter: null,
   timeSever: null,
   timeToPost: null,
+  rangeTimeToPost: null,
   isLoading: false,
   error: null,
 };
@@ -34,12 +37,14 @@ const systemSlice = createSlice({
         timeToPost: systemConfig;
         publicHoliday: publicHoliday[];
         timeServe: ServerTime;
+        rangeTimeToPost: RangeTimeToPost;
       }>,
     ) {
       state.radiusMeter = action.payload.radiusMeter;
       state.timeToPost = action.payload.timeToPost;
       state.publicHoliday = action.payload.publicHoliday;
       state.timeSever = action.payload.timeServe;
+      state.rangeTimeToPost = action.payload.rangeTimeToPost;
     },
 
     setLoading(state, action: PayloadAction<boolean>) {

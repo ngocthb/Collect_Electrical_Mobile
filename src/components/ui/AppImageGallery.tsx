@@ -5,12 +5,20 @@ import type { Asset } from 'react-native-image-picker';
 
 interface AppImageGalleryProps {
   images: Asset[];
+  numberOfImages?: number;
+  haveVideo?: boolean;
+  haveColorText?: boolean;
+  isRequire?: boolean;
   onRemove: (index: number) => void;
   onAddPress: () => void;
 }
 
 const AppImageGallery = ({
   images,
+  numberOfImages = 5,
+  haveVideo = false,
+  haveColorText = true,
+  isRequire = true,
   onRemove,
   onAddPress,
 }: AppImageGalleryProps) => {
@@ -18,12 +26,16 @@ const AppImageGallery = ({
 
   return (
     <View className="mb-2">
-      <Text className="text-sm font-semibold mb-2 text-primary-100">
-        Hình ảnh / Video về sản phẩm
-        <Text className="text-red-500"> *</Text>
+      <Text
+        className="text-sm font-semibold mb-2"
+        style={{ color: haveColorText ? '#EF4444' : '#000' }}
+      >
+        Hình ảnh {haveVideo && '/ Video về sản phẩm'}
+        {isRequire && <Text className="text-red-500">*</Text>}
       </Text>
       <Text className="text-gray-500 text-xs mb-3">
-        Tối đa 5 ảnh/video, mỗi file không quá 10MB
+        Tối đa {numberOfImages} ảnh {haveVideo && '/video'}, mỗi file không quá
+        10MB
       </Text>
       <ScrollView
         horizontal
@@ -66,7 +78,7 @@ const AppImageGallery = ({
           </View>
         ))}
 
-        {images.length < 5 && (
+        {images.length < numberOfImages && (
           <TouchableOpacity
             className="w-24 h-24 border-2 border-dashed border-red-200 rounded-xl items-center justify-center bg-gray-50 mr-3 mb-3"
             onPress={onAddPress}

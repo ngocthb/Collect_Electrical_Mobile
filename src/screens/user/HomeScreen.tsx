@@ -48,7 +48,8 @@ export default function HomeScreen() {
 
       await getTodayProducts();
 
-      await fetchAllConfig();
+      const data = await fetchAllConfig();
+      console.log(data);
     } catch (e) {
       console.warn('[Home] refresh profile failed', e);
     }

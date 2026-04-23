@@ -97,7 +97,7 @@ export default function WalletScreen() {
             {desc}
           </Text>
           <Text className="text-sm text-gray-500 mt-1">
-            {item.point >= 0 ? 'Bạn đã thu được ' : 'Bạn đã mất '}
+            {item.point >= 0 ? 'Bạn đã nhận được ' : 'Bạn đã sử dụng '}
             <Text className="text-red-500 font-semibold">
               {(Math.abs(item.point) ?? 0).toLocaleString()}
             </Text>{' '}

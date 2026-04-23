@@ -243,7 +243,6 @@ const CustomTimeModal: React.FC<CustomTimeModalProps> = ({
   minTime,
   maxTime,
 }) => {
-  console.log(initialFrom, initialTo);
   const [fromHour, setFromHour] = useState('08');
   const [fromMinute, setFromMinute] = useState('00');
   const [fromPeriod, setFromPeriod] = useState('AM');

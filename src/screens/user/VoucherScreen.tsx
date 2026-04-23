@@ -319,7 +319,6 @@ export default function VoucherScreen() {
       rightComponent={
         <View className="flex justify-center items-center ">
           <Text className="text-base text-text-main font-semibold">
-            Tổng điểm:{' '}
             <Text className="font-bold text-primary-100">{user?.points}</Text>{' '}
             🪙
           </Text>

@@ -28,22 +28,6 @@ export default function VoucherDetailsScreen() {
   const { voucher } = route.params as VoucherDetailsRouteProp;
   const user = useAppSelector(s => s.auth.user);
 
-  const handleShare = async () => {
-    try {
-      await Share.share({
-        message: `Voucher: ${voucher.code}\n${voucher.name}\nGiá: ${voucher.pointsToRedeem} điểm`,
-        title: voucher.name,
-      });
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
-  };
-
-  const handleCopyCode = () => {
-    // Copy to clipboard logic - you might want to add react-native-clipboard
-    console.log('Copy code:', voucher.code);
-  };
-
   return (
     <SubLayout title="Chi tiết Voucher" onBackPress={() => navigation.goBack()}>
       <ScrollView className="flex-1 bg-background-50">
@@ -123,25 +107,6 @@ export default function VoucherDetailsScreen() {
                 </Text>
               </View>
             </View>
-          </View>
-
-          {/* Action Buttons */}
-          <View className="flex-row gap-3 mb-6">
-            <TouchableOpacity
-              onPress={handleShare}
-              className="flex-1 bg-white border border-gray-200 rounded-full py-3 items-center flex-row justify-center gap-2"
-            >
-              <Icon name="share-2" size={18} color="#e85a4f" />
-              <Text className="text-gray-900 font-semibold">Chia sẻ</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={handleCopyCode}
-              className="flex-1 bg-primary-100 rounded-full py-3 items-center flex-row justify-center gap-2"
-            >
-              <Icon name="copy" size={18} color="white" />
-              <Text className="text-white font-semibold">Sao chép</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>

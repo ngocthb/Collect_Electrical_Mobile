@@ -1,28 +1,37 @@
 import Toast from 'react-native-toast-message';
 import axiosClient from '../config/axios';
+import { uploadImageToCloudinary } from '../config/cloudinary';
+import type { Asset } from 'react-native-image-picker';
 
 export interface CreateReportPayload {
   userId: string;
   collectionRouteId: string | null;
   description: string;
   reportType: string;
+  images?: Asset[];
 }
 
 const submitReport = async (payload: CreateReportPayload) => {
   try {
-    const response = await axiosClient.post('report', payload);
-    Toast.show({
-      type: 'success',
-      text1: 'Gửi phản ánh thành công',
-      text2: 'Cảm ơn bạn đã góp ý!',
+    // Upload images to Cloudinary and get URLs
+    let imageUrls: string[] = [];
+    if (payload.images && payload.images.length > 0) {
+      imageUrls = await Promise.all(
+        payload.images.map(image => uploadImageToCloudinary(image)),
+      );
+    }
+
+    // Send report with image URLs
+    const response = await axiosClient.post('report', {
+      userId: payload.userId,
+      collectionRouteId: payload.collectionRouteId || null,
+      description: payload.description,
+      reportType: payload.reportType,
+      imageUrls: imageUrls,
     });
+
     return response;
   } catch (error) {
-    Toast.show({
-      type: 'error',
-      text1: 'Gửi phản ánh thất bại',
-      text2: 'Vui lòng thử lại',
-    });
     throw error;
   }
 };

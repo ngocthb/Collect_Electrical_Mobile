@@ -14,7 +14,6 @@ interface ImagePickerModalProps {
   onSelect: (assets: Asset[]) => void;
   currentCount?: number;
   maxItems?: number;
-
   hideVideoOption?: boolean;
 }
 
