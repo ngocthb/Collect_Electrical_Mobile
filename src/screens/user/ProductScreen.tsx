@@ -148,6 +148,7 @@ const ProductScreen = () => {
     opt => opt.value === selectedStatusGroup,
   );
 
+  console.log(filteredProducts);
   const filterDropdown = (
     <View className="relative">
       <TouchableOpacity

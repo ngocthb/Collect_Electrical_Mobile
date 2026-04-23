@@ -67,4 +67,18 @@ const getReportType = async () => {
   }
 };
 
-export default { submitReport, viewMyReport, getReportType };
+const getReportDetails = async (reportId: string) => {
+  try {
+    const response = await axiosClient.get(`report/${reportId}`);
+    return response;
+  } catch (error) {
+    Toast.show({
+      type: 'error',
+      text1: 'Không thể tải chi tiết phản ánh',
+      text2: 'Vui lòng thử lại',
+    });
+    throw error;
+  }
+};
+
+export default { submitReport, viewMyReport, getReportType, getReportDetails };

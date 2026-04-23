@@ -158,81 +158,91 @@ export default function ReportListScreen() {
     const hasAnswer = item.answerMessage && item.answerMessage !== 'null';
 
     return (
-      <View
-        className="bg-white mb-3 rounded-lg overflow-hidden border border-gray-100"
-        style={{ borderLeftWidth: 2, borderLeftColor: typeColor }}
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() =>
+          navigation.navigate('ReportDetails', {
+            reportId: item.reportId,
+            report: item,
+          })
+        }
       >
-        <View className="p-3">
-          {/* Header: Avatar + UserName + Type + Status */}
-          <View className="flex-row justify-between items-start mb-3">
-            <View className="flex-row flex-1 items-center">
-              <View className="ml-3 flex-1">
-                <Text
-                  className="text-sm font-semibold mt-1"
-                  style={{ color: typeColor }}
-                >
-                  {item.reportType}
+        <View
+          className="bg-white mb-3 rounded-lg overflow-hidden border border-gray-100"
+          style={{ borderLeftWidth: 2, borderLeftColor: typeColor }}
+        >
+          <View className="p-3">
+            {/* Header: Avatar + UserName + Type + Status */}
+            <View className="flex-row justify-between items-start mb-3">
+              <View className="flex-row flex-1 items-center">
+                <View className="ml-3 flex-1">
+                  <Text
+                    className="text-sm font-semibold mt-1"
+                    style={{ color: typeColor }}
+                  >
+                    {item.reportType}
+                  </Text>
+                </View>
+              </View>
+
+              <View
+                style={{ backgroundColor: statusColor }}
+                className="w-20 h-7 rounded-lg items-center justify-center"
+              >
+                <Text className="text-white text-[10px] font-semibold">
+                  {item.status}
                 </Text>
               </View>
             </View>
 
-            <View
-              style={{ backgroundColor: statusColor }}
-              className="w-20 h-7 rounded-lg items-center justify-center"
-            >
-              <Text className="text-white text-[10px] font-semibold">
-                {item.status}
+            {/* Description */}
+            <View className="mb-3 pb-3 border-b border-gray-100">
+              <Text className="text-sm text-gray-600 leading-5">
+                {item.reportDescription}
               </Text>
             </View>
-          </View>
 
-          {/* Description */}
-          <View className="mb-3 pb-3 border-b border-gray-100">
-            <Text className="text-sm text-gray-600 leading-5">
-              {item.reportDescription}
-            </Text>
-          </View>
+            {/* Expandable Answer Section */}
+            {hasAnswer && (
+              <TouchableOpacity
+                onPress={() => toggleExpandReport(item.reportId)}
+                className="flex-row items-center justify-between py-2"
+              >
+                <Text className="text-sm font-medium text-primary-100">
+                  {isExpanded ? 'Ẩn phản hồi' : 'Xem phản hồi'}
+                </Text>
+                <Icon
+                  name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={16}
+                  color="#e85a4f"
+                />
+              </TouchableOpacity>
+            )}
 
-          {/* Expandable Answer Section */}
-          {hasAnswer && (
-            <TouchableOpacity
-              onPress={() => toggleExpandReport(item.reportId)}
-              className="flex-row items-center justify-between py-2"
-            >
-              <Text className="text-sm font-medium text-primary-100">
-                {isExpanded ? 'Ẩn phản hồi' : 'Xem phản hồi'}
-              </Text>
-              <Icon
-                name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                size={16}
-                color="#e85a4f"
-              />
-            </TouchableOpacity>
-          )}
+            {isExpanded && hasAnswer && (
+              <View className="mt-3 pt-3 border-t border-gray-100 bg-gray-50 rounded-lg p-3">
+                <View className="flex-row items-center mb-2 gap-2">
+                  <Icon name="corner-down-right" size={16} />
+                  <Text className="text-sm text-gray-600  leading-5">
+                    {item.answerMessage}
+                  </Text>
+                </View>
 
-          {isExpanded && hasAnswer && (
-            <View className="mt-3 pt-3 border-t border-gray-100 bg-gray-50 rounded-lg p-3">
-              <View className="flex-row items-center mb-2 gap-2">
-                <Icon name="corner-down-right" size={16} />
-                <Text className="text-sm text-gray-600  leading-5">
-                  {item.answerMessage}
+                <Text className="text-sm text-gray-400 mt-2 text-right">
+                  {formattedDate}
                 </Text>
               </View>
+            )}
 
-              <Text className="text-sm text-gray-400 mt-2 text-right">
+            {/* Date (if no answer or collapsed) */}
+            {!hasAnswer && (
+              <Text className="text-sm text-right text-gray-500">
                 {formattedDate}
               </Text>
-            </View>
-          )}
-
-          {/* Date (if no answer or collapsed) */}
-          {!hasAnswer && (
-            <Text className="text-sm text-right text-gray-500">
-              {formattedDate}
-            </Text>
-          )}
+            )}
+          </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

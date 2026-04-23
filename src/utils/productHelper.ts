@@ -11,7 +11,7 @@ export const IN_PROGRESS_STATUSES = ['Chờ phân kho', 'Chờ gom nhóm'];
 export const IN_WAITING_COLLECTION = ['Chờ thu gom'];
 
 export const PENDING_STATUSES = ['Chờ Duyệt'];
-export const REJECTED_STATUSES = ['Đã Từ Chối', 'Đã hủy'];
+export const REJECTED_STATUSES = ['Đã Từ Chối', 'Đã hủy', 'Thất bại'];
 
 export const ALL_KNOWN_STATUSES = [
   ...COMPLETED_STATUSES,
@@ -23,9 +23,9 @@ export const ALL_KNOWN_STATUSES = [
 
 export const isCompletedStatus = (status?: string) => {
   if (!status) return false;
-  return COMPLETED_STATUSES.map(s => s.toLowerCase()).includes(
-    status.trim().toLowerCase(),
-  );
+  return [...COMPLETED_STATUSES, ...REJECTED_STATUSES]
+    .map(s => s.toLowerCase())
+    .includes(status.trim().toLowerCase());
 };
 
 export const isWaitingCollectionStatus = (status?: string) => {
@@ -70,7 +70,7 @@ export const getStatusLabel = (status?: string) => {
   } else if (isWaitingCollectionStatus(status)) {
     return 'Chờ thu gom';
   } else if (isRejectedStatus(status)) {
-    return status?.toLowerCase() === 'đã từ chối' ? 'Từ chối' : 'Đã hủy';
+    return status?.toLowerCase() === 'thất bại' ? 'Thất bại' : 'Đã hủy';
   }
   return 'Hoàn thành';
 };
@@ -92,7 +92,7 @@ export const statusGroupOptions = [
   { value: 'incomplete', label: 'Đang xử lý', color: 'yellow' },
   { value: 'inProcess ', label: 'Chờ thu gom', color: 'purple' },
   { value: 'completed', label: 'Hoàn thành', color: 'green' },
-  { value: 'rejected', label: 'Từ chối / hủy', color: 'red' },
+  { value: 'rejected', label: 'Thất bại / Đã hủy', color: 'red' },
 ];
 
 export const getColorClass = (color: string) => {

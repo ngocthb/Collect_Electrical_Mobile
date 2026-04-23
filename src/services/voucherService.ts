@@ -2,12 +2,12 @@ import axiosClient from '../config/axios';
 
 const getVoucher = async (page: number = 1, name: string, userId: string) => {
   try {
-    const resp = await axiosClient.get(`/voucher/${userId}/paged`, {
-      params: { Page: page, Limit: 10, Name: name },
-    });
-    // const resp = await axiosClient.get(`/voucher/paged`, {
+    // const resp = await axiosClient.get(`/voucher/${userId}/paged`, {
     //   params: { Page: page, Limit: 10, Name: name },
     // });
+    const resp = await axiosClient.get(`/voucher/paged`, {
+      params: { Page: page, Limit: 10, Name: name },
+    });
     return Array.isArray(resp) ? resp : resp?.data ?? [];
   } catch (error) {
     console.error('[getVoucher] Error:', error);

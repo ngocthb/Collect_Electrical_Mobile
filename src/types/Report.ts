@@ -4,11 +4,12 @@ export interface Report {
   reportRouteId: string;
   reportDescription: string;
   reportType: string;
-  answerMessage: string;
-  resolvedAt: string;
+  answerMessage: string | null;
+  resolvedAt: string | null;
   createdAt: string;
   reportUserId: string;
-  companyName: null;
-  smallCollectionPointName: null;
+  companyName: string | null;
+  smallCollectionPointName: string | null;
   status: string;
+  reportImages?: string[];
 }
