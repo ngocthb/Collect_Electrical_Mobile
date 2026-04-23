@@ -27,7 +27,7 @@ const submitReport = async (payload: CreateReportPayload) => {
       collectionRouteId: payload.collectionRouteId || null,
       description: payload.description,
       reportType: payload.reportType,
-      imageUrls: imageUrls,
+      images: imageUrls,
     });
 
     return response;
