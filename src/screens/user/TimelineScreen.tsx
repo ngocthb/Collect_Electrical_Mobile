@@ -92,6 +92,7 @@ const TimelineScreen: React.FC<TimelineScreenProps> = ({
     };
   }, [productId]);
 
+  console.log(productId);
   return (
     <SubLayout
       title="Lộ trình giao nhận"
@@ -236,7 +237,7 @@ const TimelineScreen: React.FC<TimelineScreenProps> = ({
       <ReportCreateModal
         visible={showReportModal}
         reportType="Lỗi điểm thu gom"
-        collectionRouteId="1"
+        productId={productId}
         onClose={() => setShowReportModal(false)}
       />
     </SubLayout>

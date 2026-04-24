@@ -24,8 +24,7 @@ import type { Asset } from 'react-native-image-picker';
 interface ReportCreateModalProps {
   visible: boolean;
   reportType: string;
-  collectionRouteId?: string | null;
-  forceCollectionRouteId?: string | null;
+  productId?: string | null;
   showTypeSelector?: boolean;
   typeOptions?: string[];
   onClose: () => void;
@@ -35,8 +34,7 @@ interface ReportCreateModalProps {
 export default function ReportCreateModal({
   visible,
   reportType,
-  collectionRouteId = null,
-  forceCollectionRouteId = null,
+  productId = null,
   showTypeSelector = false,
   typeOptions = ['Lỗi hệ thống', 'Lỗi điểm thu gom'],
   onClose,
@@ -56,17 +54,14 @@ export default function ReportCreateModal({
     setSelectedReportType(reportType);
   }, [visible, reportType]);
 
-  const REPORT_TYPES_WITHOUT_ROUTE = ['Lỗi hệ thống', 'Lỗi điểm thu gom'];
+  console.log('=========', productId);
+  const REPORT_TYPES_WITHOUT_ROUTE = ['Lỗi hệ thống'];
 
-  const getCollectionRouteId = () => {
-    if (forceCollectionRouteId !== null) {
-      return forceCollectionRouteId;
-    }
-
+  const getProductId = () => {
     if (REPORT_TYPES_WITHOUT_ROUTE.includes(selectedReportType)) {
       return null;
     }
-    return collectionRouteId;
+    return productId;
   };
 
   const handleRemoveImage = (index: number) => {
@@ -136,7 +131,7 @@ export default function ReportCreateModal({
     try {
       await reportService.submitReport({
         userId: user.userId,
-        collectionRouteId: getCollectionRouteId(),
+        productId: getProductId(),
         description: description.trim(),
         reportType: selectedReportType,
         images: selectedImages,

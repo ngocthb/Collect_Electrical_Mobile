@@ -5,7 +5,7 @@ import type { Asset } from 'react-native-image-picker';
 
 export interface CreateReportPayload {
   userId: string;
-  collectionRouteId: string | null;
+  productId: string | null;
   description: string;
   reportType: string;
   images?: Asset[];
@@ -21,14 +21,16 @@ const submitReport = async (payload: CreateReportPayload) => {
       );
     }
 
+    console.log(payload);
     // Send report with image URLs
     const response = await axiosClient.post('report', {
       userId: payload.userId,
-      collectionRouteId: payload.collectionRouteId || null,
+      productId: payload.productId || null,
       description: payload.description,
       reportType: payload.reportType,
       images: imageUrls,
     });
+    console.log(response);
 
     return response;
   } catch (error) {

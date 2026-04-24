@@ -458,7 +458,7 @@ const ProductDetailsScreen = () => {
       <ReportCreateModal
         visible={showReportModal}
         reportType="Vấn đề thu gom"
-        collectionRouteId={product?.collectionRouterId ?? null}
+        productId={productId}
         onClose={() => setShowReportModal(false)}
       />
     </SubLayout>
