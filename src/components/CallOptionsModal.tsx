@@ -160,7 +160,10 @@ const CallOptionsModal: React.FC<CallOptionsModalProps> = ({
             {/* Phone Call Button */}
             <TouchableOpacity
               onPress={handlePhoneCall}
-              className="flex-1 bg-primary-100 rounded-xl p-4 items-center"
+              disabled={!receiver?.phone}
+              className={`flex-1 bg-primary-100 rounded-xl p-4 items-center ${
+                !receiver?.phone ? 'opacity-40' : ''
+              }`}
             >
               <Icon
                 name="phone-classic"
