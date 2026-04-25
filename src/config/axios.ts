@@ -8,9 +8,10 @@ import toast from 'react-native-toast-message';
 import Config from './env';
 import { store } from '../store';
 import { logout } from '../store/slices/authSlice';
-import { connectCallHub } from '../services/signalrService';
 
-// 👉 Tạo instance chính
+// =======================
+// AXIOS INSTANCE
+// =======================
 const axiosClient = axios.create({
   baseURL: Config.API_URL,
   timeout: 10000,
@@ -19,25 +20,42 @@ const axiosClient = axios.create({
   },
 });
 
-// 👉 Instance riêng cho refresh (tránh loop)
 const axiosRefresh = axios.create({
   baseURL: Config.API_URL,
   timeout: 10000,
 });
 
-// 👉 State xử lý queue
+// =======================
+// TOKEN HELPERS
+// =======================
+const getAccessToken = () => AsyncStorage.getItem('token');
+const getRefreshToken = () => AsyncStorage.getItem('refreshToken');
+
+const saveTokens = async (accessToken: string, refreshToken: string) => {
+  await AsyncStorage.setItem('token', accessToken);
+  await AsyncStorage.setItem('refreshToken', refreshToken);
+};
+
+const clearTokens = async () => {
+  await AsyncStorage.multiRemove(['token', 'refreshToken']);
+};
+
+// =======================
+// REFRESH QUEUE
+// =======================
 let isRefreshing = false;
+
 let failedQueue: {
   resolve: (token: string) => void;
   reject: (err: any) => void;
 }[] = [];
 
 const processQueue = (error: any, token: string | null = null) => {
-  failedQueue.forEach(prom => {
+  failedQueue.forEach(p => {
     if (error) {
-      prom.reject(error);
+      p.reject(error);
     } else {
-      prom.resolve(token as string);
+      p.resolve(token as string);
     }
   });
   failedQueue = [];
@@ -48,15 +66,14 @@ const processQueue = (error: any, token: string | null = null) => {
 // =======================
 axiosClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    try {
-      const token = await AsyncStorage.getItem('token');
+    const token = await getAccessToken();
 
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    } catch (error) {
-      console.error('Error getting token:', error);
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      delete config.headers.Authorization;
     }
+
     return config;
   },
   error => Promise.reject(error),
@@ -70,20 +87,24 @@ axiosClient.interceptors.response.use(
   async (error: AxiosError<any>) => {
     const originalRequest: any = error.config;
 
+    const status = error.response?.status;
+    const message = error.response?.data?.message;
+
     // =======================
     // HANDLE 401
     // =======================
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      const originalRequest: any = error.config;
-      console.log(error.response);
-      const message = error.response?.data?.message;
-
-      console.log(message);
+    if (status === 401) {
+      // =======================
+      // ❗ CASE 1: FORCE LOGOUT
+      // =======================
       if (message) {
-        console.log('🚨 FORCE LOGOUT');
+        console.log('🚨 FORCE LOGOUT:', message);
 
-        await AsyncStorage.clear();
+        await clearTokens();
         delete axiosClient.defaults.headers.common.Authorization;
+
+        processQueue(error, null);
+
         store.dispatch(logout());
 
         toast.show({
@@ -91,17 +112,21 @@ axiosClient.interceptors.response.use(
           text1: message,
         });
 
-        return Promise.reject(error);
+        return Promise.reject({
+          type: 'FORCE_LOGOUT',
+          message,
+        });
       }
 
-      // 👉 CASE 2: token hết hạn bình thường → refresh
+      // =======================
+      // 🔄 CASE 2: TOKEN EXPIRED → REFRESH
+      // =======================
       if (!originalRequest._retry) {
         if (isRefreshing) {
-          // 👉 Đợi token mới
-          return new Promise<string>((resolve, reject) => {
+          return new Promise((resolve, reject) => {
             failedQueue.push({ resolve, reject });
           })
-            .then((token: string) => {
+            .then(token => {
               originalRequest.headers.Authorization = `Bearer ${token}`;
               return axiosClient(originalRequest);
             })
@@ -112,44 +137,49 @@ axiosClient.interceptors.response.use(
         isRefreshing = true;
 
         try {
-          console.log('========== REFRESH TOKEN ==========');
+          console.log('🔄 REFRESH TOKEN');
 
-          const refreshToken = await AsyncStorage.getItem('refreshToken');
-          const accessToken = await AsyncStorage.getItem('token');
-          console.log(refreshToken, accessToken);
+          const accessToken = await getAccessToken();
+          const refreshToken = await getRefreshToken();
+
+          if (!accessToken || !refreshToken) {
+            throw new Error('Missing token');
+          }
+
           const res: any = await axiosRefresh.post('/auth/refresh-token', {
-            refreshToken,
             accessToken,
+            refreshToken,
           });
 
-          const newToken = res?.data?.accessToken;
+          const newAccessToken = res?.data?.accessToken;
           const newRefreshToken = res?.data?.refreshToken;
-          console.log(newToken);
-          if (!newToken) throw new Error('No access token returned');
 
-          // 👉 lưu token mới
-          await AsyncStorage.setItem('token', newToken);
+          if (!newAccessToken) {
+            throw new Error('No new access token');
+          }
 
-          await AsyncStorage.setItem('refreshToken', newRefreshToken);
+          await saveTokens(newAccessToken, newRefreshToken);
 
-          // 👉 set header mặc định
           axiosClient.defaults.headers.common[
             'Authorization'
-          ] = `Bearer ${newToken}`;
+          ] = `Bearer ${newAccessToken}`;
 
-          // 👉 xử lý queue
-          processQueue(null, newToken);
+          processQueue(null, newAccessToken);
 
-          // 👉 retry request cũ
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
           return axiosClient(originalRequest);
         } catch (err) {
+          console.log('❌ REFRESH FAIL');
+
           processQueue(err, null);
 
-          // 👉 logout nếu refresh fail
-          // await AsyncStorage.multiRemove(['token', 'refreshToken']);
+          await clearTokens();
+          store.dispatch(logout());
 
-          return Promise.reject(err);
+          return Promise.reject({
+            type: 'REFRESH_FAILED',
+          });
         } finally {
           isRefreshing = false;
         }
@@ -159,7 +189,7 @@ axiosClient.interceptors.response.use(
     // =======================
     // HANDLE 403
     // =======================
-    if (error.response?.status === 403) {
+    if (status === 403) {
       toast.show({
         type: 'error',
         text1: 'Bạn không có quyền thực hiện hành động này.',
@@ -167,12 +197,12 @@ axiosClient.interceptors.response.use(
     }
 
     // =======================
-    // HANDLE OTHER ERRORS
+    // OTHER ERRORS
     // =======================
-    console.log('API ERROR:', error.response?.data);
-
     return Promise.reject(
-      error.response?.data?.message || error.response?.data || error.message,
+      error.response?.data || {
+        message: error.message,
+      },
     );
   },
 );

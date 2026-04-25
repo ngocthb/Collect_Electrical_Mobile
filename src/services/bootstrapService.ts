@@ -13,6 +13,10 @@ export const bootstrapApp = async (dispatch: AppDispatch) => {
   try {
     dispatch(setLoading(true));
     const result = await bootstrapAuth();
+    if (!result) {
+      console.warn('[Bootstrap] Authentication failed or user logged out');
+      return;
+    }
     if (result.success && result.profile) {
       dispatch(setUser(result.profile));
 

@@ -82,7 +82,10 @@ export const registerFcmToken = async (
     console.log('✅ Device registered for notifications:', res);
 
     return fcmToken;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.type === 'FORCE_LOGOUT') {
+      return null;
+    }
     console.error('❌ Lỗi lấy FCM token:', error);
     return null;
   }
@@ -153,6 +156,9 @@ export const signInWithGoogle = async (): Promise<any> => {
 
     return response;
   } catch (error: any) {
+    if (error?.type === 'FORCE_LOGOUT') {
+      return null;
+    }
     console.error('❌ Error:', error);
     console.error('❌ Code:', error?.code);
     console.error('❌ Message:', error?.message);
@@ -162,7 +168,7 @@ export const signInWithGoogle = async (): Promise<any> => {
 export const signIn = async (
   username: string,
   password: string,
-): Promise<DeliveryLoginResponse> => {
+): Promise<DeliveryLoginResponse | null> => {
   try {
     const res = (await axiosClient.post('/auth/login', {
       username,
@@ -178,7 +184,11 @@ export const signIn = async (
       axiosClient.defaults.headers.Authorization = `Bearer ${token}`;
     }
     return res;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.type === 'FORCE_LOGOUT') {
+      return null; // ✅ ignore
+    }
+
     console.error('[signIn] Error:', error);
     throw error;
   }
@@ -204,7 +214,10 @@ export const signInWithApple = async (appleData: {
       axiosClient.defaults.headers.Authorization = `Bearer ${token}`;
     }
     return res;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.type === 'FORCE_LOGOUT') {
+      return null;
+    }
     console.error('[signInWithApple] Error:', error);
     throw error;
   }
@@ -224,6 +237,7 @@ export const signOutGoogle = async (): Promise<void> => {
 export const signOut = async (userId: string): Promise<void> => {
   try {
     const res = await axiosClient.post('/auth/logout', userId);
+    console.log(res);
     await AsyncStorage.clear();
   } catch (error) {
     console.error('[signOut] Error:', error);
@@ -248,7 +262,10 @@ export const fetchUserProfile = async (): Promise<any> => {
     const response = await axiosClient.get<Profile>('/users/profile');
 
     return response;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.type === 'FORCE_LOGOUT') {
+      return null;
+    }
     console.error('[fetchUserProfile] Error:', error);
     throw error;
   }
@@ -302,7 +319,7 @@ export const bootstrapAuth = async (): Promise<{
   success: boolean;
   profile?: Profile;
   role?: string;
-}> => {
+} | null> => {
   try {
     const token = await AsyncStorage.getItem('token');
     if (!token) {
@@ -315,7 +332,10 @@ export const bootstrapAuth = async (): Promise<{
     const role = roleVal === 'delivery' ? 'delivery' : 'user';
 
     return { success: true, profile: profileData, role };
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.type === 'FORCE_LOGOUT') {
+      return null;
+    }
     await AsyncStorage.removeItem('token');
     console.error('[bootstrapAuth] Error:', error);
     return { success: false };
