@@ -7,6 +7,7 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
+import { navigationRef } from '../navigation/navigationService';
 import AppButton from './ui/AppButton';
 import AppAvatar from './ui/AppAvatar';
 import ImageGalleryViewer from './ui/ImageGalleryViewer';
@@ -361,6 +362,22 @@ const DeliveryMapPanel: React.FC<Props> = ({
           console.log(
             '✅ Socket confirmation received (skip) - modal will not show again',
           );
+        }}
+        onReject={() => {
+          setShowQrModal(false);
+          setShowActionButtons(false);
+          hasReceivedSocketConfirmationRef.current = true;
+          navigationRef.reset({
+            index: 0,
+            routes: [
+              {
+                name: 'MainTabs',
+                params: {
+                  screen: 'Đơn hàng',
+                },
+              },
+            ],
+          });
         }}
       />
 

@@ -25,6 +25,7 @@ interface DeliveryQrModalProps {
   requestId?: string;
   onAccept?: () => void;
   onSkip?: () => void;
+  onReject?: () => void;
 }
 const { width, height } = Dimensions.get('window');
 const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
@@ -35,6 +36,7 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
   requestId,
   onAccept,
   onSkip,
+  onReject,
 }) => {
   const navigation = useNavigation<any>();
   const user = useAppSelector(s => s.auth.user);
@@ -108,11 +110,11 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
           } catch (e) {
             console.warn('[DeliveryQr] onAccept handler error', e);
           }
-        } else if (s.includes('reject')) {
+        } else if (s.includes('that_bai')) {
           try {
-            onSkip?.();
+            onReject?.();
           } catch (e) {
-            console.warn('[DeliveryQr] onSkip handler error', e);
+            console.warn('[DeliveryQr] onReject handler error', e);
           }
           // Show toast for rejects coming from server/SignalR
           toast.show({
@@ -129,9 +131,9 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
             }
           } else if (status === 'User_Reject') {
             try {
-              onSkip?.();
+              onReject?.();
             } catch (e) {
-              console.warn('[DeliveryQr] onSkip handler error', e);
+              console.warn('[DeliveryQr] onReject handler error', e);
             }
             toast.show({
               type: 'error',
@@ -185,6 +187,7 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
       }
     };
   }, [product?.collectionRouteId, navigation]);
+
   const confirmPayload = {
     code: product?.collectionRouteId,
     shipper: {
