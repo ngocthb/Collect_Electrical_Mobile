@@ -138,9 +138,9 @@ const CreateRequestScreen = () => {
       });
       dispatch(clearTimeSlot());
       navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating request:', error);
-      setErrorMessage(error?.toString() || 'Đã có lỗi xảy ra khi tạo yêu cầu.');
+      setErrorMessage(error?.message || 'Đã có lỗi xảy ra khi tạo yêu cầu.');
       setShowErrorModal(true);
       setLoading(false);
     } finally {
