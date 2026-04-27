@@ -145,7 +145,8 @@ export default function VoucherScreen() {
   }, [searchQuery]);
 
   const handleVoucherPress = (item: any) => {
-    navigation.navigate('VoucherDetails', { voucher: item });
+    console.log(item);
+    navigation.navigate('VoucherDetails', { voucherId: item.voucherId });
   };
 
   const renderVoucher = ({ item }: any) => {

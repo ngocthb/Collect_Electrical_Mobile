@@ -84,10 +84,13 @@ export default function WalletScreen() {
       item.transactionType ||
       'Giao dịch';
     const productId = item.productId || item.postId || null;
+    const voucherId = item.voucherId || null;
     return (
       <TouchableOpacity
         onPress={() =>
-          productId && navigation.navigate('Timeline', { productId })
+          item.transactionType === 'TICH_DIEM'
+            ? productId && navigation.navigate('Timeline', { productId })
+            : voucherId && navigation.navigate('VoucherDetails', { voucherId })
         }
         className="flex-row items-start "
       >
@@ -110,7 +113,7 @@ export default function WalletScreen() {
       </TouchableOpacity>
     );
   };
-
+  console.log(transactions);
   return (
     <SubLayout title="Ví của tôi" onBackPress={() => navigation.goBack()}>
       <View className="flex-1 bg-background-50 px-4 ">

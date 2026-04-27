@@ -1,11 +1,9 @@
 import axiosClient from '../config/axios';
+import { Voucher } from '../types/Voucher';
 
 const getVoucher = async (page: number = 1, name: string, userId: string) => {
   try {
-    // const resp = await axiosClient.get(`/voucher/${userId}/paged`, {
-    //   params: { Page: page, Limit: 10, Name: name },
-    // });
-    const resp = await axiosClient.get(`/voucher/paged`, {
+    const resp = await axiosClient.get(`/voucher/${userId}/paged`, {
       params: { Page: page, Limit: 10, Name: name },
     });
     return Array.isArray(resp) ? resp : resp?.data ?? [];
@@ -15,10 +13,10 @@ const getVoucher = async (page: number = 1, name: string, userId: string) => {
   }
 };
 
-const getVoucherById = async (voucherId: string) => {
+const getVoucherById = async (voucherId: string): Promise<Voucher> => {
   try {
     const resp = await axiosClient.get(`/voucher/${voucherId}`);
-    return resp || null;
+    return resp as any;
   } catch (error) {
     console.error('[getVoucherById] Error:', error);
     throw error;

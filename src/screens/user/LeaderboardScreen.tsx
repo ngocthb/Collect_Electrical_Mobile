@@ -298,9 +298,9 @@ export default function LeaderboardScreen() {
               </View>
 
               <Text className="text-gray-600 text-sm leading-5 mb-2">
-                Chỉ số trên bảng xếp hạng là tổng lượng rác thải điện tử bạn đã
-                giúp tái chế thông qua các hoạt động thu gom và xử lý thiết bị
-                điện tử trong hệ thống.
+                Chỉ số trên bảng xếp hạng thể hiện tổng khối lượng rác thải bạn
+                đã đóng góp vào việc tái chế, thông qua các hoạt động thu gom và
+                xử lý rác trong hệ thống.
               </Text>
 
               <Text className="text-text-main font-semibold text-sm mt-2 mb-1">
