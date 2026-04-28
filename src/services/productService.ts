@@ -5,10 +5,17 @@ export async function getProductsByUser(
   userId: string,
   page: number = 1,
   search: string = '',
+  createAt: string = '',
 ): Promise<ProductDetail[]> {
   if (!userId) return [];
   const resp = await axiosClient.get('/products/user/filter', {
-    params: { Page: page, Limit: 10, UserId: userId, Search: search },
+    params: {
+      Page: page,
+      Limit: 10,
+      UserId: userId,
+      Search: search,
+      CreateAt: createAt,
+    },
   });
   return Array.isArray(resp) ? resp : resp?.data ?? [];
 }

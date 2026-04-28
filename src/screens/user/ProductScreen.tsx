@@ -15,6 +15,7 @@ import { useAppSelector } from '../../store/hooks';
 import MainLayout from '../../layout/MainLayout';
 import ProductCard from '../../components/ProductCard';
 import SearchInputHeader from '../../components/SearchAndFilterHeader';
+import WeeklyCalendar from '../../components/ui/WeeklyCalendar';
 import {
   isCompletedStatus,
   statusGroupOptions,
@@ -33,6 +34,8 @@ const ProductScreen = () => {
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const auth = useAppSelector(s => s.auth);
   const isFocused = useIsFocused();
   const searchTimeoutRef = useRef<number | null>(null);
@@ -42,6 +45,7 @@ const ProductScreen = () => {
     pageNum: number = 1,
     append: boolean = false,
     search: string = '',
+    createAt: string = '',
   ) => {
     if (pageNum === 1) {
       setLoading(true);
@@ -55,7 +59,7 @@ const ProductScreen = () => {
         if (isMounted.current) setProducts([]);
         return;
       }
-      const resp = await getProductsByUser(userId, pageNum, search);
+      const resp = await getProductsByUser(userId, pageNum, search, createAt);
 
       if (isMounted.current) {
         const newProducts = Array.isArray(resp) ? resp : [];
@@ -86,16 +90,23 @@ const ProductScreen = () => {
 
   const loadMore = () => {
     if (!loadingMore && !loading && hasMore) {
+      console.log('==================');
       const nextPage = page + 1;
       setPage(nextPage);
-      loadProducts(nextPage, true, searchQuery);
+      loadProducts(nextPage, true, searchQuery, selectedDate);
     }
   };
 
   const handleRefresh = async () => {
     setPage(1);
     setHasMore(true);
-    await loadProducts(1, false, searchQuery);
+    await loadProducts(1, false, searchQuery, selectedDate);
+  };
+
+  const handleDateSelect = (date: Date) => {
+    const formatted = date.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    setSelectedDate(formatted);
+    setShowCalendarModal(false);
   };
 
   useEffect(() => {
@@ -103,14 +114,13 @@ const ProductScreen = () => {
     if (isFocused) {
       setPage(1);
       setHasMore(true);
-      loadProducts(1, false, searchQuery);
+      loadProducts(1, false, searchQuery, selectedDate);
     }
     return () => {
       isMounted.current = false;
     };
   }, [isFocused]);
 
-  // Handle search with debouncing
   useEffect(() => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
@@ -119,7 +129,7 @@ const ProductScreen = () => {
     searchTimeoutRef.current = setTimeout(() => {
       setPage(1);
       setHasMore(true);
-      loadProducts(1, false, searchQuery);
+      loadProducts(1, false, searchQuery, selectedDate);
     }, 500);
 
     return () => {
@@ -127,7 +137,7 @@ const ProductScreen = () => {
         clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, [searchQuery]);
+  }, [searchQuery, selectedDate]);
 
   const filteredProducts = filterProductsByStatusGroup(
     products,
@@ -152,7 +162,14 @@ const ProductScreen = () => {
   const filterDropdown = (
     <View className="relative">
       <TouchableOpacity
-        onPress={() => setFilterDropdownOpen(!filterDropdownOpen)}
+        onPress={() => {
+          if (selectedStatusGroup !== '') {
+            setSelectedStatusGroup('');
+            setFilterDropdownOpen(false);
+          } else {
+            setFilterDropdownOpen(!filterDropdownOpen);
+          }
+        }}
         className={`flex-row items-center px-3 py-1.5 rounded-lg border ${
           selectedStatusGroup === ''
             ? 'border-red-200 bg-white'
@@ -271,6 +288,24 @@ const ProductScreen = () => {
     <View className="flex-row items-center gap-2">
       <TouchableOpacity
         onPress={() => {
+          if (selectedDate) {
+            setSelectedDate('');
+          } else {
+            setShowCalendarModal(true);
+          }
+        }}
+        className={`p-2 rounded-xl ${
+          selectedDate ? 'bg-primary-100' : 'bg-gray-200'
+        }`}
+      >
+        <Icon
+          name={selectedDate ? 'x' : 'calendar'}
+          size={15}
+          color={selectedDate ? '#fff' : '#6B7280'}
+        />
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => {
           setShowSearch(!showSearch);
           if (showSearch) {
             setSearchQuery('');
@@ -319,6 +354,12 @@ const ProductScreen = () => {
           onRefresh={handleRefresh}
         />
       </View>
+
+      <WeeklyCalendar
+        visible={showCalendarModal}
+        onClose={() => setShowCalendarModal(false)}
+        onSelect={handleDateSelect}
+      />
     </MainLayout>
   );
 };

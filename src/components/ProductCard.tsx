@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { getStatusLabel, getStatusBgClass } from '../utils/productHelper';
-import { formatDate } from '../utils/dateUtils';
+import { formatCreateAtDate } from '../utils/dateUtils';
 interface ProductCardProps {
   product: any;
   onPress: () => void;
@@ -51,9 +51,9 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
         <Text className="text-sm text-gray-600" numberOfLines={2}>
           {product.description}
         </Text>
-        {product?.pickUpDate && (
+        {product?.createAt && (
           <Text className="text-xs text-gray-400 mt-1">
-            Ngày thu gom: {formatDate(product.pickUpDate)}
+            Ngày đăng: {formatCreateAtDate(product.createAt)}
           </Text>
         )}
       </View>

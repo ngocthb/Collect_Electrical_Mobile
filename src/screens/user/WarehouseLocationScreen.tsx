@@ -115,6 +115,7 @@ const WarehouseLocationScreen = () => {
     }
   });
 
+  console.log(filteredWarehouses);
   return (
     <SubLayout
       title="Địa điểm thu gom"

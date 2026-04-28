@@ -92,7 +92,7 @@ export const statusGroupOptions = [
   { value: 'incomplete', label: 'Đang xử lý', color: 'yellow' },
   { value: 'inProcess ', label: 'Chờ thu gom', color: 'purple' },
   { value: 'completed', label: 'Hoàn thành', color: 'green' },
-  { value: 'rejected', label: 'Thất bại / Đã hủy', color: 'red' },
+  { value: 'rejected', label: 'Thất bại / Hủy', color: 'red' },
 ];
 
 export const getColorClass = (color: string) => {
