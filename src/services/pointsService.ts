@@ -7,9 +7,15 @@ export async function getUserPoints(userId: string) {
   return resp?.data ?? resp;
 }
 
-export async function getUserPointTransactions(userId: string) {
-  if (!userId) return [];
-  const resp = await axiosClient.get(`/points-transaction/${userId}`);
+export async function getUserPointTransactions(
+  userId: string,
+  page: number = 1,
+  limit: number = 10,
+) {
+  if (!userId) return { data: [], total: 0, page, limit };
+  const resp = await axiosClient.get(`/points-transaction/${userId}`, {
+    params: { page, limit },
+  });
   return resp?.data ?? resp;
 }
 

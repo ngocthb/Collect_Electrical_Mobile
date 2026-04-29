@@ -5,6 +5,8 @@ import {
   Image,
   ActivityIndicator,
   TouchableOpacity,
+  FlatList,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -26,6 +28,11 @@ export default function WalletScreen() {
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const LIMIT = 10;
 
   useEffect(() => {
     let mounted = true;
@@ -59,8 +66,13 @@ export default function WalletScreen() {
       if (!userId) return;
       setLoadingTransactions(true);
       try {
-        const res = await getUserPointTransactions(userId);
-        if (mounted && Array.isArray(res)) setTransactions(res);
+        const res = await getUserPointTransactions(userId, 1, LIMIT);
+        if (mounted) {
+          const data = Array.isArray(res) ? res : res?.data ?? [];
+          setTransactions(data);
+          setPage(1);
+          setHasMore(data?.length === LIMIT);
+        }
       } catch (e) {
         console.warn('[Wallet] Failed to load transactions', e);
       } finally {
@@ -71,6 +83,51 @@ export default function WalletScreen() {
       mounted = false;
     };
   }, [user?.userId]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const userId = user?.userId;
+      if (!userId) return;
+
+      // Refresh balance
+      const res = await getUserPoints(userId);
+      if (res && typeof res.points === 'number') setBalance(res.points);
+
+      // Reset and reload transactions
+      const transRes = await getUserPointTransactions(userId, 1, LIMIT);
+      const data = Array.isArray(transRes) ? transRes : transRes?.data ?? [];
+      setTransactions(data);
+      setPage(1);
+      setHasMore(data?.length === LIMIT);
+    } catch (e) {
+      console.warn('[Wallet] Failed to refresh', e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const onLoadMore = async () => {
+    if (!hasMore || loadingMore) return;
+    console.log('==========');
+    setLoadingMore(true);
+    try {
+      const userId = user?.userId;
+      if (!userId) return;
+
+      const nextPage = page + 1;
+      const res = await getUserPointTransactions(userId, nextPage, LIMIT);
+      const data = Array.isArray(res) ? res : res?.data ?? [];
+
+      setTransactions(prev => [...prev, ...data]);
+      setPage(nextPage);
+      setHasMore(data?.length === LIMIT);
+    } catch (e) {
+      console.warn('[Wallet] Failed to load more', e);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const renderHistory = ({ item }: any) => {
     const img =
@@ -113,9 +170,15 @@ export default function WalletScreen() {
       </TouchableOpacity>
     );
   };
+
   console.log(transactions);
   return (
-    <SubLayout title="Ví của tôi" onBackPress={() => navigation.goBack()}>
+    <SubLayout
+      title="Ví của tôi"
+      onBackPress={() => navigation.goBack()}
+      noScroll={true}
+      enableRefresh={false}
+    >
       <View className="flex-1 bg-background-50 px-4 ">
         {/* Balance Card */}
         <View className="rounded-3xl  overflow-hidden mb-6 p-4 bg-primary-100 border-2 border-red-200">
@@ -155,28 +218,43 @@ export default function WalletScreen() {
 
         {/* History */}
         <Text className="text-lg font-semibold mb-3">Lịch sử nhận điểm</Text>
-        <View>
+        <View className="flex-1">
           {loadingTransactions ? (
             <View className="py-8 items-center">
               <ActivityIndicator size="large" color="#e85a4f" />
             </View>
           ) : (
-            <>
-              {transactions && transactions.length > 0 ? (
-                transactions.map((item, idx) => (
-                  <View
-                    key={idx}
-                    className="bg-white border-2 border-red-200 rounded-xl p-3 mb-3 shadow-sm"
-                  >
-                    {renderHistory({ item })}
-                  </View>
-                ))
-              ) : (
+            <FlatList
+              data={transactions}
+              keyExtractor={(item, idx) => `${item._id}-${idx}`}
+              renderItem={({ item }) => (
+                <View className="bg-white border-2 border-red-200 rounded-xl p-3 mb-3 shadow-sm">
+                  {renderHistory({ item })}
+                </View>
+              )}
+              ListEmptyComponent={
                 <View className="py-8 items-center">
                   <Text className="text-gray-500">Không có giao dịch</Text>
                 </View>
-              )}
-            </>
+              }
+              ListFooterComponent={
+                loadingMore ? (
+                  <View className="py-4 items-center">
+                    <ActivityIndicator size="small" color="#e85a4f" />
+                  </View>
+                ) : null
+              }
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  tintColor="#e85a4f"
+                />
+              }
+              onEndReached={onLoadMore}
+              onEndReachedThreshold={0.5}
+              scrollEnabled={true}
+            />
           )}
         </View>
       </View>
