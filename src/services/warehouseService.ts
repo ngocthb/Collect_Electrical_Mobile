@@ -3,12 +3,12 @@ import { Warehouse } from '../types/Warehouse';
 
 export const getWarehouses = async (): Promise<Warehouse[]> => {
   try {
-    const response = await axiosClient.get<Warehouse[]>(
-      '/smallCollectionPoint/active',
-    );
     // const response = await axiosClient.get<Warehouse[]>(
-    //   '/collectionUnit/active',
+    //   '/smallCollectionPoint/active',
     // );
+    const response = await axiosClient.get<Warehouse[]>(
+      '/collectionUnit/active',
+    );
     return (response as any) || [];
   } catch (error) {
     console.error('Error fetching warehouses:', error);

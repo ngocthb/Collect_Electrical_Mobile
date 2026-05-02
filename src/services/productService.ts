@@ -8,6 +8,7 @@ export async function getProductsByUser(
   createAt: string = '',
 ): Promise<ProductDetail[]> {
   if (!userId) return [];
+  console.log(createAt);
   const resp = await axiosClient.get('/products/user/filter', {
     params: {
       Page: page,
@@ -17,6 +18,7 @@ export async function getProductsByUser(
       CreateAt: createAt,
     },
   });
+  console.log(resp);
   return Array.isArray(resp) ? resp : resp?.data ?? [];
 }
 
