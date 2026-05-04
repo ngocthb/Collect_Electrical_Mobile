@@ -125,11 +125,9 @@ export default function VoucherDetailsScreen() {
 
                 <View className="flex-row justify-between mb-3">
                   <Text className="text-gray-600">Trạng thái</Text>
-                  <View className="px-3 py-1 rounded-full">
-                    <Text className="text-xs font-semibold">
-                      {voucher.status}
-                    </Text>
-                  </View>
+                  <Text className="text-gray-900 font-semibold">
+                    {voucher.status}
+                  </Text>
                 </View>
 
                 <View className="flex-row justify-between mb-3">

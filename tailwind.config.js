@@ -12,6 +12,7 @@ module.exports = {
         primary: {
           50: '#E98074',
           100: '#e85a4f',
+          200: '#CC3333',
         },
         background: {
           50: '#F9FAFB',

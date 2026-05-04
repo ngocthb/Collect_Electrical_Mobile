@@ -127,7 +127,11 @@ const ProfileScreen = () => {
           {/* Profile Header Card */}
           <View className="px-6 pt-12 pb-6">
             <View
-              className="bg-primary-100 rounded-3xl  border-2 border-red-200"
+              className={`rounded-3xl  border-2 ${
+                isUser
+                  ? 'bg-primary-100 border-red-200 '
+                  : ' bg-primary-200 border-red-300'
+              } overflow-hidden`}
               style={{ padding: (18 * height) / 812 }}
             >
               <View className="flex-row items-center">
@@ -175,7 +179,11 @@ const ProfileScreen = () => {
 
           {/* Menu Section */}
           <View className="px-6 pb-6">
-            <View className="bg-white border-2 border-red-200 rounded-2xl shadow-sm overflow-hidden">
+            <View
+              className={`bg-white border-2 rounded-2xl shadow-sm overflow-hidden ${
+                isUser ? 'border-red-200' : 'border-red-300'
+              }`}
+            >
               {filteredMenu.map((item, index) => (
                 <TouchableOpacity
                   key={item.id}
@@ -204,7 +212,9 @@ const ProfileScreen = () => {
             {/* Logout Button */}
             <TouchableOpacity
               onPress={handleLogout}
-              className="mt-4 bg-white border-2 border-red-200 rounded-2xl shadow-sm px-5 py-4 flex-row items-center"
+              className={`mt-4 bg-white border-2 rounded-2xl shadow-sm px-5 py-4 flex-row items-center ${
+                isUser ? 'border-red-200' : 'border-red-300'
+              }`}
               activeOpacity={0.7}
             >
               <View className="w-10 h-10 rounded-full items-center justify-center bg-red-50">
