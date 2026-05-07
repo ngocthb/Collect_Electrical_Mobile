@@ -11,7 +11,6 @@ export const getTimeSlotLabel = (
 
   const { startTime, endTime } = slot;
 
-  // Match predefined
   if (startTime === minTime && endTime === '12:00') {
     return 'Chỉ buổi sáng';
   }
@@ -24,7 +23,6 @@ export const getTimeSlotLabel = (
     return 'Chỉ buổi tối';
   }
 
-  // Không match => custom
   return 'Giờ tự chọn';
 };
 
@@ -35,7 +33,6 @@ export const buildPredefinedTimeSlots = (
   const safeMin = minTime || '08:00';
   const safeMax = maxTime || '17:00';
 
-  // tránh case input bị ngược
   if (safeMin > safeMax) {
     console.warn('minTime > maxTime, fallback default');
     return buildPredefinedTimeSlots('08:00', '17:00');

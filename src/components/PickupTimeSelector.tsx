@@ -13,8 +13,7 @@ import { useAppSelector } from '../store/hooks';
 import { useDispatch } from 'react-redux';
 import type { TimeSlot } from '../types/TimeSlot';
 import { toggleSyncSlots, updateTimeSlot } from '../store/slices/timeSlotSlice';
-// const minTime = '5:00';
-// const maxTime = '20:00';
+
 const PickupTimeSelector: React.FC = () => {
   const [sameTimeForAll, setSameTimeForAll] = useState(false);
   const [selectedDays, setSelectedDays] = useState<Day[]>([]);
@@ -72,14 +71,6 @@ const PickupTimeSelector: React.FC = () => {
       setCustomEnd(existing.endTime || '');
       const label = getTimeSlotLabel(existing, minTime, maxTime);
       setSelectedPresetLabel(label);
-
-      // const matched = predefinedTimeSlots.find(
-      //   ps =>
-      //     ps.times.length === 2 &&
-      //     ps.times[0] === existing.startTime &&
-      //     ps.times[1] === existing.endTime,
-      // );
-      // setSelectedPresetLabel(matched ? matched.label : 'Giờ tự chọn');
     } else {
       setCustomStart('');
       setCustomEnd('');
@@ -95,7 +86,7 @@ const PickupTimeSelector: React.FC = () => {
 
     dispatch(updateTimeSlot({ dayName, pickUpDate: '', slots } as TimeSlot));
     setOpenForDay(null);
-    // Clear shared state to prevent contamination
+
     setCustomStart('');
     setCustomEnd('');
     setSelectedPresetLabel(null);
@@ -128,7 +119,7 @@ const PickupTimeSelector: React.FC = () => {
     setCustomModalVisible(false);
     setOpenForDay(null);
     setEditingDay(null);
-    // Clear shared state to prevent contamination
+
     setCustomStart('');
     setCustomEnd('');
     setSelectedPresetLabel(null);

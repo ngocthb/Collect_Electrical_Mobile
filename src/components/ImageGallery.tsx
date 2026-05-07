@@ -37,7 +37,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
       <AppImageGallery
         images={selectedImages}
         onRemove={onRemoveImage}
-        onAddPress={openPicker} // Fixed to open the picker modal
+        onAddPress={openPicker}
       />
       <ImagePickerModal
         visible={showPicker}

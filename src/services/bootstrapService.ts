@@ -33,7 +33,6 @@ export const bootstrapApp = async (dispatch: AppDispatch) => {
         dispatch(setUnRead(unReadNoti.unreadCount || 0));
       }
 
-      // 👉 Connect to call hub (ONLINE connection)
       console.log(
         '[Bootstrap] Connecting to call hub with userId:',
         result.profile.userId,

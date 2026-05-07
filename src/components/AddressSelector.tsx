@@ -42,7 +42,6 @@ const AddressSelector: React.FC<AddressSelectorProps> = ({
     }
   }, [addresses, selectedAddress, onSelectAddress]);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (tapTimeoutRef.current) {

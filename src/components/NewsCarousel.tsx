@@ -50,7 +50,6 @@ export default function NewsCarousel() {
     fetchNews();
   }, []);
 
-  // AUTO SLIDE NEWS
   useEffect(() => {
     if (newsList.length === 0) return;
 

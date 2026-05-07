@@ -10,17 +10,16 @@ interface AppInputProps extends TextInputProps {
   error?: string;
   required?: boolean;
   disabled?: boolean;
-  inlineLabel?: boolean; // nếu true thì label và input cùng hàng
-  // Nếu true sẽ dùng bàn phím số (phone-pad) và một số xử lý mặc định cho số điện thoại
+  inlineLabel?: boolean;
   isPhone?: boolean;
-  isEmail?: boolean; // nếu true sẽ dùng bàn phím email
-  isNumeric?: boolean; // New prop to enable numeric input
-  showStepper?: boolean; // show +/- buttons for numeric adjustment
-  step?: number; // step increment/decrement (default 1)
-  min?: number; // optional minimum value
-  max?: number; // optional maximum value
-  compact?: boolean; // nếu true thì render input nhỏ hơn (padding, font-size giảm)
-  numberOfLines?: number; // New prop to specify the number of lines
+  isEmail?: boolean;
+  isNumeric?: boolean;
+  showStepper?: boolean;
+  step?: number;
+  min?: number;
+  max?: number;
+  compact?: boolean;
+  numberOfLines?: number;
 }
 const { width, height } = Dimensions.get('window');
 const AppInput = forwardRef<TextInput, AppInputProps>(
@@ -43,7 +42,7 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
       min,
       max,
       compact = false,
-      numberOfLines = 1, // Default value is 1
+      numberOfLines = 1,
       ...props
     },
     ref,
@@ -68,28 +67,22 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
       setShowPassword(!showPassword);
     };
 
-    // Handle numeric input with min/max validation
     const handleNumericChange = (text: string) => {
       if (!onChangeText) return;
 
-      // Allow empty string
       if (text === '') {
         onChangeText('');
         return;
       }
 
-      // Remove non-numeric characters except decimal point
       const numericValue = text.replace(/[^0-9.]/g, '');
 
-      // Parse as number
       const parsedValue = parseFloat(numericValue);
 
-      // Check if it's a valid number
       if (isNaN(parsedValue)) {
         return;
       }
 
-      // Apply min/max constraints
       if (min !== undefined && parsedValue < min) {
         onChangeText(min.toString());
         return;
@@ -118,7 +111,6 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
             : 'border-gray-300'
         } ${disabled ? 'bg-gray-100' : ''} ${extraClass}`}
       >
-        {/* Text Input */}
         <TextInput
           ref={ref}
           className={`flex-1 ${inputTextSizeClass} ${
@@ -141,17 +133,16 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
           editable={!disabled}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          multiline={numberOfLines > 1} // Enable multiline if numberOfLines > 1
+          multiline={numberOfLines > 1}
           style={{
             minHeight: compact ? (30 * height) / 812 : (40 * height) / 812,
             paddingVertical: compact ? 4 : 8,
             lineHeight: compact ? 16 : 20,
           }}
-          numberOfLines={numberOfLines} // Pass the number of lines to TextInput
+          numberOfLines={numberOfLines}
           {...props}
         />
 
-        {/* Password Toggle (only for password fields) */}
         {isPassword && (
           <TouchableOpacity onPress={togglePassword} disabled={disabled}>
             <Icon
@@ -166,7 +157,6 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
 
     return (
       <View className="mb-4">
-        {/* Inline label + input */}
         {inlineLabel ? (
           <View className="flex-row items-center">
             {label && (
@@ -184,7 +174,6 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
           </View>
         ) : (
           <>
-            {/* Label */}
             {label && (
               <Text
                 className={`text-sm font-medium mb-2 ${
@@ -196,12 +185,10 @@ const AppInput = forwardRef<TextInput, AppInputProps>(
               </Text>
             )}
 
-            {/* Input Container */}
             {renderInputContainer()}
           </>
         )}
 
-        {/* Error Message */}
         {error && <Text className="text-xs text-red-500 mt-1">{error}</Text>}
       </View>
     );

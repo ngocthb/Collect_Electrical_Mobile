@@ -80,7 +80,7 @@ export default function UserLoginScreen() {
     try {
       setLoadingApple(true);
       console.log('Starting Apple login');
-      // 1. Apple native popup
+
       const appleResponse = await appleAuth.performRequest({
         requestedOperation: appleAuth.Operation.LOGIN,
         requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
@@ -91,14 +91,12 @@ export default function UserLoginScreen() {
         throw new Error('No identityToken');
       }
 
-      // 2. Gửi token lên backend
       await signInWithApple({
         identityToken: appleResponse.identityToken,
         firstName: appleResponse.fullName?.givenName || null,
         lastName: appleResponse.fullName?.familyName || null,
       });
 
-      // 3. Lấy profile
       const profileData: any = await fetchUserProfile();
       dispatch(setUser(profileData));
       const myRank = await getMyRank(profileData.userId);
@@ -120,7 +118,6 @@ export default function UserLoginScreen() {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View className="flex-1 bg-white">
-        {/* TOP 70% */}
         <View className="flex-1 items-center justify-center px-6">
           <Image
             source={logo}
@@ -150,14 +147,11 @@ export default function UserLoginScreen() {
           </Text>
         </View>
 
-        {/* BOTTOM 30% */}
         <View
           className=" bg-primary-100 px-8 py-10 mt-2"
           style={{ borderTopLeftRadius: 40, borderTopRightRadius: 40 }}
         >
-          {/* GOOGLE LOGIN BUTTON */}
           <View className="py-4 ">
-            {/* APPLE LOGIN BUTTON (iOS only, no simulator) */}
             {isIOS && (
               <View className="mb-6">
                 <View style={{ position: 'relative' }}>

@@ -44,7 +44,6 @@ export function useZegoService() {
     setupZego();
   }, [user?.userId]);
 
-  // ❗ CHỈ uninit khi logout
   useEffect(() => {
     if (!user && initializedUserIdRef.current) {
       uninitZegoService().catch(console.error);

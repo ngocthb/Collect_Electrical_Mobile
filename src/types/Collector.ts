@@ -27,9 +27,9 @@ export interface CollectionRoute {
   collector: Collector;
   sender: Sender;
 
-  collectionDate: string; // YYYY-MM-DD
-  estimatedTime: string; // HH:mm:ss
-  actual_Time: string | null; // HH:mm:ss | null
+  collectionDate: string;
+  estimatedTime: string;
+  actual_Time: string | null;
 
   confirmImages: string[];
   pickUpItemImages: string[];

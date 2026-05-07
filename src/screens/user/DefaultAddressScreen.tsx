@@ -23,7 +23,6 @@ const DefaultAddressScreen: React.FC = () => {
 
   const addresses = useAppSelector(s => s.address.list);
 
-  // Auto-select default address from Redux on mount
   useEffect(() => {
     const defaultAddr = addresses.find(addr => addr.isDefault);
     if (defaultAddr) {
@@ -51,7 +50,6 @@ const DefaultAddressScreen: React.FC = () => {
   };
 
   const handleLocationSelect = async (location: LocationData) => {
-    // Check if user already has 5 addresses
     if (addresses.length >= 5) {
       toast.show({
         type: 'error',
@@ -72,7 +70,6 @@ const DefaultAddressScreen: React.FC = () => {
       return;
     }
 
-    // CASE 2: Create new address
     try {
       const created = await createAddress(
         user.userId,

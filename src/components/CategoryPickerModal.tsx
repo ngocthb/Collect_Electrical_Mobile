@@ -101,7 +101,6 @@ export default function CategoryPickerModal({
               Chọn danh mục
             </Text>
 
-            {/* Close Button */}
             <TouchableOpacity
               onPress={onClose}
               className="absolute top-0 right-0 w-8 h-8 bg-gray-100   rounded-full items-center justify-center"
@@ -113,7 +112,7 @@ export default function CategoryPickerModal({
           {loading ? (
             <View
               className="items-center justify-center"
-              style={{ minHeight: minHeight - 100 }} // Account for header and padding
+              style={{ minHeight: minHeight - 100 }}
             >
               <ActivityIndicator size="large" color="#e85a4f" />
               <Text className="text-gray-600 mt-2">Đang tải danh mục...</Text>
@@ -166,7 +165,6 @@ export default function CategoryPickerModal({
                 })}
               </ScrollView>
 
-              {/* Chọn Button */}
               <AppButton
                 title={'Chọn'}
                 onPress={async () => {
@@ -176,7 +174,7 @@ export default function CategoryPickerModal({
                     try {
                       await new Promise<void>(resolve =>
                         setTimeout(() => resolve(), 500),
-                      ); // Small delay for UX
+                      );
                       onConfirm(cat);
                     } finally {
                       setSelecting(false);

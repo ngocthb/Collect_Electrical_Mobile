@@ -118,7 +118,7 @@ const TimelineScreen: React.FC<TimelineScreenProps> = ({
                 </Text>
               </View>
             </View>
-            {/* request thumbnail */}
+      
             <ImageGalleryViewer images={product?.images || []} />
 
             <View className="space-y-4">

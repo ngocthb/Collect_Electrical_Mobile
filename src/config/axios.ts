@@ -9,9 +9,6 @@ import Config from './env';
 import { store } from '../store';
 import { logout } from '../store/slices/authSlice';
 
-// =======================
-// AXIOS INSTANCE
-// =======================
 const axiosClient = axios.create({
   baseURL: Config.API_URL,
   timeout: 10000,
@@ -25,9 +22,6 @@ const axiosRefresh = axios.create({
   timeout: 10000,
 });
 
-// =======================
-// TOKEN HELPERS
-// =======================
 const getAccessToken = () => AsyncStorage.getItem('token');
 const getRefreshToken = () => AsyncStorage.getItem('refreshToken');
 
@@ -40,9 +34,6 @@ const clearTokens = async () => {
   await AsyncStorage.multiRemove(['token', 'refreshToken']);
 };
 
-// =======================
-// REFRESH QUEUE
-// =======================
 let isRefreshing = false;
 
 let failedQueue: {
@@ -61,9 +52,6 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// =======================
-// REQUEST INTERCEPTOR
-// =======================
 axiosClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     const token = await getAccessToken();
@@ -79,9 +67,6 @@ axiosClient.interceptors.request.use(
   error => Promise.reject(error),
 );
 
-// =======================
-// RESPONSE INTERCEPTOR
-// =======================
 axiosClient.interceptors.response.use(
   (response: AxiosResponse) => response.data,
   async (error: AxiosError<any>) => {
@@ -90,15 +75,9 @@ axiosClient.interceptors.response.use(
     const status = error.response?.status;
     const message = error.response?.data?.message;
 
-    // =======================
-    // HANDLE 401
-    // =======================
     if (status === 401) {
-      // =======================
-      // ❗ CASE 1: FORCE LOGOUT
-      // =======================
       if (message) {
-        console.log('🚨 FORCE LOGOUT:', message);
+        console.log('FORCE LOGOUT:', message);
 
         await clearTokens();
         delete axiosClient.defaults.headers.common.Authorization;
@@ -118,9 +97,6 @@ axiosClient.interceptors.response.use(
         });
       }
 
-      // =======================
-      // 🔄 CASE 2: TOKEN EXPIRED → REFRESH
-      // =======================
       if (!originalRequest._retry) {
         if (isRefreshing) {
           return new Promise((resolve, reject) => {
@@ -137,7 +113,7 @@ axiosClient.interceptors.response.use(
         isRefreshing = true;
 
         try {
-          console.log('🔄 REFRESH TOKEN');
+          console.log('REFRESH TOKEN');
 
           const accessToken = await getAccessToken();
           const refreshToken = await getRefreshToken();
@@ -170,7 +146,7 @@ axiosClient.interceptors.response.use(
 
           return axiosClient(originalRequest);
         } catch (err) {
-          console.log('❌ REFRESH FAIL');
+          console.log('REFRESH FAIL');
 
           processQueue(err, null);
 
@@ -186,9 +162,6 @@ axiosClient.interceptors.response.use(
       }
     }
 
-    // =======================
-    // HANDLE 403
-    // =======================
     if (status === 403) {
       toast.show({
         type: 'error',
@@ -196,9 +169,6 @@ axiosClient.interceptors.response.use(
       });
     }
 
-    // =======================
-    // OTHER ERRORS
-    // =======================
     return Promise.reject(
       error.response?.data || {
         message: error.message,

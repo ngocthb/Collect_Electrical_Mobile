@@ -165,7 +165,7 @@ const DeliveryScanQrScreen = ({
             </View>
           )}
 
-          {/* Status Card */}
+    
           {shipperId ? (
             <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm border-2 border-red-200 ">
               <View className="items-center">
@@ -197,7 +197,7 @@ const DeliveryScanQrScreen = ({
                 <Text className="text-sm text-text-main mb-4">
                   Mã sản phẩm : {shipperId}
                 </Text>
-                {/* Items to be delivered (from request) */}
+            
                 <View className="bg-white rounded-lg w-full">
                   <View>
                     <Text className="text-text-main text-xs font-semibold uppercase tracking-wider mb-2">

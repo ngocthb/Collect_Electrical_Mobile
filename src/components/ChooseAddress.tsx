@@ -29,7 +29,6 @@ const ChooseAddress: React.FC<ChooseAddressProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // Auto-select default address when component mounts or addresses change
   useEffect(() => {
     if (!selectedAddress && addresses && addresses.length > 0) {
       const defaultAddr = addresses.find(a => a.isDefault);
@@ -58,7 +57,6 @@ const ChooseAddress: React.FC<ChooseAddressProps> = ({
             </Text>
           </View>
 
-          {/* Display selected/default address */}
           {selectedAddress ? (
             <TouchableOpacity
               className="px-4 py-3 rounded-xl flex-row items-center justify-between bg-white border-2 border-red-200"
@@ -88,7 +86,6 @@ const ChooseAddress: React.FC<ChooseAddressProps> = ({
             </TouchableOpacity>
           )}
 
-          {/* Modal for selecting address */}
           <Modal
             visible={isModalVisible}
             transparent
@@ -97,7 +94,6 @@ const ChooseAddress: React.FC<ChooseAddressProps> = ({
           >
             <View className="flex-1 bg-black/50 justify-center items-center px-4">
               <View className="bg-white rounded-3xl w-full max-w-md">
-                {/* Header */}
                 <View className="px-6 py-5 flex-row items-center justify-between mt-2">
                   <Text className="text-xl font-bold text-gray-800">
                     Chọn địa chỉ
@@ -111,7 +107,6 @@ const ChooseAddress: React.FC<ChooseAddressProps> = ({
                   </TouchableOpacity>
                 </View>
 
-                {/* Address List */}
                 <ScrollView
                   className="px-6 py-4 max-h-96"
                   contentContainerStyle={{ paddingBottom: 30 }}

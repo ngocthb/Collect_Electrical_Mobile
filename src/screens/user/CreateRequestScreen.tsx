@@ -53,7 +53,6 @@ const CreateRequestScreen = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const dispatch = useAppDispatch();
 
-  // Reset brand when category changes
   useEffect(() => {
     setSelectedBrandId(null);
   }, [selectedCategory]);

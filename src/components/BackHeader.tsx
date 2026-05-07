@@ -5,7 +5,6 @@ import Icon from 'react-native-vector-icons/Feather';
 interface BackHeaderProps {
   title: string;
   onBackPress: () => void;
-  // optional right slot for placing a small control (calendar, filter, etc.)
   rightComponent?: React.ReactNode;
 }
 

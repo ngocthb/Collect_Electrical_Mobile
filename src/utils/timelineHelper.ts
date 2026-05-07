@@ -2,7 +2,7 @@ export const mapStatusToIcon = (status: string) => {
   const s = String(status || '')
     .trim()
     .toLowerCase();
-  // Vietnamese status mappings
+
   if (s === 'chờ duyệt') return 'clock';
   if (s === 'đã duyệt') return 'check-square';
   if (s === 'chờ thu gom') return 'calendar';
@@ -11,7 +11,7 @@ export const mapStatusToIcon = (status: string) => {
   if (s === 'đã đóng thùng' || s === 'đã đóng gói') return 'check-circle';
   if (s === 'đang vận chuyển') return 'truck';
   if (s === 'tái chế') return 'refresh-cw';
-  // Fallbacks for English/internal codes
+
   switch (s) {
     case 'created':
       return 'plus-circle';
@@ -69,7 +69,7 @@ export const mapStatusToLabel = (status: string) => {
 export const parseDateTime = (item: any) => {
   try {
     if (!item || !item.date) return new Date(0);
-    const parts = String(item.date).split('/'); // dd/mm/yyyy
+    const parts = String(item.date).split('/');
     const d = Number(parts[0] || 0);
     const m = Number(parts[1] || 1) - 1;
     const y = Number(parts[2] || 1970);
@@ -86,7 +86,7 @@ export const sortTimelineByDate = (data: any[]) => {
   return data.slice().sort((a: any, b: any) => {
     const da = parseDateTime(a).getTime();
     const db = parseDateTime(b).getTime();
-    return db - da; // newest first
+    return db - da;
   });
 };
 

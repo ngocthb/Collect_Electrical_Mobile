@@ -1,4 +1,3 @@
-// utils/imagePickerService.ts
 import { PermissionsAndroid, Platform, Linking } from 'react-native';
 import toast from 'react-native-toast-message';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
@@ -10,9 +9,6 @@ export interface ImagePickerResult {
   error?: string;
 }
 
-/**
- * Request camera permission for Android
- */
 const requestCameraPermission = async (): Promise<boolean> => {
   if (Platform.OS === 'android') {
     try {
@@ -51,12 +47,9 @@ const requestCameraPermission = async (): Promise<boolean> => {
       return false;
     }
   }
-  return true; // iOS handles permissions automatically
+  return true;
 };
 
-/**
- * Open camera to take a photo
- */
 export const openCamera = async (): Promise<ImagePickerResult> => {
   try {
     const hasPermission = await requestCameraPermission();

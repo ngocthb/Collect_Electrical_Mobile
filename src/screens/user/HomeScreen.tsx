@@ -126,10 +126,9 @@ export default function HomeScreen() {
   return (
     <MainLayout hideHeader={true} useScrollView={false}>
       <View className="px-6 bg-background-50 pb-24">
-        {/* NEWS CAROUSEL */}
+ 
         <NewsCarousel />
 
-        {/* QUICK ACTION */}
         <View className="mb-4">
           <Text className="text-base font-bold text-text-main">
             Thao tác nhanh
@@ -152,7 +151,7 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        {/* TODAY PRODUCTS */}
+   
 
         <View className="mb-2">
           <Text className="text-base font-bold text-text-main">

@@ -62,12 +62,12 @@ const DeliveryDetailsScreen = () => {
     }
 
     try {
-      console.log('🔄 Manual refresh triggered');
+      console.log('Manual refresh triggered');
       const res = await getCurrentLocationDistance(lat, lng);
       setDistanceInMeters(res.distance);
-      // Only increment trigger on MANUAL refresh
+
       setResetQrTrigger(prev => prev + 1);
-      console.log('✅ Manual refresh completed, new distance:', res.distance);
+      console.log('Manual refresh completed, new distance:', res.distance);
     } catch (err) {
       console.warn('Refresh failed:', err);
     }

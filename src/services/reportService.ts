@@ -13,7 +13,6 @@ export interface CreateReportPayload {
 
 const submitReport = async (payload: CreateReportPayload) => {
   try {
-    // Upload images to Cloudinary and get URLs
     let imageUrls: string[] = [];
     if (payload.images && payload.images.length > 0) {
       imageUrls = await Promise.all(
@@ -22,7 +21,7 @@ const submitReport = async (payload: CreateReportPayload) => {
     }
 
     console.log(payload);
-    // Send report with image URLs
+
     const response = await axiosClient.post('report', {
       userId: payload.userId,
       productId: payload.productId || null,

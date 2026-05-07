@@ -20,8 +20,6 @@ import routeService from '../../services/routeService';
 
 import { DEFAULT_BADGES } from '../../components/BadgeModal';
 
-// badge list imported from BadgeModal (we send labels to API)
-
 const DeliveryCancelScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -33,7 +31,6 @@ const DeliveryCancelScreen = () => {
     const id = requestId || route.params?.requestId || route.params?.id;
     if (!id) return;
 
-    // If we already have the full request object, skip fetching
     if (request) return;
 
     (async () => {
@@ -65,7 +62,6 @@ const DeliveryCancelScreen = () => {
   const handleTakePhoto = async () => {
     const result = await openCamera();
     if (result.success && result.images) {
-      // validate size
       if (!validateImageSize(result.images[0].fileSize, 10)) {
         toast.show({
           type: 'warning',

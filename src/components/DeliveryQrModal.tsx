@@ -92,14 +92,13 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
 
     newConnection.on('ReceiveConfirmation', (routeId, status) => {
       if (routeId !== product.collectionRouteId) {
-        console.log('[DeliveryQr] ⚠️ RouteId mismatch - ignoring notification');
+        console.log('[DeliveryQr] RouteId mismatch - ignoring notification');
         return;
       }
 
-      console.log('[DeliveryQr] ✅ Received confirmation from socket:', status);
+      console.log('[DeliveryQr] Received confirmation from socket:', status);
       setIsWaitingForConfirmation(false);
 
-      // Close modal immediately when receiving socket confirmation
       onClose?.();
 
       const s = String(status ?? '').toLowerCase();
@@ -116,7 +115,7 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
           } catch (e) {
             console.warn('[DeliveryQr] onReject handler error', e);
           }
-          // Show toast for rejects coming from server/SignalR
+
           toast.show({
             type: 'error',
             text1: 'Từ chối',
@@ -161,7 +160,7 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
     });
 
     newConnection.onclose(error => {
-      console.log('[DeliveryQr] ❌ SignalR connection closed', error);
+      console.log('[DeliveryQr] SignalR connection closed', error);
     });
 
     newConnection
@@ -174,7 +173,7 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
         setIsWaitingForConfirmation(true);
       })
       .catch(err => {
-        console.error('[DeliveryQr] ❌ SignalR connection/join error:', err);
+        console.error('[DeliveryQr] SignalR connection/join error:', err);
       });
 
     return () => {
@@ -238,7 +237,7 @@ const DeliveryQrModal: React.FC<DeliveryQrModalProps> = ({
     >
       <View className="flex-1 bg-black/50 justify-center items-center px-4">
         <View className="bg-white rounded-2xl max-h-[90%] w-full max-w-[520px] overflow-hidden">
-          {/* Header */}
+   
           <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-200">
             <Text className="text-lg font-bold text-gray-900">
               Xác nhận giao hàng

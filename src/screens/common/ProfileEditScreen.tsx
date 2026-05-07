@@ -45,7 +45,6 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
     try {
       let uploadedAvatarUrl = avatarUrl || '';
 
-      // Upload image to Cloudinary if a new image was selected
       if (selectedImage && selectedImage.uri) {
         try {
           uploadedAvatarUrl = await uploadImageToCloudinary(selectedImage);
@@ -61,7 +60,6 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
         }
       }
 
-      // Validate phone number if it has changed
       if (phone !== (user?.phone ?? '')) {
         const phoneError = validatePhoneNumber(phone);
         if (phoneError) {
@@ -75,14 +73,12 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
         }
       }
 
-      // Call API to update profile
       const response = await updateProfile(user?.userId || '', {
         email: email,
         avatarUrl: uploadedAvatarUrl,
         phoneNumber: phone || '',
       });
 
-      // Update Redux store with new user data
       const updatedUser = {
         ...user,
         avatar: uploadedAvatarUrl,
@@ -132,10 +128,6 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
     try {
       await deleteAccount(user?.userId || '');
 
-      // Clear token and sign out
-      await signOut();
-
-      // Reset redux auth state
       dispatch(logout());
 
       toast.show({
@@ -227,7 +219,6 @@ const ProfileEditScreen: React.FC<any> = ({ navigation }) => {
             />
           </View>
 
-          {/* Delete Account Button */}
           <TouchableOpacity
             onPress={() => setShowDeleteModal(true)}
             disabled={saving}

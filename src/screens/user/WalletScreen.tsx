@@ -90,11 +90,9 @@ export default function WalletScreen() {
       const userId = user?.userId;
       if (!userId) return;
 
-      // Refresh balance
       const res = await getUserPoints(userId);
       if (res && typeof res.points === 'number') setBalance(res.points);
 
-      // Reset and reload transactions
       const transRes = await getUserPointTransactions(userId, 1, LIMIT);
       const data = Array.isArray(transRes) ? transRes : transRes?.data ?? [];
       setTransactions(data);
@@ -180,7 +178,7 @@ export default function WalletScreen() {
       enableRefresh={false}
     >
       <View className="flex-1 bg-background-50 px-4 ">
-        {/* Balance Card */}
+       
         <View className="rounded-3xl  overflow-hidden mb-6 p-4 bg-primary-100 border-2 border-red-200">
           <View className="flex-row items-center justify-between">
             <Image
@@ -216,7 +214,7 @@ export default function WalletScreen() {
           </View>
         </View>
 
-        {/* History */}
+      
         <Text className="text-lg font-semibold mb-3">Lịch sử nhận điểm</Text>
         <View className="flex-1">
           {loadingTransactions ? (

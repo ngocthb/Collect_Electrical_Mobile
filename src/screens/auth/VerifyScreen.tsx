@@ -74,12 +74,12 @@ export default function VerifyScreen() {
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View className="flex-1 bg-white px-6 items-center justify-center">
-        {/* Logo */}
+ 
         <View className="w-28 h-28 items-center justify-center mb-8">
           <Image source={verify} className="w-32 h-32" resizeMode="contain" />
         </View>
 
-        {/* Title */}
+    
         <Text className="text-center text-2xl font-bold text-text-main mb-2">
           Xác thực <Text className="text-primary-100">OTP</Text>
         </Text>
@@ -94,7 +94,7 @@ export default function VerifyScreen() {
           <View className="mb-6" />
         )}
 
-        {/* OTP inputs */}
+  
         <View className="mb-6">
           <OtpInput
             length={6}

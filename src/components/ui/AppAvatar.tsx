@@ -70,9 +70,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  image: {
-    // shadow styles can't be applied on Android via Image directly; keep them local when needed
-  },
+  image: {},
 });
 
 export default AppAvatar;

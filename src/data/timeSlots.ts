@@ -1,13 +1,3 @@
-// const timeSlots: Record<string, string[]> = {
-//   T2: [minTime, maxTime],
-//   T3: [minTime, maxTime],
-//   T4: [minTime, maxTime],
-//   T5: [minTime, maxTime],
-//   T6: [minTime, maxTime],
-//   T7: [minTime, maxTime],
-//   CN: [minTime, maxTime],
-// };
-
 export type Day = 'T2' | 'T3' | 'T4' | 'T5' | 'T6' | 'T7' | 'CN';
 
 export const days: Day[] = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];

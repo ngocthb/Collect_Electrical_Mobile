@@ -12,7 +12,7 @@ interface MainLayoutProps {
   hideHeader?: boolean;
   onRefresh?: () => Promise<void> | void;
   headerRightComponent?: React.ReactNode;
-  useScrollView?: boolean; // Default true, set false if children has its own scrollable component
+  useScrollView?: boolean;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({

@@ -79,7 +79,6 @@ const DeliveryPhotoConfirmScreen = () => {
     try {
       const uploadedUrls: string[] = [];
 
-      // Upload images
       for (const img of selectedImages) {
         try {
           const url = await uploadImageToCloudinary(img);
@@ -99,10 +98,8 @@ const DeliveryPhotoConfirmScreen = () => {
         return;
       }
 
-      // Lưu URLs vào Redux
       await dispatch(saveImageUrls(uploadedUrls));
 
-      // Check image matching
       const checkImage = await routeService.checkImage(
         productImages,
         uploadedUrls,
@@ -112,7 +109,6 @@ const DeliveryPhotoConfirmScreen = () => {
       setIsProcessing(false);
 
       if (!checkImage || !checkImage.areSimilar) {
-        // Hiện modal cảnh báo
         setShowWarningModal(true);
       } else {
         toast.show({
@@ -191,7 +187,7 @@ const DeliveryPhotoConfirmScreen = () => {
         />
       </ScrollView>
 
-      {/* Warning Modal */}
+     
       <Modal
         visible={showWarningModal}
         transparent

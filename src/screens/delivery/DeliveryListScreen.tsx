@@ -41,7 +41,6 @@ export default function DeliveryListScreen() {
   const user = useAppSelector(s => s.auth.user);
   const userId = user?.userId;
 
-  // Memoize isSelectedDateToday để tránh tính lại mỗi lần render
   const isSelectedDateToday = useMemo(() => {
     const selected = new Date(selectedDate);
     selected.setHours(0, 0, 0, 0);
@@ -60,7 +59,7 @@ export default function DeliveryListScreen() {
   const startOfWeek = useCallback((d: Date) => {
     const date = new Date(d);
     const day = date.getDay();
-    const diff = (day === 0 ? -6 : 1) - day; // Monday as start
+    const diff = (day === 0 ? -6 : 1) - day;
     date.setDate(date.getDate() + diff);
     date.setHours(0, 0, 0, 0);
     return date;
@@ -107,7 +106,6 @@ export default function DeliveryListScreen() {
     const selectedStart = new Date(selectedDate);
     selectedStart.setHours(0, 0, 0, 0);
 
-    // Filter orders by date and status
     let filtered = ordersWithDistance.filter(order => {
       const orderDate = getOrderDate(order);
       if (!orderDate) return false;
@@ -122,7 +120,6 @@ export default function DeliveryListScreen() {
       return matchesDate && matchesStatus;
     });
 
-    // Sort orders by status
     if (selectedStatus === 'all') {
       const top: any[] = [];
       const middle: any[] = [];
@@ -167,8 +164,8 @@ export default function DeliveryListScreen() {
   );
 
   const handleSelectDate = useCallback((d: Date) => {
-    setIsLoading(true); // 🔥 quan trọng
-    setOrdersWithDistance([]); // optional, để clear list
+    setIsLoading(true);
+    setOrdersWithDistance([]);
     setSelectedDate(d);
   }, []);
 
@@ -208,14 +205,12 @@ export default function DeliveryListScreen() {
     fetchAllConfig();
   }, []);
 
-  // Handle date parameter from route
   useEffect(() => {
     const dateParam = route.params?.date;
     if (dateParam) {
       try {
-        // Parse date string in "yyyy-MM-dd" format
         const parsedDate = new Date(dateParam);
-        // Verify the date is valid
+
         if (!isNaN(parsedDate.getTime())) {
           setSelectedDate(parsedDate);
         }

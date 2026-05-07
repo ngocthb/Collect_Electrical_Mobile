@@ -80,7 +80,6 @@ export default function ForgotPassScreen() {
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View className="flex-1 bg-white px-6 items-center justify-center">
-        {/* Logo */}
         <View className="w-28 h-28 items-center justify-center mb-8">
           <Image
             source={forgotPass}
@@ -89,7 +88,6 @@ export default function ForgotPassScreen() {
           />
         </View>
 
-        {/* Welcome text */}
         <Text className="text-center text-2xl font-bold text-text-main mb-2">
           {type === 'forgot_password' ? (
             <>
@@ -105,7 +103,6 @@ export default function ForgotPassScreen() {
           {content[type].description}
         </Text>
 
-        {/* Input fields */}
         <View style={{ width: '100%', gap: 16, marginBottom: 16 }}>
           <AppInput
             ref={emailRef}
@@ -130,7 +127,6 @@ export default function ForgotPassScreen() {
           disabled={!email.trim() || loading}
         />
 
-        {/* Register link */}
         <View className="flex-row justify-center mt-6">
           <TouchableOpacity
             onPress={() => {

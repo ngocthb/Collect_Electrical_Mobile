@@ -2,11 +2,10 @@ import { Platform, PermissionsAndroid, Linking } from 'react-native';
 import toast from 'react-native-toast-message';
 import Geolocation from 'react-native-geolocation-service';
 import type { LineString } from 'geojson';
-// import type { ResolvedLocation } from '../types/MapboxPicker';
+
 import Config from '../config/env';
 import axios from 'axios';
 
-// const MAPBOX_TOKEN = Config.MAPBOX_ACCESS_TOKEN;
 const OPEN_MAP_TOKEN = Config.OPEN_MAP_TOKEN;
 
 export async function searchLocation(query: string) {
@@ -18,9 +17,9 @@ export async function searchLocation(query: string) {
 
   const params = {
     input: query,
-    location: '10.8231,106.6297', // ưu tiên HCM
-    radius: 80, // bao HCM + BD + DN
-    admin_v2: true, // địa giới mới
+    location: '10.8231,106.6297',
+    radius: 80,
+    admin_v2: true,
     apikey: OPEN_MAP_TOKEN,
   };
 
@@ -58,7 +57,7 @@ export async function reverseGeocode(longitude: number, latitude: number) {
     const url = 'https://mapapis.openmap.vn/v1/geocode/reverse';
 
     const params = {
-      latlng: `${latitude},${longitude}`, // ⚠️ lat,lng
+      latlng: `${latitude},${longitude}`,
       admin_v2: true,
       apikey: OPEN_MAP_TOKEN,
     };
@@ -134,7 +133,7 @@ export interface RouteData {
 //   }
 //   return null;
 // }
-// Lấy vị trí hiện tại, trả về Promise<[longitude, latitude]>
+
 export function getCurrentLocation(): Promise<[number, number]> {
   return new Promise((resolve, reject) => {
     Geolocation.getCurrentPosition(
@@ -262,14 +261,13 @@ export async function checkAndRequestLocationPermission() {
 //   return response.json();
 // }
 
-// Calculate distance between two coordinates using Haversine formula
 export function calculateDistance(
   lat1: number,
   lon1: number,
   lat2: number,
   lon2: number,
 ): number {
-  const R = 6371e3; // Earth's radius in meters
+  const R = 6371e3;
   const φ1 = (lat1 * Math.PI) / 180;
   const φ2 = (lat2 * Math.PI) / 180;
   const Δφ = ((lat2 - lat1) * Math.PI) / 180;
@@ -280,10 +278,9 @@ export function calculateDistance(
     Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-  return R * c; // Distance in meters
+  return R * c;
 }
 
-// Request location permission
 export async function requestLocationPermission(): Promise<boolean> {
   if (Platform.OS === 'android') {
     try {
@@ -306,7 +303,6 @@ export async function requestLocationPermission(): Promise<boolean> {
   return true;
 }
 
-// Watch current location and calculate distance to target
 export function watchCurrentLocationWithDistance(
   targetLat: number,
   targetLng: number,
@@ -330,15 +326,14 @@ export function watchCurrentLocationWithDistance(
     },
     {
       enableHighAccuracy: true,
-      distanceFilter: 10, // Update every 10 meters
-      interval: 5000, // Update every 5 seconds
+      distanceFilter: 10,
+      interval: 5000,
       fastestInterval: 2000,
     },
   );
   return watchId;
 }
 
-// Get current location once and calculate distance to target
 export async function getCurrentLocationDistance(
   targetLat: number,
   targetLng: number,

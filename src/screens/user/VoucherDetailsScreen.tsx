@@ -71,11 +71,10 @@ export default function VoucherDetailsScreen() {
       ) : voucher ? (
         <ScrollView className="flex-1 bg-background-50">
           <View className="px-6">
-            {/* Voucher Card Preview */}
             <View className="rounded-2xl  items-center">
               <View className="p-4 rounded-xl mb-4">
                 <QRCode
-                  value={`${voucher.code} - ${user?.userId}`} // You can customize this value as needed
+                  value={`${voucher.code} - ${user?.userId}`}
                   size={200}
                   backgroundColor="white"
                   logoSize={60}
@@ -89,7 +88,6 @@ export default function VoucherDetailsScreen() {
               </View>
             </View>
 
-            {/* Voucher Details */}
             <View className="bg-white rounded-2xl p-6 mb-6 border-2 border-red-200">
               <Text className="text-gray-900 font-bold text-lg mb-4">
                 Thông tin chi tiết

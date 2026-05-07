@@ -29,10 +29,8 @@ const OtpInput: React.FC<OtpInputProps> = ({
   );
 
   const handleChange = (index: number) => (text: string) => {
-    // Extract only digits
     const numericValue = text.replace(/[^0-9]/g, '');
 
-    // If empty text and current digit exists, it's a deletion
     if (!numericValue && digits[index]) {
       const next = [...digits];
       next[index] = '';
@@ -42,13 +40,10 @@ const OtpInput: React.FC<OtpInputProps> = ({
       return;
     }
 
-    // If no numeric value, do nothing
     if (!numericValue) return;
 
-    // Take only the last digit entered
     const digit = numericValue.charAt(numericValue.length - 1);
 
-    // Update the digits array
     const next = [...digits];
     next[index] = digit;
     setDigits(next);
@@ -56,13 +51,11 @@ const OtpInput: React.FC<OtpInputProps> = ({
     const code = next.join('');
     onChange?.(code);
 
-    // Auto-focus to next input if not the last one
     if (index < length - 1) {
       setTimeout(() => {
         inputsRef.current[index + 1]?.focus();
       }, 10);
     } else {
-      // Last digit entered
       if (code.length === length) {
         onComplete?.(code);
       }
@@ -73,7 +66,7 @@ const OtpInput: React.FC<OtpInputProps> = ({
     (index: number) =>
     (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
       const key = e.nativeEvent.key;
-      // If user pressed backspace on an empty input, move focus to previous and clear it
+
       if (key === 'Backspace') {
         if (digits[index] === '' && index > 0) {
           const prev = [...digits];
@@ -82,7 +75,6 @@ const OtpInput: React.FC<OtpInputProps> = ({
           onChange?.(prev.join(''));
           inputsRef.current[index - 1]?.focus();
         } else if (digits[index] !== '') {
-          // If current has a digit, clear it (keeps focus on current)
           const next = [...digits];
           next[index] = '';
           setDigits(next);

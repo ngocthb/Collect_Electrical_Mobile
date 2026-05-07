@@ -1,4 +1,3 @@
-// src/config/googleSignInConfig.ts
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import Config from './env';
 import { Platform } from 'react-native';

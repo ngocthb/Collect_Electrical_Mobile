@@ -53,7 +53,6 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     serverDate?.serverTime ? new Date(serverDate.serverTime) : new Date(),
   );
 
-  // Cập nhật selected khi initialDate thay đổi (từ server date)
   useEffect(() => {
     if (initialDate) {
       setSelected(initialDate);
@@ -88,7 +87,7 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 
   const renderMonthGrid = () => {
     const firstDay = new Date(currentYear, currentMonth, 1);
-    const startWeekday = (firstDay.getDay() + 6) % 7; // Monday=0
+    const startWeekday = (firstDay.getDay() + 6) % 7;
     const totalDays = daysInMonth(currentYear, currentMonth);
 
     const cells: (Date | null)[] = [];

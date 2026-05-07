@@ -30,8 +30,8 @@ interface Brand {
 
 interface Props {
   type: 'subcategory' | 'brand';
-  parentCategoryId?: string; // required when type === 'subcategory'
-  subCategoryId?: string; // required when type === 'brand'
+  parentCategoryId?: string;
+  subCategoryId?: string;
   onChange?: (item: SubCategory | Brand | null) => void;
 }
 
@@ -64,7 +64,6 @@ const AppSearchableDropdown: React.FC<Props> = ({
           setItems(res || []);
           setFiltered(res || []);
         } else {
-          // brand
           if (!subCategoryId) {
             setItems([]);
             setFiltered([]);

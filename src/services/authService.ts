@@ -12,66 +12,40 @@ export const requestNotificationPermission = async (): Promise<void> => {
       PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
     );
 
-    console.log('🔔 Notification permission:', granted);
+    console.log(' Notification permission:', granted);
   } else {
-    console.log('🔔 Notification permission: Not required on this platform');
+    console.log(' Notification permission: Not required on this platform');
   }
 };
-
-// export const registerFcmToken = async (
-//   userId: String,
-// ): Promise<string | null> => {
-//   try {
-//     await requestNotificationPermission();
-//     await messaging().requestPermission();
-//     const fcmToken = await messaging().getToken();
-//     const platform = Platform.OS;
-//     console.log('FCM token', fcmToken);
-//     const response = await axiosClient.post('/notifications/register-device', {
-//       fcmToken,
-//       platform,
-//       userId,
-//     });
-//     console.log(response);
-//     return fcmToken;
-//   } catch (error) {
-//     console.error('❌ Lỗi lấy FCM token:', error);
-//     return null;
-//   }
-// };
 
 export const registerFcmToken = async (
   userId: string,
   voipToken: string,
 ): Promise<string | null> => {
   try {
-    // 🔹 ANDROID 13+
     if (Platform.OS === 'android' && Platform.Version >= 33) {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
       );
-      console.log('🔔 Android permission:', granted);
+      console.log(' Android permission:', granted);
     }
 
-    // 🔹 iOS permission
     const authStatus = await messaging().requestPermission();
     const enabled =
       authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
       authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
     if (!enabled) {
-      console.log('❌ Notification permission denied');
+      console.log(' Notification permission denied');
       return null;
     }
 
-    // 🔥 QUAN TRỌNG CHO iOS
     if (Platform.OS === 'ios') {
       await messaging().registerDeviceForRemoteMessages();
     }
 
-    // 🔹 Lấy FCM token
     const fcmToken = await messaging().getToken();
-    console.log('📱 FCM token:', fcmToken);
+    console.log('FCM token:', fcmToken);
     console.log('voip ', voipToken);
     const res = await axiosClient.post('/notifications/register-device', {
       voipToken,
@@ -79,21 +53,21 @@ export const registerFcmToken = async (
       platform: Platform.OS,
       userId,
     });
-    console.log('✅ Device registered for notifications:', res);
+    console.log(' Device registered for notifications:', res);
 
     return fcmToken;
   } catch (error: any) {
     if (error?.type === 'FORCE_LOGOUT') {
       return null;
     }
-    console.error('❌ Lỗi lấy FCM token:', error);
+    console.error(' Lỗi lấy FCM token:', error);
     return null;
   }
 };
 
 export const signInWithGoogle = async (): Promise<any> => {
   try {
-    console.log('🚀 [1] Bắt đầu Google Sign In');
+    console.log(' [1] Bắt đầu Google Sign In');
 
     if (Platform.OS === 'android') {
       await GoogleSignin.hasPlayServices({
@@ -101,15 +75,14 @@ export const signInWithGoogle = async (): Promise<any> => {
       });
     }
 
-    console.log('🚀 [2] Sign out để clean state');
+    console.log(' [2] Sign out để clean state');
     await GoogleSignin.signOut();
 
-    console.log('🚀 [3] Mở Google Sign In UI');
+    console.log(' [3] Mở Google Sign In UI');
     const userInfo = await GoogleSignin.signIn();
 
-    console.log('🚀 [4] UserInfo:', JSON.stringify(userInfo, null, 2));
+    console.log(' [4] UserInfo:', JSON.stringify(userInfo, null, 2));
 
-    // Handle cancelled
     if (userInfo.type === 'cancelled') {
       throw new Error('User cancelled the sign in');
     }
@@ -117,30 +90,29 @@ export const signInWithGoogle = async (): Promise<any> => {
     const idToken = userInfo.data?.idToken;
 
     if (!idToken) {
-      console.error('❌ Không có idToken');
+      console.error(' Không có idToken');
       throw new Error('Không thể lấy ID token từ Google');
     }
 
-    console.log('🚀 [5] ID Token OK');
+    console.log(' [5] ID Token OK');
 
-    // Tạo credential
     const credential = auth.GoogleAuthProvider.credential(idToken);
-    console.log('🚀 [6] Credential created');
+    console.log(' [6] Credential created');
 
-    console.log('🚀 [7] Đăng nhập Firebase...');
-    // Gọi trực tiếp auth() - nó sẽ tự động init
+    console.log(' [7] Đăng nhập Firebase...');
+
     const userCredential = await auth().signInWithCredential(credential);
 
     if (!userCredential.user) {
       throw new Error('Đăng nhập Firebase thất bại');
     }
 
-    console.log('🚀 [8] Firebase User:', userCredential.user.uid);
+    console.log(' [8] Firebase User:', userCredential.user.uid);
 
     const firebaseIdToken = await userCredential.user.getIdToken();
-    console.log('🚀 [9] Firebase ID Token OK');
+    console.log(' [9] Firebase ID Token OK');
 
-    console.log('🚀 [10] Gọi API backend...');
+    console.log(' [10] Gọi API backend...');
     const response = await getTokenByLoginGoogle(firebaseIdToken);
     console.log('response', response);
     const _res: any = response;
@@ -151,7 +123,7 @@ export const signInWithGoogle = async (): Promise<any> => {
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('refreshToken', refreshToken);
       axiosClient.defaults.headers.Authorization = `Bearer ${token}`;
-      console.log('🚀 [11] Token saved');
+      console.log(' [11] Token saved');
     }
 
     return response;
@@ -159,9 +131,9 @@ export const signInWithGoogle = async (): Promise<any> => {
     if (error?.type === 'FORCE_LOGOUT') {
       return null;
     }
-    console.error('❌ Error:', error);
-    console.error('❌ Code:', error?.code);
-    console.error('❌ Message:', error?.message);
+    console.error(' Error:', error);
+    console.error(' Code:', error?.code);
+    console.error('Message:', error?.message);
     throw error;
   }
 };
@@ -186,7 +158,7 @@ export const signIn = async (
     return res;
   } catch (error: any) {
     if (error?.type === 'FORCE_LOGOUT') {
-      return null; // ✅ ignore
+      return null;
     }
 
     console.error('[signIn] Error:', error);
@@ -222,7 +194,7 @@ export const signInWithApple = async (appleData: {
     throw error;
   }
 };
-// Hàm đăng xuất
+
 export const signOutGoogle = async (): Promise<void> => {
   try {
     await GoogleSignin.signOut();
@@ -233,7 +205,6 @@ export const signOutGoogle = async (): Promise<void> => {
   }
 };
 
-// Sign out: remove token from storage and clear axios header, then sign out from firebase/google
 export const signOut = async (userId: string): Promise<void> => {
   try {
     const res = await axiosClient.post('/auth/logout', userId);
@@ -256,7 +227,6 @@ const getTokenByLoginGoogle = async (token: string) => {
   }
 };
 
-// Fetch user profile from backend
 export const fetchUserProfile = async (): Promise<any> => {
   try {
     const response = await axiosClient.get<Profile>('/users/profile');

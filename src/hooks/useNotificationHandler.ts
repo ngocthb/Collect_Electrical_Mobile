@@ -8,7 +8,6 @@ export const useNotificationHandler = (
   onRankUp?: (payload: RankUpPayload) => void,
 ) => {
   useEffect(() => {
-    // Foreground
     const unsubscribe = messaging().onMessage(async remoteMessage => {
       console.log('Notification nhận được ở foreground:', remoteMessage);
       const {
@@ -97,7 +96,6 @@ export const useNotificationHandler = (
       }
     });
 
-    // Background - khi user TAP vào notification
     const unsubscribeOpenedApp = messaging().onNotificationOpenedApp(
       remoteMessage => {
         console.log('App opened from BACKGROUND notification:', remoteMessage);
@@ -127,13 +125,11 @@ export const useNotificationHandler = (
             onRankUp?.(rankUpPayload);
           }
         } else if (productId && type === 'SHIPPER_ARRIVAL') {
-          // Navigation đã sẵn sàng vì app đang chạy
           if (navigationRef.isReady()) {
             console.log('Navigate từ background');
             navigationRef.navigate('ProductDetails', { productId });
           }
         } else if (type === 'REPORT_ANSWERED') {
-          // Navigation đã sẵn sàng vì app đang chạy
           if (navigationRef.isReady()) {
             console.log('Navigate từ background');
             navigationRef.navigate('ReportList');
@@ -157,7 +153,6 @@ export const useNotificationHandler = (
       },
     );
 
-    // Quit state - khi app KILLED và mở từ notification
     messaging()
       .getInitialNotification()
       .then(remoteMessage => {
@@ -173,7 +168,6 @@ export const useNotificationHandler = (
           }
 
           if (productId && type === 'SHIPPER_ARRIVAL') {
-            // Cần đợi navigation ready
             const checkNavReady = setInterval(() => {
               if (navigationRef.isReady()) {
                 console.log('Navigation ready! Navigate now');
@@ -184,10 +178,8 @@ export const useNotificationHandler = (
               }
             }, 100);
 
-            // Timeout sau 5s để tránh loop vô hạn
             setTimeout(() => clearInterval(checkNavReady), 5000);
           } else if (type === 'REPORT_ANSWERED') {
-            // Cần đợi navigation ready
             const checkNavReady = setInterval(() => {
               if (navigationRef.isReady()) {
                 console.log('Navigation ready! Navigate now');
@@ -198,7 +190,6 @@ export const useNotificationHandler = (
               }
             }, 100);
 
-            // Timeout sau 5s để tránh loop vô hạn
             setTimeout(() => clearInterval(checkNavReady), 5000);
           } else if (type === 'COLLECTOR_CALL' && routeId) {
             return;
@@ -215,7 +206,6 @@ export const useNotificationHandler = (
               }
             }, 100);
 
-            // Timeout sau 5s để tránh loop vô hạn
             setTimeout(() => clearInterval(checkNavReady), 5000);
           } else if (type === 'NEW_COLLECTION_ROUTE' && date) {
             const checkNavReady = setInterval(() => {
@@ -231,7 +221,6 @@ export const useNotificationHandler = (
               }
             }, 100);
 
-            // Timeout sau 5s để tránh loop vô hạn
             setTimeout(() => clearInterval(checkNavReady), 5000);
           }
         }

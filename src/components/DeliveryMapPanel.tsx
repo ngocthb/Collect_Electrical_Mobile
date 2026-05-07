@@ -20,6 +20,8 @@ import { sendNotification } from '../services/notificationServices';
 import { formatDate } from '../utils/dateUtils';
 import { useSelector } from 'react-redux';
 import { useAppSelector } from '../store/hooks';
+// @ts-ignore
+import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 
 type Props = {
   normalizedRequest: any;
@@ -56,7 +58,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
   useEffect(() => {
     if (resetQrTrigger && resetQrTrigger > 0) {
       console.log(
-        '🔄 Resetting QR modal flag via manual refresh:',
+        'Resetting QR modal flag via manual refresh:',
         resetQrTrigger,
       );
 
@@ -94,13 +96,12 @@ const DeliveryMapPanel: React.FC<Props> = ({
           })();
         }
       } else if (hasReceivedSocketConfirmationRef.current) {
-        console.log('⏭️ Skipping QR modal - already confirmed via socket');
+        console.log('Skipping QR modal - already confirmed via socket');
       }
     }
   }, [resetQrTrigger, distanceInMeters]);
 
   useEffect(() => {
-    // Chỉ chạy khi không có resetQrTrigger (tức là lần đầu mount)
     if (
       !resetQrTrigger &&
       !hasReceivedSocketConfirmationRef.current &&
@@ -133,7 +134,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
           const response = await axiosClient.post(
             `/products/notify-arrival/${normalizedRequest.productId}`,
           );
-          console.log('📍 Notify arrival API called:', response);
+          console.log('Notify arrival API called:', response);
         } catch (err) {
           console.warn('Failed to notify arrival:', err);
           hasNotifiedArrivalRef.current = false;
@@ -159,7 +160,6 @@ const DeliveryMapPanel: React.FC<Props> = ({
     ];
   }, [cleanReceiverId, receiver?.name]);
 
-  // pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
   const isRefreshingRef = React.useRef(false);
 
@@ -169,7 +169,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
     try {
       setIsSendNoti(true);
       const response = sendNotification(normalizedRequest.productId);
-      console.log('📍 Notify arrival called:', response);
+      console.log('Notify arrival called:', response);
     } catch (err) {
       console.warn('Failed to notify arrival:', err);
       setIsSendNoti(false);
@@ -191,7 +191,6 @@ const DeliveryMapPanel: React.FC<Props> = ({
     }
   };
 
-  // Auto-refresh every 2 minutes (120000 ms)
   useEffect(() => {
     if (!onRefresh) return;
     let mounted = true;
@@ -257,7 +256,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
           <>
             <View>
               <View className="bg-primary-100 border-2 border-red-200  rounded-2xl shadow-lg mb-3  p-4">
-                <Text className="text-text-main text-xs font-semibold uppercase tracking-wider mb-2 ">
+                <Text className="text-white text-xs font-black uppercase tracking-wider mb-2 ">
                   Thông tin người gửi
                 </Text>
                 <View className="flex-row items-center">
@@ -282,12 +281,18 @@ const DeliveryMapPanel: React.FC<Props> = ({
                       </Text>
                     </TouchableOpacity>
                   </View>
-                  <TouchableOpacity
+                  <ZegoSendCallInvitationButton
+                    invitees={invitees}
+                    isVideoCall={false}
+                    resourceID="thu_gom_data"
+                    timeout={120}
+                  />
+                  {/* <TouchableOpacity
                     onPress={() => setShowCallModal(true)}
                     className="w-12 h-12 rounded-full bg-white items-center justify-center"
                   >
                     <Icon name="phone-in-talk" size={26} color="#3366CC" />
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                 </View>
               </View>
             </View>
@@ -381,28 +386,24 @@ const DeliveryMapPanel: React.FC<Props> = ({
         }}
       />
 
-      <CallOptionsModal
+      {/* <CallOptionsModal
         visible={showCallModal}
         onClose={() => setShowCallModal(false)}
         receiver={receiver}
         invitees={invitees}
         user={user}
         senderName={normalizedRequest?.sender?.name}
-      />
+      /> */}
     </ScrollView>
   );
 };
 
-// Avoid re-rendering unless important props change. We compare by
-// collectionRouteId (stable identifier), isExpanded and a small change
-// in distanceInMeters (ignore tiny fluctuations under 0.5m).
 export default React.memo(DeliveryMapPanel, (prev, next) => {
   const prevId = prev.normalizedRequest?.collectionRouteId;
   const nextId = next.normalizedRequest?.collectionRouteId;
   if (prevId !== nextId) return false;
   if (prev.isExpanded !== next.isExpanded) return false;
 
-  // So sánh resetQrTrigger để re-render khi có refresh
   if (prev.resetQrTrigger !== next.resetQrTrigger) return false;
 
   const prevDist =

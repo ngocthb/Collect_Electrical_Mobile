@@ -16,7 +16,7 @@ const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 const startOfWeek = (d: Date) => {
   const date = new Date(d);
   const day = date.getDay();
-  const diff = (day === 0 ? -6 : 1) - day; // Monday start
+  const diff = (day === 0 ? -6 : 1) - day;
   date.setDate(date.getDate() + diff);
   date.setHours(0, 0, 0, 0);
   return date;

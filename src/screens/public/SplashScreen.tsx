@@ -19,14 +19,12 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
-      // 2️⃣ Circle biến mất
       Animated.timing(fadeCircle, {
         toValue: 0,
         duration: 200,
         useNativeDriver: true,
       }).start();
 
-      // 3️⃣ Logo xuất hiện
       Animated.parallel([
         Animated.timing(fadeLogo, {
           toValue: 1,
@@ -51,7 +49,6 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
 
   return (
     <View className="flex-1 items-center justify-center bg-white">
-      {/* Chấm tròn lớn dần → rồi biến mất */}
       <Animated.View
         style={{
           position: 'absolute',
@@ -64,7 +61,6 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
         }}
       />
 
-      {/* Logo + Text */}
       <Animated.View
         style={{
           opacity: fadeLogo,

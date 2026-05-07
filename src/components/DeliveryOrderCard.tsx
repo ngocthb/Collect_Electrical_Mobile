@@ -11,6 +11,8 @@ import {
 import CallOptionsModal from './CallOptionsModal';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '../store/hooks';
+// @ts-ignore
+import { ZegoSendCallInvitationButton } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 
 const cleanUserIdForZego = (userId: string) => {
   return userId.replace(/[^a-zA-Z0-9_]/g, '');
@@ -82,7 +84,7 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
         </TouchableOpacity>
       </View>
 
-      {/* Order card */}
+  
       <View className="flex-1 flex-row items-center">
         <TouchableOpacity
           onPress={handleEyePress}
@@ -109,12 +111,18 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
 
         <View className="ml-3">
           {invitees.length > 0 && isSelectedDateToday && !actionsDisabled ? (
-            <TouchableOpacity
-              onPress={() => setShowCallModal(true)}
-              className="w-12 h-12 rounded-full bg-white items-center justify-center"
-            >
-              <Icon name="phone-in-talk" size={26} color="#3366CC" />
-            </TouchableOpacity>
+            // <TouchableOpacity
+            //   onPress={() => setShowCallModal(true)}
+            //   className="w-12 h-12 rounded-full bg-white items-center justify-center"
+            // >
+            //   <Icon name="phone-in-talk" size={26} color="#3366CC" />
+            // </TouchableOpacity>
+            <ZegoSendCallInvitationButton
+              invitees={invitees}
+              isVideoCall={false}
+              resourceID="thu_gom_data"
+              timeout={120}
+            />
           ) : invitees.length > 0 ? (
             <View
               className="bg-gray-100 rounded-full p-2"
@@ -130,14 +138,14 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
         </View>
       </View>
 
-      <CallOptionsModal
+      {/* <CallOptionsModal
         visible={showCallModal}
         onClose={() => setShowCallModal(false)}
         receiver={receiver}
         invitees={invitees}
         user={user}
         senderName={receiver?.name}
-      />
+      /> */}
     </View>
   );
 };

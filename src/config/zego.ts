@@ -19,26 +19,20 @@ let currentCallId: string | null = null;
 let currentCalleeId: string | null = null;
 let callStartTime: number | null = null;
 
-//
-// ================= SET CURRENT CALL INFO =================
-//
 export const setCurrentCallInfo = (callId: string, calleeId: string) => {
   currentCallId = callId;
   currentCalleeId = calleeId;
   callStartTime = Date.now();
-  console.log('[Zego] 📞 Call started:', {
+  console.log('[Zego] Call started:', {
     callId,
     calleeId,
     startTime: callStartTime,
   });
 };
 
-//
-// ================= CLEAR CURRENT CALL INFO =================
-//
 export const clearCurrentCallInfo = () => {
   const duration = callStartTime ? (Date.now() - callStartTime) / 1000 : 0;
-  console.log('[Zego] 📵 Call ended:', {
+  console.log('[Zego] Call ended:', {
     currentCallId,
     currentCalleeId,
     duration: `${duration}s`,
@@ -48,9 +42,6 @@ export const clearCurrentCallInfo = () => {
   callStartTime = null;
 };
 
-//
-// ================= UNINIT =================
-//
 export const uninitZegoService = async (): Promise<void> => {
   try {
     console.log('[Zego] Uninitializing...');
@@ -66,7 +57,6 @@ export const uninitZegoService = async (): Promise<void> => {
       await ZegoUIKitPrebuiltCallService.uninit();
     }
 
-    // ✅ remove listener
     if (callEndedSub) {
       callEndedSub.remove();
       callEndedSub = null;
@@ -77,7 +67,7 @@ export const uninitZegoService = async (): Promise<void> => {
     currentCallId = null;
     currentCalleeId = null;
 
-    console.log('[Zego] Uninit completed ✅');
+    console.log('[Zego] Uninit completed ');
   } catch (error) {
     console.error('[Zego] Uninit error:', error);
 
@@ -89,9 +79,6 @@ export const uninitZegoService = async (): Promise<void> => {
   }
 };
 
-//
-// ================= INIT =================
-//
 export const initZegoService = async (
   userId: string,
   userName: string,
@@ -99,20 +86,15 @@ export const initZegoService = async (
   onCallEnd?: (duration: number) => void,
 ) => {
   try {
-    // ✅ tránh init lại cùng user
     if (isInitialized && currentUserId === userId) {
       console.log('[Zego] Already initialized for user:', userId);
       return;
     }
 
-    // ✅ nếu user khác → reset
     if (isInitialized && currentUserId !== userId) {
       await uninitZegoService();
     }
 
-    //
-    // ================= INIT ZEGO =================
-    //
     await ZegoUIKitPrebuiltCallService.init(
       APP_ID,
       APP_SIGN,
@@ -123,7 +105,7 @@ export const initZegoService = async (
         ...(Platform.OS === 'ios' && {
           requireConfig: () => ({
             onCallEnd: () => {
-              console.log('📴 Zego ended → end CallKit');
+              console.log('Zego ended → end CallKit');
               CallModule.endCallKit();
             },
           }),
@@ -146,10 +128,6 @@ export const initZegoService = async (
       },
     );
 
-    //
-    // ================= LISTENER =================
-    //
-    // ✅ tránh duplicate listener
     if (Platform.OS === 'ios') {
       if (callEndedSub) {
         callEndedSub.remove();
@@ -161,13 +139,12 @@ export const initZegoService = async (
       callEndedSub = emitter.addListener('CALL_ENDED', async event => {
         const duration = event?.duration ?? 0;
 
-        console.log('📴 Native CALL_ENDED:', {
+        console.log('Native CALL_ENDED:', {
           duration,
           currentCallId,
           currentCalleeId,
         });
 
-        // 👉 Call endCall API if we have call info
         if (currentCallId && currentCalleeId && currentUserId) {
           try {
             console.log('[Zego] Calling endCall API:', {
@@ -175,12 +152,12 @@ export const initZegoService = async (
               currentCalleeId,
             });
             const response = await endCall(currentCallId, currentCalleeId);
-            console.log('[Zego] ✅ endCall API response:', response);
+            console.log('[Zego] endCall API response:', response);
           } catch (err) {
-            console.error('[Zego] ❌ endCall API error:', err);
+            console.error('[Zego] endCall API error:', err);
           }
         } else {
-          console.log('[Zego] ⏭️ Skipping endCall API - missing call info');
+          console.log('[Zego] ⏭Skipping endCall API - missing call info');
         }
 
         onCallEnd && onCallEnd(duration);
@@ -207,15 +184,12 @@ export const initZegoService = async (
       });
     }
 
-    //
-    // ================= DONE =================
-    //
     isInitialized = true;
     currentUserId = userId;
 
-    console.log('[Zego] Service initialized ✅');
+    console.log('[Zego] Service initialized ');
   } catch (error) {
-    console.error('[Zego] Init failed ❌:', error);
+    console.error('[Zego] Init failed :', error);
 
     isInitialized = false;
     currentUserId = null;

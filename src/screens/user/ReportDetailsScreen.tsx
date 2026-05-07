@@ -120,7 +120,7 @@ export default function ReportDetailsScreen() {
     >
       <View className="flex-1 bg-background-50">
         <ScrollView className="px-5 py-4">
-          {/* Report Description */}
+
           <View className="bg-white border-2 border-red-200 rounded-2xl shadow-lg mb-3 p-4">
             <View className="flex-row items-center justify-between mb-3">
               <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider ">
@@ -143,7 +143,6 @@ export default function ReportDetailsScreen() {
             </Text>
           </View>
 
-          {/* Images Section */}
           {hasImages && (
             <View className="bg-white border-2 border-red-200 rounded-2xl shadow-lg mb-3 p-4">
               <Text className="text-primary-100 text-xs font-semibold uppercase tracking-wider mb-3">
@@ -160,7 +159,6 @@ export default function ReportDetailsScreen() {
             </View>
           )}
 
-          {/* Answer Section */}
           {hasAnswer && (
             <View className="bg-white border-2 border-green-200 rounded-2xl shadow-lg mb-3 p-4">
               <View className="flex-row items-center justify-between mb-3">
@@ -186,7 +184,6 @@ export default function ReportDetailsScreen() {
             </View>
           )}
 
-          {/* Waiting for Response */}
           {!hasAnswer && (
             <View className="bg-white border-2 border-yellow-200 rounded-2xl shadow-lg mb-3 p-4">
               <Text className="text-yellow-600 text-xs font-semibold uppercase tracking-wider mb-3">
@@ -207,7 +204,6 @@ export default function ReportDetailsScreen() {
         </ScrollView>
       </View>
 
-      {/* Image Gallery Modal */}
       {showImageGallery && report.reportImages && (
         <ImageViewerModal
           images={report.reportImages}

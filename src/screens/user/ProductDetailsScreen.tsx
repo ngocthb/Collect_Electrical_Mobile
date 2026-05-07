@@ -59,15 +59,15 @@ const ProductDetailsScreen = () => {
       try {
         await connectShippingHub({
           ShowConfirmButton: (data: any) => {
-            console.log('📩 Received ShowConfirmButton event:', data);
+            console.log('Received ShowConfirmButton event:', data);
             if (mounted) setShowVerifyButton(true);
           },
         });
 
         await joinRouteGroup(productId);
-        console.log('👉 Joined SignalR group for product:', productId);
+        console.log('Joined SignalR group for product:', productId);
       } catch (err) {
-        console.error('❌ SignalR connection/join error:', err);
+        console.error('SignalR connection/join error:', err);
       }
     };
 
@@ -322,7 +322,7 @@ const ProductDetailsScreen = () => {
                   </Text>
                 </View>
               </View>
-              {/* request thumbnail */}
+
               <ImageGalleryViewer images={product?.productImages || []} />
 
               <View className="space-y-4">
@@ -380,7 +380,6 @@ const ProductDetailsScreen = () => {
               </View>
             </View>
 
-            {/* time slots */}
             {product?.schedule &&
               renderTimeSlots(
                 product.schedule.reduce((acc, item) => {

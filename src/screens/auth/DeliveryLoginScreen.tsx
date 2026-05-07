@@ -46,8 +46,17 @@ export default function DeliveryLoginScreen() {
     try {
       dispatch(setLoading(true));
 
-      const data: DeliveryLoginResponse = await signIn(email, password);
-      if (data.isFirstLogin) {
+      const data = await signIn(email, password);
+
+      if (!data) {
+        Toast.show({
+          type: 'error',
+          text1: 'Đăng nhập thất bại',
+          text2: 'Tên đăng nhập hoặc mật khẩu không đúng',
+        });
+        return;
+      }
+      if (data?.isFirstLogin) {
         Toast.show({
           type: 'info',
           text1: 'Đăng nhập thành công',
@@ -84,12 +93,12 @@ export default function DeliveryLoginScreen() {
     >
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
         <View className="flex-1 bg-white px-6 items-center justify-center">
-          {/* Logo */}
+        
           <View className="w-28 h-28 items-center justify-center mb-8">
             <Image source={logo} className="w-24 h-24" resizeMode="contain" />
           </View>
 
-          {/* Welcome text */}
+
           <Text className="text-center text-2xl font-bold text-text-main mb-2">
             Chào mừng <Text className="text-primary-100">trở lại!</Text>
           </Text>
@@ -97,7 +106,7 @@ export default function DeliveryLoginScreen() {
             Tham gia với chúng tôi ngay
           </Text>
 
-          {/* Input fields */}
+        
           <View style={{ width: '100%', gap: 16 }}>
             <AppInput
               ref={emailRef}
@@ -129,7 +138,7 @@ export default function DeliveryLoginScreen() {
             />
           </View>
 
-          {/* Forgot password */}
+        
           <View className="w-full mt-2 items-end mb-4">
             <TouchableOpacity
               onPress={() =>
@@ -147,7 +156,7 @@ export default function DeliveryLoginScreen() {
             disabled={auth.isLoading || !email || !password}
           />
 
-          {/* Register link */}
+       
           <View className="flex-row justify-center mt-6">
             <Text className="text-base font-normal text-text-muted">
               Bạn là khách hàng ?

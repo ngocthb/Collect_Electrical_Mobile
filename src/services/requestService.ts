@@ -15,7 +15,7 @@ const create = async (payload: CreateRequestPayload) => {
 const list = async () => {
   try {
     const response = await axiosClient.get('posts');
-    // axiosClient response interceptor returns response.data
+
     return response as any;
   } catch (error) {
     throw error;

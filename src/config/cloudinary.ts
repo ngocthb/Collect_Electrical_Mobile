@@ -13,7 +13,6 @@ export const uploadImageToCloudinary = async (
 
   const data = new FormData();
 
-  // ⚠️ Khi dùng FormData trong React Native, cần cast rõ ràng
   data.append('file', {
     uri: image.uri,
     type: image.type || 'image/jpeg',
@@ -37,7 +36,6 @@ export const uploadImageToCloudinary = async (
       throw new Error(result.error?.message || 'Upload failed');
     }
 
-    // Kiểu trả về chính xác là string (URL ảnh)
     return result.secure_url as string;
   } catch (error) {
     console.error('Cloudinary upload error:', error);

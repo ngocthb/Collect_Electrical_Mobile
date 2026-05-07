@@ -12,7 +12,7 @@ interface AppButtonProps {
   onPress?: (event: GestureResponderEvent) => void;
   loading?: boolean;
   disabled?: boolean;
-  color?: string; // màu nền
+  color?: string;
   textColor?: string;
   className?: string;
   textClassName?: string;

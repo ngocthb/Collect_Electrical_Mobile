@@ -144,19 +144,19 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
           className="bg-white rounded-t-3xl"
           onPress={e => e.stopPropagation()}
         >
-          {/* Header with handle */}
+     
           <View className="items-center pt-3 pb-4">
             <View className="w-12 h-1 bg-gray-300 rounded-full" />
           </View>
 
-          {/* Title */}
+
           <View className="px-6 pb-4">
             <Text className="text-lg font-semibold text-gray-800">
               Chọn ảnh hoặc video
             </Text>
           </View>
 
-          {/* Options */}
+         
           <View className="px-4 pb-6">
             <TouchableOpacity
               onPress={() => {
@@ -224,12 +224,12 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
             )}
           </View>
 
-          {/* Cancel button */}
+  
           <View className="px-4 pb-6 pt-2">
             <AppButton title="Đóng" onPress={onClose} />
           </View>
 
-          {/* Safe area bottom padding */}
+   
           <View className="pb-4" />
         </Pressable>
       </Pressable>

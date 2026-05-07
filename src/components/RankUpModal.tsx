@@ -86,7 +86,6 @@ export default function RankUpModal({
     ).start();
   }, [visible]);
 
-  // 🎯 FROM CUP
   const fromScale = iconAnim.interpolate({
     inputRange: [0, 0.3, 0.55],
     outputRange: [1, 1.1, 0],
@@ -97,7 +96,6 @@ export default function RankUpModal({
     outputRange: [1, 1, 0],
   });
 
-  // 🏆 TO CUP
   const toScale = iconAnim.interpolate({
     inputRange: [0.6, 0.85, 1],
     outputRange: [0.3, 1.25, 1],
@@ -128,13 +126,11 @@ export default function RankUpModal({
     outputRange: [0, 0.38, 0.22, 0],
   });
 
-  // 💥 FLASH
   const flashOpacity = iconAnim.interpolate({
     inputRange: [0.6, 0.65, 0.7],
     outputRange: [0, 1, 0],
   });
 
-  // 🎆 FIREWORK
   const progress1 = fireworkAnim;
   const progress2 = fireworkAnim.interpolate({
     inputRange: [0, 0.3, 1],
@@ -142,16 +138,19 @@ export default function RankUpModal({
   });
 
   const handleShareFacebook = async () => {
-    let url = "https://res.cloudinary.com/dqdporzhx/image/upload/v1775544936/Screenshot_2026-04-07_135029_f75pp8.png"
+    let url =
+      'https://res.cloudinary.com/dqdporzhx/image/upload/v1775544936/Screenshot_2026-04-07_135029_f75pp8.png';
     try {
-      
       if (toRank === 'kimcuong') {
-        url = "https://res.cloudinary.com/dqdporzhx/image/upload/v1775544932/Screenshot_2026-04-07_135118_oi4h5x.png"
-        }else if (toRank === 'vang') {
-          url = "https://res.cloudinary.com/dqdporzhx/image/upload/v1775544933/Screenshot_2026-04-07_134928_h3reoq.png"
-        }else if (toRank === 'bac') {
-          url = "https://res.cloudinary.com/dqdporzhx/image/upload/v1775544932/Screenshot_2026-04-07_135051_w5cqow.png"
-        }
+        url =
+          'https://res.cloudinary.com/dqdporzhx/image/upload/v1775544932/Screenshot_2026-04-07_135118_oi4h5x.png';
+      } else if (toRank === 'vang') {
+        url =
+          'https://res.cloudinary.com/dqdporzhx/image/upload/v1775544933/Screenshot_2026-04-07_134928_h3reoq.png';
+      } else if (toRank === 'bac') {
+        url =
+          'https://res.cloudinary.com/dqdporzhx/image/upload/v1775544932/Screenshot_2026-04-07_135051_w5cqow.png';
+      }
 
       await Share.shareSingle({
         social: Share.Social.FACEBOOK as any,
@@ -186,7 +185,7 @@ export default function RankUpModal({
           }}
         />
 
-        {/* CLOSE */}
+   
         <TouchableOpacity
           onPress={onClose}
           style={{
@@ -212,7 +211,7 @@ export default function RankUpModal({
             justifyContent: 'center',
           }}
         >
-          {/* 🎆 FIREWORK */}
+
           {[progress1, progress2].map((progress, layerIndex) =>
             particles.map((p, i) => {
               const translateY = progress.interpolate({
@@ -254,9 +253,8 @@ export default function RankUpModal({
             }),
           )}
 
-          {/* ICON AREA */}
           <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-            {/* LIGHT BURST WHEN TO CUP APPEARS */}
+     
             <Animated.View
               style={{
                 position: 'absolute',
@@ -282,7 +280,7 @@ export default function RankUpModal({
               }}
             />
 
-            {/* FLASH */}
+      
             <Animated.View
               style={{
                 position: 'absolute',
@@ -294,7 +292,7 @@ export default function RankUpModal({
               }}
             />
 
-            {/* FROM CUP */}
+       
             <Animated.Image
               source={rankMap[fromRank]}
               style={{
@@ -307,7 +305,7 @@ export default function RankUpModal({
               resizeMode="contain"
             />
 
-            {/* TO CUP */}
+        
             <Animated.Image
               source={rankMap[toRank]}
               style={{

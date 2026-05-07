@@ -39,30 +39,22 @@ function AppContent({ activeRouteName }: { activeRouteName: string }) {
     canShowRankModal,
   );
 
-  // 👉 init Zego cơ bản (login, plugin…)
   useZegoService();
-  // 👉 handle call events from SignalR
+
   useCallHandlers();
-  // if (Platform.OS === 'ios') {
-  //   useVoipCallHandler();
-  // }
-  // 👉 notification handler
+
   useNotificationHandler(showRankUpModal);
 
-  // 👉 bootstrap app
   useEffect(() => {
     bootstrapApp(dispatch);
   }, [dispatch]);
 
   return (
     <>
-      {/* 👉 Zego incoming (chỉ dùng khi app đang mở) */}
       <ZegoCallInvitationDialog />
 
-      {/* 👉 Navigation */}
       <RootNavigator />
 
-      {/* 👉 Rank modal */}
       <RankUpModal
         visible={rankUpModal.visible}
         fromRank={rankUpModal.fromRank}

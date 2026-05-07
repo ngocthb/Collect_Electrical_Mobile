@@ -12,7 +12,6 @@ import AppButton from '../../components/ui/AppButton';
 
 const { width } = Dimensions.get('window');
 
-// Import ảnh onboarding
 const onboarding1 = require('../../assets/images/onboarding1.png');
 const onboarding2 = require('../../assets/images/onboarding2.png');
 const onboarding3 = require('../../assets/images/onboarding3.png');
@@ -21,7 +20,7 @@ interface OnboardingItem {
   id: string;
   title: string;
   description: string;
-  image: any; // require(...) type
+  image: any;
   backgroundColor: string;
 }
 
@@ -81,17 +80,17 @@ export default function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
 
   const renderItem = ({ item }: { item: OnboardingItem }) => (
     <View style={{ width }} className="flex-1 items-center justify-center px-8">
-      {/* Image */}
+    
       <View className="items-center justify-center mb-12">
         <Image source={item.image} className="w-72 h-72" resizeMode="contain" />
       </View>
 
-      {/* Title */}
+
       <Text className="text-3xl font-bold text-white text-center mb-4">
         {item.title}
       </Text>
 
-      {/* Description */}
+     
       <Text className="text-base text-white/80 text-center px-4">
         {item.description}
       </Text>
@@ -135,14 +134,14 @@ export default function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
 
   return (
     <View className="flex-1">
-      {/* Background */}
+   
       <Animated.View
         style={{
           backgroundColor: onboardingData[currentIndex].backgroundColor,
         }}
         className="flex-1"
       >
-        {/* Slides */}
+    
         <View className="flex-[3]">
           <FlatList
             data={onboardingData}
@@ -163,7 +162,6 @@ export default function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
           />
         </View>
 
-        {/* Bottom: Paginator + Button + Skip */}
         <View className="flex-1 items-center justify-center px-8">
           <Paginator />
 

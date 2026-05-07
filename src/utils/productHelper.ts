@@ -128,7 +128,7 @@ export const filterProductsByStatusGroup = (
       return isRejectedStatus(p.status);
     }
 
-    return true; // Default case for 'Tất cả'
+    return true;
   });
 };
 

@@ -50,7 +50,6 @@ const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
   return (
     <Modal visible={visible} transparent={true} animationType="fade">
       <View className="flex-1 bg-black/30">
-        {/* Header */}
         <View className="bg-black/20 px-5 py-4 flex-row items-center justify-between">
           <TouchableOpacity onPress={onClose}>
             <Icon name="x" size={28} color="white" />
@@ -61,7 +60,6 @@ const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
           <View style={{ width: 28 }} />
         </View>
 
-        {/* Image Gallery */}
         <View className="flex-1 justify-center">
           <FlatList
             data={images}
@@ -82,7 +80,7 @@ const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
           />
         </View>
 
-        {/* Image Indicators */}
+    
         <View className="bg-black/20 py-5 flex-row justify-center">
           <View className="flex-row items-center gap-1.5">
             {images.map((_, index) => (

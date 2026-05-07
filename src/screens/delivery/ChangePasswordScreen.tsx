@@ -14,7 +14,6 @@ const ChangePasswordScreen: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Password strength calculation
   const calculatePasswordStrength = (
     password: string,
   ): { score: number; label: string; color: string } => {
@@ -24,23 +23,17 @@ const ChangePasswordScreen: React.FC = () => {
     let label = '';
     let color = '';
 
-    // Length check
     if (password.length >= 8) score += 2;
     else if (password.length >= 6) score += 1;
 
-    // Contains lowercase
     if (/[a-z]/.test(password)) score += 1;
 
-    // Contains uppercase
     if (/[A-Z]/.test(password)) score += 1;
 
-    // Contains numbers
     if (/\d/.test(password)) score += 1;
 
-    // Contains special characters
     if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 2;
 
-    // Determine strength level (5 levels)
     if (score <= 1) {
       label = 'Rất yếu';
       color = '#dc2626';
@@ -64,7 +57,7 @@ const ChangePasswordScreen: React.FC = () => {
   const passwordStrength = calculatePasswordStrength(newPassword);
 
   const handleChangePassword = async () => {
-    // Validation
+
     if (!currentPassword.trim()) {
       toast.show({
         type: 'error',
@@ -112,10 +105,7 @@ const ChangePasswordScreen: React.FC = () => {
 
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
       await new Promise<void>(resolve => setTimeout(() => resolve(), 1000));
-
-      // Mock success
       toast.show({
         type: 'confirm',
         text1: 'Thành công',
@@ -166,7 +156,7 @@ const ChangePasswordScreen: React.FC = () => {
             required
           />
 
-          {/* Password Strength Meter */}
+        
           {newPassword.length > 0 && (
             <View className="mb-4">
               <View className="flex-row justify-between items-center mb-2">

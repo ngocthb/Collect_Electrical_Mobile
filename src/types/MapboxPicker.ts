@@ -29,8 +29,8 @@ export interface OpenMapResult {
 
   name?: string;
 
-  address: string; // địa chỉ ngắn
-  formatted_address: string; // địa chỉ đầy đủ để hiển thị
+  address: string;
+  formatted_address: string;
 
   address_components: OpenMapAddressComponent[];
 

@@ -70,7 +70,7 @@ const ScanQrComponent: React.FC<ScanQrComponentProps> = ({
               onReadCode={handleBarCodeRead}
               showFrame={false}
             />
-            {/* Overlay với khung quét */}
+       
             <View
               style={{
                 position: 'absolute',

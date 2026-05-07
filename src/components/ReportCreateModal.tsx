@@ -162,7 +162,6 @@ export default function ReportCreateModal({
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View className="flex-1 bg-black/50 justify-end">
             <View className="bg-white rounded-t-3xl p-4 pb-6 max-h-[80%]">
-              {/* Header */}
               <View className="flex-row justify-between items-center mb-4">
                 <Text className="text-lg font-bold text-primary-100">
                   Phản ánh dịch vụ
@@ -176,7 +175,6 @@ export default function ReportCreateModal({
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
-                {/* Content */}
                 <View className="mb-4">
                   {showTypeSelector && (
                     <View className="mb-4">
@@ -210,7 +208,6 @@ export default function ReportCreateModal({
                     </View>
                   )}
 
-                  {/* Description Input */}
                   <View className="mb-4">
                     <AppInput
                       label="Mô tả chi tiết"
@@ -228,7 +225,6 @@ export default function ReportCreateModal({
                     </Text>
                   </View>
 
-                  {/* Image Gallery */}
                   <AppImageGallery
                     images={selectedImages}
                     onRemove={handleRemoveImage}
@@ -240,7 +236,6 @@ export default function ReportCreateModal({
                 </View>
               </ScrollView>
 
-              {/* Button */}
               <View className="flex-row gap-2">
                 <View className="flex-1">
                   <AppButton

@@ -22,7 +22,7 @@ export const useVoipCallHandler = () => {
       const callerName = await CallModule.getItem('PENDING_CALLER_NAME');
       const callerId = await CallModule.getItem('PENDING_CALLER_ID');
       const callId = await CallModule.getItem('PENDING_CALL_ID');
-      console.log('📞 Resume call:', roomID);
+      console.log('Resume call:', roomID);
 
       if (!roomID) return;
       const cleanUserIdForZego = (userId: string) => {
@@ -31,7 +31,7 @@ export const useVoipCallHandler = () => {
 
       const tryNavigate = async () => {
         if (navigationRef.isReady()) {
-          console.log('✅ Navigation ready → navigate');
+          console.log('Navigation ready → navigate');
           console.log(
             'Navigating to ZegoUIKitPrebuiltCallInCallScreen with roomID:',
             roomID,
@@ -65,11 +65,10 @@ export const useVoipCallHandler = () => {
             ],
           });
 
-          // 👉 chỉ xoá sau khi navigate thành công
           await CallModule.removeItem('HAS_PENDING_CALL');
           await CallModule.removeItem('PENDING_ROOM_ID');
         } else {
-          console.log('⏳ Waiting navigation...');
+          console.log('Waiting navigation...');
           setTimeout(tryNavigate, 300);
         }
       };

@@ -17,7 +17,6 @@ import { changePassword } from '../../services/authService';
 
 const changePass = require('../../assets/images/changePass.png');
 export default function ChangePassScreen() {
-
   const newPasswordRef = useRef<TextInput | null>(null);
   const confirmPasswordRef = useRef<TextInput | null>(null);
   const [newPassword, setNewPassword] = useState('');
@@ -61,7 +60,6 @@ export default function ChangePassScreen() {
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View className="flex-1 bg-white px-6 items-center justify-center">
-        {/* Logo */}
         <View className="w-28 h-28 items-center justify-center mb-8">
           <Image
             source={changePass}
@@ -70,7 +68,6 @@ export default function ChangePassScreen() {
           />
         </View>
 
-        {/* Welcome text */}
         <Text className="text-center text-2xl font-bold text-text-main mb-2">
           Đặt lại <Text className="text-primary-100">mật khẩu!</Text>
         </Text>
@@ -78,7 +75,6 @@ export default function ChangePassScreen() {
           Nhập mật khẩu mới để hoàn tất việc đổi mật khẩu
         </Text>
 
-        {/* Input fields */}
         <View style={{ width: '100%', gap: 16 }}>
           <AppInput
             ref={newPasswordRef}
@@ -116,7 +112,6 @@ export default function ChangePassScreen() {
           disabled={!newPassword || !confirmPassword}
         />
 
-        {/* Back to login link */}
         <View className="flex-row justify-center mt-6">
           <TouchableOpacity
             onPress={() => {

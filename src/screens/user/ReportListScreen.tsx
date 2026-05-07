@@ -172,7 +172,7 @@ export default function ReportListScreen() {
           style={{ borderLeftWidth: 2, borderLeftColor: typeColor }}
         >
           <View className="p-3">
-            {/* Header: Avatar + UserName + Type + Status */}
+          
             <View className="flex-row justify-between items-start mb-3">
               <View className="flex-row flex-1 items-center">
                 <View className="ml-3 flex-1">
@@ -195,14 +195,12 @@ export default function ReportListScreen() {
               </View>
             </View>
 
-            {/* Description */}
             <View className="mb-3 pb-3 border-b border-gray-100">
               <Text className="text-sm text-gray-600 leading-5">
                 {item.reportDescription}
               </Text>
             </View>
 
-            {/* Expandable Answer Section */}
             {hasAnswer && (
               <TouchableOpacity
                 onPress={() => toggleExpandReport(item.reportId)}
@@ -234,7 +232,6 @@ export default function ReportListScreen() {
               </View>
             )}
 
-            {/* Date (if no answer or collapsed) */}
             {!hasAnswer && (
               <Text className="text-sm text-right text-gray-500">
                 {formattedDate}
@@ -378,7 +375,7 @@ export default function ReportListScreen() {
         rightComponent={filterDropdown}
       >
         <View className="flex-1 px-4 py-4">
-          {/* Reports List */}
+    
           {loading && reports.length === 0 ? (
             <View className="flex-1 justify-center items-center">
               <ActivityIndicator size="large" color="#e85a4f" />

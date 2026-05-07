@@ -329,14 +329,14 @@ export default function VoucherScreen() {
       enableRefresh={false}
     >
       <View className="flex-1 bg-background-50">
-        {/* Search Input */}
+     
         <SearchInputHeader
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           placeholder="Tìm kiếm voucher..."
         />
 
-        {/* View Mode Toggle Buttons */}
+      
         <View className="px-6 pb-3 flex-row gap-3">
           <TouchableOpacity
             onPress={() => setViewMode('all')}
@@ -373,7 +373,6 @@ export default function VoucherScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Vouchers FlatList */}
         <FlatList
           data={allVouchersData}
           keyExtractor={item => item.voucherId}
@@ -387,7 +386,7 @@ export default function VoucherScreen() {
           onRefresh={handleRefresh}
         />
 
-        {/* Redeem Confirmation Modal */}
+     
         {modalType === 'insufficient' ? (
           <ConfirmModal
             visible={confirmModalVisible}

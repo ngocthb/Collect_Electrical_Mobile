@@ -111,20 +111,18 @@ const ProfileScreen = () => {
   const handleLogout = async () => {
     try {
       await uninitZegoService();
-      // Clear token and sign out from services first
+
       await signOut(user?.userId ?? '');
       await disconnect();
       dispatch(logout());
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
   };
 
   return (
     <MainLayout hideHeader={true}>
       <View className="flex-1 bg-background-50">
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          {/* Profile Header Card */}
+        
           <View className="px-6 pt-12 pb-6">
             <View
               className={`rounded-3xl  border-2 ${
@@ -177,7 +175,7 @@ const ProfileScreen = () => {
             </View>
           </View>
 
-          {/* Menu Section */}
+  
           <View className="px-6 pb-6">
             <View
               className={`bg-white border-2 rounded-2xl shadow-sm overflow-hidden ${
@@ -209,7 +207,7 @@ const ProfileScreen = () => {
               ))}
             </View>
 
-            {/* Logout Button */}
+
             <TouchableOpacity
               onPress={handleLogout}
               className={`mt-4 bg-white border-2 rounded-2xl shadow-sm px-5 py-4 flex-row items-center ${
@@ -227,7 +225,7 @@ const ProfileScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Bottom Spacing */}
+       
           <View className="h-8" />
         </ScrollView>
       </View>

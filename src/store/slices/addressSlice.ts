@@ -2,9 +2,9 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Address } from '../../types/address';
 
 interface AddressState {
-  list: Address[]; // danh sách địa chỉ
-  current: Address; // địa chỉ đang chọn / đang tạo
-  lastAddedId: string | null; // ID của address vừa được thêm
+  list: Address[];
+  current: Address;
+  lastAddedId: string | null;
 }
 
 const initialAddress: Address = {

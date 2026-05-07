@@ -23,7 +23,6 @@ export async function connectShippingHub(
       console.log('[signalrService] Reusing existing shipping hub connection');
     }
 
-    // register handlers
     if (handlers && connection) {
       const handlerKeys = Object.keys(handlers);
       console.log(
@@ -44,14 +43,14 @@ export async function connectShippingHub(
       );
       console.log('[signalrService] Starting shipping hub connection...');
       await connection.start();
-      console.log('[signalrService] ✅ Shipping hub connected successfully');
+      console.log('[signalrService]  Shipping hub connected successfully');
     } else {
       console.log('[signalrService] Shipping hub already connected');
     }
 
     return connection;
   } catch (err) {
-    console.error('[signalrService] ❌ connectShippingHub error:', err);
+    console.error('[signalrService]  connectShippingHub error:', err);
     throw err;
   }
 }
@@ -118,7 +117,6 @@ export async function connectCallHub(
         .build();
       console.log('[signalrService] Call hub connection created');
 
-      // Listen for Registered response from server
       callConnection.on('Registered', (msg: any) => {
         console.log(
           '[signalrService] 📨 Registered response from server:',
@@ -129,7 +127,6 @@ export async function connectCallHub(
       console.log('[signalrService] Reusing existing call hub connection');
     }
 
-    // register custom handlers
     if (handlers && callConnection) {
       const handlerKeys = Object.keys(handlers);
       console.log(
@@ -150,19 +147,18 @@ export async function connectCallHub(
       );
       console.log('[signalrService] Starting call hub connection...');
       await callConnection.start();
-      console.log('[signalrService] ✅ Call hub connected successfully');
+      console.log('[signalrService]  Call hub connected successfully');
 
-      // Register user with server after connection
       console.log('[signalrService] Registering user:', userId);
       await callConnection.invoke('RegisterUser', userId);
-      console.log('[signalrService] ✅ User registered:', userId);
+      console.log('[signalrService]  User registered:', userId);
     } else {
       console.log('[signalrService] Call hub already connected');
     }
 
     return callConnection;
   } catch (err) {
-    console.error('[signalrService] ❌ connectCallHub error:', err);
+    console.error('[signalrService]  connectCallHub error:', err);
     throw err;
   }
 }
@@ -177,9 +173,9 @@ export async function registerUser(userId: string) {
     }
     console.log('[signalrService] Registering user:', userId);
     await callConnection.invoke('RegisterUser', userId);
-    console.log('[signalrService] ✅ User registered:', userId);
+    console.log('[signalrService]  User registered:', userId);
   } catch (err) {
-    console.error('[signalrService] ❌ registerUser error:', err);
+    console.error('[signalrService]  registerUser error:', err);
     throw err;
   }
 }
@@ -206,7 +202,7 @@ export async function disconnect() {
       console.log('[signalrService] Stopping shipping hub connection...');
       await connection.stop();
       connection = null;
-      console.log('[signalrService] ✅ Shipping hub disconnected');
+      console.log('[signalrService]  Shipping hub disconnected');
     } else {
       console.log('[signalrService] No shipping connection to disconnect');
     }
@@ -215,13 +211,13 @@ export async function disconnect() {
       console.log('[signalrService] Stopping call hub connection...');
       await callConnection.stop();
       callConnection = null;
-      console.log('[signalrService] ✅ Call hub disconnected');
+      console.log('[signalrService]  Call hub disconnected');
     } else {
       console.log('[signalrService] No call connection to disconnect');
     }
 
-    console.log('[signalrService] ✅ All hubs disconnected');
+    console.log('[signalrService]  All hubs disconnected');
   } catch (err) {
-    console.error('[signalrService] ❌ disconnect error:', err);
+    console.error('[signalrService]  disconnect error:', err);
   }
 }

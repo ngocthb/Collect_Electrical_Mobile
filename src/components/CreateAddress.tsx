@@ -223,7 +223,6 @@ const CreateAddress: React.FC<CreateAddressProps> = ({ onLocationSelect }) => {
         </View>
       </View>
 
-      {/* Search Results */}
       {searchQuery.length > 0 && !loading && !myLocationData && (
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -273,7 +272,6 @@ const CreateAddress: React.FC<CreateAddressProps> = ({ onLocationSelect }) => {
         </ScrollView>
       )}
 
-      {/* Confirmation Modal */}
       <ConfirmModal
         visible={confirmModalVisible}
         title="Xác nhận địa điểm"

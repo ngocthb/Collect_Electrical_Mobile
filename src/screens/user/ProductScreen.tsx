@@ -215,7 +215,6 @@ const ProductScreen = () => {
             onPress={() => setFilterDropdownOpen(false)}
           />
 
-          {/* Dropdown menu */}
           <View
             className="absolute top-11 right-0 w-40 bg-white rounded-lg border border-gray-200 shadow-lg"
             style={{ zIndex: 999, elevation: 5 }}

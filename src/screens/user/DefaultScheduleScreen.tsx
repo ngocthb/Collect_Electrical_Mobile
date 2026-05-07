@@ -21,8 +21,6 @@ const DefaultScheduleScreen: React.FC = () => {
       return;
     }
 
-    // Here you could save the default schedule to user preferences
-    // For now, just show success and go back
     toast.show({
       type: 'success',
       text1: 'Thành công',

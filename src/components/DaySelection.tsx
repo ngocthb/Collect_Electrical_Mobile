@@ -34,8 +34,6 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     return new Date();
   };
 
-  // Get today's day name
-
   const getTodayDayName = (): Day => {
     const dayMap: Day[] = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
     const today = getServerNow();
@@ -44,7 +42,6 @@ const DaySelection: React.FC<DaySelectionProps> = ({
 
   const todayDayName = getTodayDayName();
 
-  // Check if current time in Vietnam is after cutoff
   const isAfterCutoff = (): boolean => {
     const now = getServerNow();
     const parts = new Intl.DateTimeFormat('en-US', {
@@ -72,7 +69,6 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     return currentMinute >= cutoffMinute;
   };
 
-  // Reorder days: before cutoff start from tomorrow, after cutoff start from day after tomorrow
   const startDayName = (() => {
     const todayIndex = days.indexOf(todayDayName);
     if (!isAfterCutoff()) {
@@ -89,7 +85,6 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     ...days.slice(0, days.indexOf(startDayName)),
   ];
 
-  // Safe function to get today's date in Vietnam timezone
   const getTodayInVietnam = (): Date => {
     const now = getServerNow();
     const parts = new Intl.DateTimeFormat('en-CA', {
@@ -112,23 +107,19 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     return new Date(year, month - 1, day);
   };
 
-  // Get next date for a specific day (accounting for cutoff shift)
   const getNextDateForDay = (dayName: Day) => {
     const today = getTodayInVietnam();
     const targetIndex = days.indexOf(dayName);
     const startIndex = days.indexOf(startDayName);
 
-    // Calculate offset from the start of the displayed week
     let offset = targetIndex - startIndex;
     if (offset < 0) offset += 7;
 
-    // Calculate base shift: +1 day before cutoff, +2 days after cutoff
     const baseShift = isAfterCutoff() ? 2 : 1;
 
     const targetDate = new Date(today);
     targetDate.setDate(today.getDate() + baseShift + offset);
 
-    // Format as YYYY-MM-DD in Vietnam timezone
     const formatter = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Asia/Ho_Chi_Minh',
     });
@@ -136,7 +127,6 @@ const DaySelection: React.FC<DaySelectionProps> = ({
     return formatter.format(targetDate);
   };
 
-  // Format date for display as DD/MM (include year if not current year)
   const getDisplayDateForDay = (dayName: Day) => {
     const today = getTodayInVietnam();
     const targetIndex = days.indexOf(dayName);

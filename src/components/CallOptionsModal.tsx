@@ -36,7 +36,6 @@ const CallOptionsModal: React.FC<CallOptionsModalProps> = ({
     new Animated.Value(Dimensions.get('window').height),
   ).current;
 
-  // Animate modal slide up/down
   useEffect(() => {
     if (visible) {
       Animated.timing(slideAnim, {
@@ -57,10 +56,10 @@ const CallOptionsModal: React.FC<CallOptionsModalProps> = ({
     onClose();
     const phoneNumber = receiver?.phone;
     if (!phoneNumber) {
-      console.warn('⚠️ No phone number available');
+      console.warn('No phone number available');
       return;
     }
-    console.log('📱 Initiating phone call to:', phoneNumber);
+    console.log('Initiating phone call to:', phoneNumber);
     try {
       const url = `tel:${phoneNumber}`;
       const supported = await Linking.canOpenURL(url);
@@ -70,7 +69,7 @@ const CallOptionsModal: React.FC<CallOptionsModalProps> = ({
         console.warn('Cannot open phone call');
       }
     } catch (e) {
-      console.error('❌ Phone call failed:', e);
+      console.error('Phone call failed:', e);
     }
   };
 
@@ -126,7 +125,6 @@ const CallOptionsModal: React.FC<CallOptionsModalProps> = ({
           </View>
 
           <View className="flex-row gap-3 mb-4">
-            {/* Zego Call Button */}
             <View className="flex-1 bg-blue-600 rounded-xl p-4 items-center">
               <ZegoSendCallInvitationButton
                 invitees={invitees}
@@ -134,7 +132,7 @@ const CallOptionsModal: React.FC<CallOptionsModalProps> = ({
                 resourceID={'thugom'}
                 timeout={120}
                 onWillPressed={async () => {
-                  console.log('📞 Call button will be pressed');
+                  console.log('Call button will be pressed');
                   try {
                     await callUser(
                       String(user?.userId),
@@ -147,7 +145,7 @@ const CallOptionsModal: React.FC<CallOptionsModalProps> = ({
                   } catch (e) {
                     return false;
                   } finally {
-                    console.log('📞 Call button press handling completed');
+                    console.log('Call button press handling completed');
                     return true;
                   }
                 }}
@@ -157,7 +155,6 @@ const CallOptionsModal: React.FC<CallOptionsModalProps> = ({
               </Text>
             </View>
 
-            {/* Phone Call Button */}
             <TouchableOpacity
               onPress={handlePhoneCall}
               disabled={!receiver?.phone}

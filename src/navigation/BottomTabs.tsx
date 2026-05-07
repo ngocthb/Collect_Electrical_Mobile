@@ -32,6 +32,8 @@ function BottomTabs() {
   const navigation = useNavigation<any>();
   const [catModalVisible, setCatModalVisible] = useState(false);
   const isHaveAddress = useAppSelector(s => s.address.list.length > 0);
+  const isHavePhoneNumber = useAppSelector(s => !!s.auth.user?.phone);
+
   const { unRead } = useAppSelector(s => s.notification);
   const userTabs = (
     <Tab.Navigator
@@ -105,6 +107,15 @@ function BottomTabs() {
                     visibilityTime: 1500,
                   });
                   navigation.navigate('DefaultAddress');
+                  return;
+                } else if (!isHavePhoneNumber) {
+                  Toast.show({
+                    type: 'info',
+                    text1:
+                      'Vui lòng cập nhât số điện thoại trước khi tạo yêu cầu',
+                    visibilityTime: 1500,
+                  });
+                  navigation.navigate('EditProfile');
                   return;
                 }
 

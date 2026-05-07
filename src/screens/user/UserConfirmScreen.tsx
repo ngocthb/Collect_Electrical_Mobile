@@ -30,7 +30,6 @@ const UserConfirmScreen = () => {
     setModalVisible(!isModalVisible);
   };
 
-  // Handle QR scan
   const handleQRScan = (data: string) => {
     try {
       const parsed = JSON.parse(String(data));
@@ -79,7 +78,6 @@ const UserConfirmScreen = () => {
       return;
     }
 
-    // Fallback: Invalid format
     toast.show({
       type: 'error',
       text1: 'Mã QR không hợp lệ',
@@ -124,7 +122,7 @@ const UserConfirmScreen = () => {
     >
       <ScrollView className="flex-1 bg-background-50">
         <View className="flex-1 px-6">
-          {/* Header Icon - Only show when not scanned */}
+        
           {!shipperId && !shipperInfo && (
             <View
               className="items-center"
@@ -136,11 +134,11 @@ const UserConfirmScreen = () => {
             </View>
           )}
 
-          {/* Success Card - Show after scanning */}
+      
           {shipperId ? (
             <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm border-2 border-red-200 ">
               <View className="items-center">
-                {/* Shipper Info Card */}
+             
                 <View className="flex-row bg-primary-100 rounded-xl p-4 w-full mb-6 border-2 border-red-200">
                   <View className="items-center mr-4">
                     <AppAvatar
@@ -155,10 +153,10 @@ const UserConfirmScreen = () => {
                   </View>
 
                   <View className="flex-1 justify-center">
-                    <Text className="text-sm text-start text-white  mb-1">
+                    <Text className="text-sm font-black text-start uppercase text-white mb-1">
                       Người giao hàng
                     </Text>
-                    <Text className="text-base font-bold text-gray-900 mb-1">
+                    <Text className="text-base font-bold text-white mb-1">
                       {shipperInfo?.name || `Shipper ${shipperId}`}
                     </Text>
                     <Text className="text-sm text-start text-white  mb-1">
@@ -167,7 +165,7 @@ const UserConfirmScreen = () => {
                   </View>
                 </View>
 
-                {/* Request/Product Info */}
+               
                 <View className="bg-gray-50 rounded-xl p-4 w-full mb-6 border-2 border-red-200">
                   <View className="flex-row justify-between">
                     <Text className="text-sm text-gray-500 font-semibold mb-3">
@@ -186,7 +184,6 @@ const UserConfirmScreen = () => {
                         {request?.itemName}
                       </Text>
 
-                      {/* Product Images */}
                       {request?.pickUpItemImages &&
                         request?.pickUpItemImages.length > 0 && (
                           <View>
@@ -199,7 +196,7 @@ const UserConfirmScreen = () => {
                           </View>
                         )}
 
-                      {/* Description */}
+               
                       {request?.description && (
                         <Text className="text-sm text-gray-600 mb-2">
                           Mô tả: {request.description}
@@ -212,7 +209,7 @@ const UserConfirmScreen = () => {
                     </Text>
                   )}
                 </View>
-                {/* Bottom Button */}
+            
                 <View className="flex-row flex-1 justify-between gap-2">
                   <View style={{ width: '48%' }}>
                     <AppButton title="Từ chối " onPress={handleReject} />
@@ -226,7 +223,7 @@ const UserConfirmScreen = () => {
                   </View>
                 </View>
 
-                {/* Warning Message - Only show when not scanned */}
+             
                 {shipperId && (
                   <View className="bg-amber-50 rounded-xl p-4 border border-amber-200 mt-4">
                     <Text className="text-xs text-amber-800 text-center">

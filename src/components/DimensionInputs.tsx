@@ -22,7 +22,6 @@ const DimensionInputs: React.FC<Props> = ({
   const [valuesMap, setValuesMap] =
     useState<Record<string, string>>(initialMap);
 
-  // Gọi onChange với giá trị ban đầu khi component mount
   useEffect(() => {
     if (onChange && attributes.length > 0) {
       attributes.forEach(attr => {
@@ -74,7 +73,6 @@ const DimensionInputs: React.FC<Props> = ({
       setValuesMap(prev => ({ ...prev, [attribute.id]: '99999' }));
     }
 
-    // Trả về giá trị đã điều chỉnh
     if (onChange && adjustedValue !== value) {
       const attributeId = attribute.id;
       onChange({ attributeId, optionId: null, value: adjustedValue });
