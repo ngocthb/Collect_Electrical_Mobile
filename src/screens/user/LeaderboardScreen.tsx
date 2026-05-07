@@ -81,7 +81,14 @@ export default function LeaderboardScreen() {
   };
 
   const renderEmptyList = () => {
-    if (loading) return null;
+    if (loading) {
+      return (
+        <View className="items-center justify-center py-12">
+          <ActivityIndicator size="large" color="#e85a4f" />
+          <Text className="text-text-muted mt-4 text-center">Đang tải...</Text>
+        </View>
+      );
+    }
 
     return (
       <View className="py-8 items-center ">
@@ -95,6 +102,7 @@ export default function LeaderboardScreen() {
     loadLeaderboard();
   }, [user?.userId]);
 
+  console.log(myRank);
   return (
     <SubLayout
       title="Bảng xếp hạng"
@@ -111,6 +119,82 @@ export default function LeaderboardScreen() {
       }
     >
       <View className="flex-1 bg-background-50">
+        <View className="px-4 mb-2">
+          {sortedData.length > 0 ? (
+            <>
+              <View className="bg-primary-100 border-2 border-red-200 rounded-2xl p-4  mt-2 mb-4">
+                <Text className="text-white text-lg font-bold text-center mb-4">
+                  Top 3 đóng góp nhiều nhất
+                </Text>
+
+                <View className="flex-row justify-between items-end">
+                  {topThree[1] ? (
+                    <View className="w-[31%] items-center bg-white/20 rounded-xl py-3 px-2">
+                      <View className="mt-2 mb-1">
+                        <AppAvatar
+                          name={topThree[1].userName}
+                          uri={topThree[1].avatar}
+                          size={44}
+                          style={{ borderWidth: 2, borderColor: '#fff' }}
+                        />
+                      </View>
+                      <Text className="text-white font-semibold mt-2 text-center">
+                        {topThree[1].userName}
+                      </Text>
+                      <Text className="text-white/90 text-xs mt-1">#2</Text>
+                      <Text className="text-white font-bold mt-1">
+                        {topThree[1].totalCo2Saved?.toLocaleString()}
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  {topThree[0] ? (
+                    <View className="w-[33%] items-center bg-white/25 rounded-xl py-4 px-2 -mt-3">
+                      <View className="mt-2 mb-1">
+                        <AppAvatar
+                          name={topThree[0].userName}
+                          uri={topThree[0].avatar}
+                          size={48}
+                          style={{ borderWidth: 2, borderColor: '#fff' }}
+                        />
+                      </View>
+                      <Text className="text-white font-bold mt-2 text-center">
+                        {topThree[0].userName}
+                      </Text>
+                      <Text className="text-white text-xs mt-1">#1</Text>
+                      <Text className="text-white font-extrabold mt-1">
+                        {topThree[0].totalCo2Saved?.toLocaleString()}
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  {topThree[2] ? (
+                    <View className="w-[31%] items-center bg-white/20 rounded-xl py-3 px-2">
+                      <View className="mt-2 mb-1">
+                        <AppAvatar
+                          name={topThree[2].userName}
+                          uri={topThree[2].avatar}
+                          size={44}
+                          style={{ borderWidth: 2, borderColor: '#fff' }}
+                        />
+                      </View>
+                      <Text className="text-white font-semibold mt-2 text-center">
+                        {topThree[2].userName}
+                      </Text>
+                      <Text className="text-white/90 text-xs mt-1">#3</Text>
+                      <Text className="text-white font-bold mt-1">
+                        {topThree[2].totalCo2Saved?.toLocaleString()}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+              </View>
+              <Text className="text-base font-bold text-text-main ">
+                Danh sách xếp hạng
+              </Text>
+            </>
+          ) : null}
+        </View>
         <FlatList
           className="flex-1 px-4"
           data={remainingUsers}
@@ -118,7 +202,7 @@ export default function LeaderboardScreen() {
           renderItem={({ item }) => (
             <View className="bg-white border border-red-100 rounded-xl p-4 mb-3 flex-row items-center justify-between">
               <View className="flex-row items-center flex-1 mr-3">
-                <View className="w-7 h-7 rounded-full bg-primary-100 items-center justify-center mr-2">
+                <View className="w-6 h-6 rounded-full bg-primary-100 items-center justify-center mr-2">
                   <Text className="text-white text-xs font-bold">
                     {item.rankPosition}
                   </Text>
@@ -135,88 +219,6 @@ export default function LeaderboardScreen() {
               </Text>
             </View>
           )}
-          ListHeaderComponent={
-            <>
-              {loading ? (
-                <View className="py-10 items-center justify-center">
-                  <ActivityIndicator size="large" color="#e85a4f" />
-                </View>
-              ) : null}
-
-              {sortedData.length > 0 ? (
-                <View className="bg-primary-100 border-2 border-red-200 rounded-2xl p-4 mt-2 mb-4">
-                  <Text className="text-white text-lg font-bold text-center mb-4">
-                    Top 3 đóng góp nhiều nhất
-                  </Text>
-
-                  <View className="flex-row justify-between items-end">
-                    {topThree[1] ? (
-                      <View className="w-[31%] items-center bg-white/20 rounded-xl py-3 px-2">
-                        <View className="mt-2 mb-1">
-                          <AppAvatar
-                            name={topThree[1].userName}
-                            uri={topThree[1].avatar}
-                            size={44}
-                          />
-                        </View>
-                        <Text className="text-white font-semibold mt-2 text-center">
-                          {topThree[1].userName}
-                        </Text>
-                        <Text className="text-white/90 text-xs mt-1">#2</Text>
-                        <Text className="text-white font-bold mt-1">
-                          {topThree[1].totalCo2Saved?.toLocaleString()}
-                        </Text>
-                      </View>
-                    ) : null}
-
-                    {topThree[0] ? (
-                      <View className="w-[33%] items-center bg-white/25 rounded-xl py-4 px-2 -mt-3">
-                        <View className="mt-2 mb-1">
-                          <AppAvatar
-                            name={topThree[0].userName}
-                            uri={topThree[0].avatar}
-                            size={48}
-                          />
-                        </View>
-                        <Text className="text-white font-bold mt-2 text-center">
-                          {topThree[0].userName}
-                        </Text>
-                        <Text className="text-white text-xs mt-1">#1</Text>
-                        <Text className="text-white font-extrabold mt-1">
-                          {topThree[0].totalCo2Saved?.toLocaleString()}
-                        </Text>
-                      </View>
-                    ) : null}
-
-                    {topThree[2] ? (
-                      <View className="w-[31%] items-center bg-white/20 rounded-xl py-3 px-2">
-                        <View className="mt-2 mb-1">
-                          <AppAvatar
-                            name={topThree[2].userName}
-                            uri={topThree[2].avatar}
-                            size={44}
-                          />
-                        </View>
-                        <Text className="text-white font-semibold mt-2 text-center">
-                          {topThree[2].userName}
-                        </Text>
-                        <Text className="text-white/90 text-xs mt-1">#3</Text>
-                        <Text className="text-white font-bold mt-1">
-                          {topThree[2].totalCo2Saved?.toLocaleString()}
-                        </Text>
-                      </View>
-                    ) : null}
-                  </View>
-                </View>
-              ) : null}
-
-              <View className="mb-6">
-                <Text className="text-base font-bold text-text-main mb-3">
-                  Danh sách xếp hạng
-                </Text>
-              </View>
-            </>
-          }
           ListEmptyComponent={renderEmptyList}
           refreshControl={
             <RefreshControl

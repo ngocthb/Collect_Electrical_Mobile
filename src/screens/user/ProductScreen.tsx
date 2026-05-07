@@ -338,7 +338,7 @@ const ProductScreen = () => {
           <SearchInputHeader
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            placeholder="Tìm kiếm sản phẩm..."
+            placeholder="Tìm kiếm theo danh mục..."
           />
         )}
         <FlatList

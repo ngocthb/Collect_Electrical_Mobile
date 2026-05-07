@@ -71,7 +71,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
         distanceInMeters < ARRIVAL_DISTANCE_THRESHOLD
       ) {
         console.log(
-          '✅ Auto-showing QR modal after refresh, distance:',
+          ' Auto-showing QR modal after refresh, distance:',
           distanceInMeters,
         );
         setShowQrModal(true);
@@ -85,10 +85,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
               const response = await axiosClient.post(
                 `/products/notify-arrival/${normalizedRequest.productId}`,
               );
-              console.log(
-                '📍 Notify arrival (manual refresh) called:',
-                response,
-              );
+              console.log('Notify arrival (manual refresh) called:', response);
             } catch (err) {
               console.warn('Failed to notify arrival (manual refresh):', err);
               hasNotifiedArrivalRef.current = false;
@@ -111,7 +108,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
       !hasShownQrModalRef.current
     ) {
       console.log(
-        '✅ Auto-showing QR modal on first threshold, distance:',
+        'Auto-showing QR modal on first threshold, distance:',
         distanceInMeters,
       );
       setShowQrModal(true);

@@ -68,6 +68,7 @@ const userConfirmRouter = async (
   isSkip: boolean,
 ) => {
   try {
+    console.log(isConfirm, isSkip);
     const res = await axiosClient.put(`/routes/user-confirm/${routeId}`, {
       isConfirm,
       isSkip,

@@ -25,9 +25,11 @@ export async function getProductsByUser(
 export async function getProductById(
   productId: string,
 ): Promise<ProductDetail> {
+  console.log('1111111111111');
   const resp = (await axiosClient.get(
     `/products/${productId}`,
   )) as ProductDetail;
+  console.log('aaaa', resp);
   return resp || null;
 }
 

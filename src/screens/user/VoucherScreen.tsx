@@ -251,7 +251,6 @@ export default function VoucherScreen() {
     if (loading) {
       return (
         <View className="items-center justify-center py-12">
-          <ActivityIndicator size="large" color="#e85a4f" />
           <Text className="text-text-muted mt-4 text-center">Đang tải...</Text>
         </View>
       );
@@ -329,14 +328,12 @@ export default function VoucherScreen() {
       enableRefresh={false}
     >
       <View className="flex-1 bg-background-50">
-     
         <SearchInputHeader
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           placeholder="Tìm kiếm voucher..."
         />
 
-      
         <View className="px-6 pb-3 flex-row gap-3">
           <TouchableOpacity
             onPress={() => setViewMode('all')}
@@ -386,7 +383,6 @@ export default function VoucherScreen() {
           onRefresh={handleRefresh}
         />
 
-     
         {modalType === 'insufficient' ? (
           <ConfirmModal
             visible={confirmModalVisible}

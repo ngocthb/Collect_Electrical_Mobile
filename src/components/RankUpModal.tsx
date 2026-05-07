@@ -139,17 +139,17 @@ export default function RankUpModal({
 
   const handleShareFacebook = async () => {
     let url =
-      'https://res.cloudinary.com/dqdporzhx/image/upload/v1775544936/Screenshot_2026-04-07_135029_f75pp8.png';
+      'https://res.cloudinary.com/dijak1qtd/image/upload/v1778166040/dong_bkfpbz.png';
     try {
       if (toRank === 'kimcuong') {
         url =
-          'https://res.cloudinary.com/dqdporzhx/image/upload/v1775544932/Screenshot_2026-04-07_135118_oi4h5x.png';
+          'https://res.cloudinary.com/dijak1qtd/image/upload/v1778166041/kimcuong_ljiubk.png';
       } else if (toRank === 'vang') {
         url =
-          'https://res.cloudinary.com/dqdporzhx/image/upload/v1775544933/Screenshot_2026-04-07_134928_h3reoq.png';
+          'https://res.cloudinary.com/dijak1qtd/image/upload/v1778166041/vang_ltgcfx.png';
       } else if (toRank === 'bac') {
         url =
-          'https://res.cloudinary.com/dqdporzhx/image/upload/v1775544932/Screenshot_2026-04-07_135051_w5cqow.png';
+          'https://res.cloudinary.com/dijak1qtd/image/upload/v1778166040/bac_abaaax.png';
       }
 
       await Share.shareSingle({
@@ -185,7 +185,6 @@ export default function RankUpModal({
           }}
         />
 
-   
         <TouchableOpacity
           onPress={onClose}
           style={{
@@ -211,7 +210,6 @@ export default function RankUpModal({
             justifyContent: 'center',
           }}
         >
-
           {[progress1, progress2].map((progress, layerIndex) =>
             particles.map((p, i) => {
               const translateY = progress.interpolate({
@@ -254,7 +252,6 @@ export default function RankUpModal({
           )}
 
           <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-     
             <Animated.View
               style={{
                 position: 'absolute',
@@ -280,7 +277,6 @@ export default function RankUpModal({
               }}
             />
 
-      
             <Animated.View
               style={{
                 position: 'absolute',
@@ -292,7 +288,6 @@ export default function RankUpModal({
               }}
             />
 
-       
             <Animated.Image
               source={rankMap[fromRank]}
               style={{
@@ -305,7 +300,6 @@ export default function RankUpModal({
               resizeMode="contain"
             />
 
-        
             <Animated.Image
               source={rankMap[toRank]}
               style={{

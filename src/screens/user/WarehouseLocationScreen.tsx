@@ -415,7 +415,6 @@ const WarehouseLocationScreen = () => {
               onPress={() => setFilterDropdownOpen(false)}
             />
 
-         
             <View
               className="absolute top-11 right-0 w-40 bg-white rounded-lg border border-gray-200 shadow-lg"
               style={{ zIndex: 999, elevation: 5 }}
@@ -480,7 +479,7 @@ const WarehouseLocationScreen = () => {
           <SearchInputHeader
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            placeholder="Tìm kiếm địa điểm..."
+            placeholder="Tìm kiếm theo danh mục..."
           />
         )}
         <FlatList

@@ -28,6 +28,13 @@ export const isCompletedStatus = (status?: string) => {
     .includes(status.trim().toLowerCase());
 };
 
+export const isCompletedStatusForFilter = (status?: string) => {
+  if (!status) return false;
+  return [...COMPLETED_STATUSES]
+    .map(s => s.toLowerCase())
+    .includes(status.trim().toLowerCase());
+};
+
 export const isWaitingCollectionStatus = (status?: string) => {
   if (!status) return false;
   return IN_WAITING_COLLECTION.map(s => s.toLowerCase()).includes(
@@ -115,13 +122,13 @@ export const filterProductsByStatusGroup = (
 
   return products.filter(p => {
     if (statusGroup === 'completed') {
-      return isCompletedStatus(p.status);
+      return isCompletedStatusForFilter(p.status);
     }
 
     if (statusGroup === 'incomplete') {
       return isInProgressStatus(p.status) || isPendingStatus(p.status);
     }
-    if (statusGroup === 'inProcess ') {
+    if (statusGroup === 'inProcess') {
       return isWaitingCollectionStatus(p.status);
     }
     if (statusGroup === 'rejected') {
