@@ -157,7 +157,7 @@ export const initZegoService = async (
             console.error('[Zego] endCall API error:', err);
           }
         } else {
-          console.log('[Zego] ⏭Skipping endCall API - missing call info');
+          console.log('[Zego] Skipping endCall API - missing call info');
         }
 
         onCallEnd && onCallEnd(duration);

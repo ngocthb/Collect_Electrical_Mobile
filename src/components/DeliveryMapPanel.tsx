@@ -281,7 +281,7 @@ const DeliveryMapPanel: React.FC<Props> = ({
                   <ZegoSendCallInvitationButton
                     invitees={invitees}
                     isVideoCall={false}
-                    resourceID="thu_gom_data"
+                    resourceID="thugom"
                     timeout={120}
                   />
                   {/* <TouchableOpacity

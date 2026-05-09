@@ -84,7 +84,6 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
         </TouchableOpacity>
       </View>
 
-  
       <View className="flex-1 flex-row items-center">
         <TouchableOpacity
           onPress={handleEyePress}
@@ -120,7 +119,7 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
             <ZegoSendCallInvitationButton
               invitees={invitees}
               isVideoCall={false}
-              resourceID="thu_gom_data"
+              resourceID="thugom"
               timeout={120}
             />
           ) : invitees.length > 0 ? (

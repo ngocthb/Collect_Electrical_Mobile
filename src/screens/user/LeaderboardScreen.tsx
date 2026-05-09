@@ -207,7 +207,12 @@ export default function LeaderboardScreen() {
                     {item.rankPosition}
                   </Text>
                 </View>
-                <AppAvatar name={item.userName} uri={item.avatar} size={32} />
+                <AppAvatar
+                  name={item.userName}
+                  uri={item.avatar}
+                  size={32}
+                  style={{ borderWidth: 2, borderColor: '#e85a4f' }}
+                />
                 <Text className="text-text-main font-semibold flex-1">
                   {'  '}
                   {item.userName}
@@ -239,6 +244,7 @@ export default function LeaderboardScreen() {
                     name={user?.name || 'Bạn'}
                     uri={user?.avatar ?? null}
                     size={50}
+                    style={{ borderWidth: 2, borderColor: '#e85a4f' }}
                   />
                   <View className="ml-3 flex-1">
                     <Text

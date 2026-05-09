@@ -28,16 +28,14 @@ export default function NewsCarousel() {
   const fetchNews = async () => {
     try {
       const res = await fetch(
-        'https://kinhtedothi.vn/api/articles/search-article?site=kinhtedothi&page=1&fetch=10&freeWord=rác%20thải%20điện%20tử&portal=349',
+        'https://serpapi.com/search?engine=google_news_light&q=r%C3%A1c+th%E1%BA%A3i+%C4%91i%E1%BB%87n+t%E1%BB%AD&api_key=46d717b9d86a95fca974d83dcb888e9f68b7001a71b94b9d4f73a9d66f2ff643',
       );
-
       const data = await res.json();
-
-      const list = data.items.slice(0, 5).map((item: any) => ({
+      const list = data?.news_results.slice(0, 5).map((item: any) => ({
         title: item.title,
-        intro: item.intro,
-        link: `https://kinhtedothi.vn` + item.url,
-        image: `https://resource.kinhtedothi.vn/` + item.thumbnail,
+        intro: item.snippet,
+        link: item.link,
+        image: item.thumbnail,
       }));
 
       setNewsList(list);

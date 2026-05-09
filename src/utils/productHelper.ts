@@ -96,8 +96,9 @@ export const getStatusBgClass = (status?: string) => {
 };
 
 export const statusGroupOptions = [
+  { value: 'pending', label: 'Chờ duyệt', color: 'blue' },
   { value: 'incomplete', label: 'Đang xử lý', color: 'yellow' },
-  { value: 'inProcess ', label: 'Chờ thu gom', color: 'purple' },
+  { value: 'inProcess', label: 'Chờ thu gom', color: 'purple' },
   { value: 'completed', label: 'Hoàn thành', color: 'green' },
   { value: 'rejected', label: 'Thất bại / Hủy', color: 'red' },
 ];
@@ -119,16 +120,22 @@ export const filterProductsByStatusGroup = (
   statusGroup: string,
 ) => {
   if (!statusGroup) return products;
+  console.log('aaa', statusGroup, 'aaa');
+  console.log(statusGroup === 'inProcess');
 
   return products.filter(p => {
+    if (statusGroup === 'pending') {
+      return isPendingStatus(p.status);
+    }
     if (statusGroup === 'completed') {
       return isCompletedStatusForFilter(p.status);
     }
 
     if (statusGroup === 'incomplete') {
-      return isInProgressStatus(p.status) || isPendingStatus(p.status);
+      return isInProgressStatus(p.status);
     }
     if (statusGroup === 'inProcess') {
+      console.log('1111111111');
       return isWaitingCollectionStatus(p.status);
     }
     if (statusGroup === 'rejected') {
