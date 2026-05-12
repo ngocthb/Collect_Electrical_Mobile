@@ -167,7 +167,9 @@ export default function VoucherScreen() {
         <Text className="text-gray-900 font-bold text-sm mt-2">
           {item.pointsToRedeem.toLocaleString()} <Text>🪙</Text>
         </Text>
-
+        <Text className="text-primary-100 text-xs mt-1" numberOfLines={3}>
+          Số lượng còn lại: {item.quantity}
+        </Text>
         {viewMode !== 'my' && (
           <View className="mt-2">
             <TouchableOpacity

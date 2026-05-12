@@ -25,7 +25,6 @@ export async function getProductsByUser(
 export async function getProductById(
   productId: string,
 ): Promise<ProductDetail> {
-  console.log('1111111111111');
   const resp = (await axiosClient.get(
     `/products/${productId}`,
   )) as ProductDetail;
@@ -50,6 +49,44 @@ export async function getProductToday(userId: string, pickUpDate: string) {
     params: { userId, pickUpDate },
   });
   return Array.isArray(resp) ? resp : resp?.data ?? [];
+}
+
+export async function dropOff(
+  senderId: string,
+  description: string,
+  smallCollectionPointId: string,
+  images: string[],
+  parentCategoryId: string,
+  subCategoryId: string,
+  brandId: string,
+  qrCode: string,
+) {
+  try {
+    console.log(
+      senderId,
+      description,
+      smallCollectionPointId,
+      images,
+      parentCategoryId,
+      subCategoryId,
+      brandId,
+      qrCode,
+    );
+    const resp = await axiosClient.post('/products/drop-off', {
+      senderId,
+      description,
+      smallCollectionPointId,
+      images,
+      parentCategoryId,
+      subCategoryId,
+      brandId,
+      qrCode,
+    });
+    return resp;
+  } catch (error) {
+    console.error('Error dropping off product:', error);
+    throw error;
+  }
 }
 
 export default { getProductsByUser, getProductById, cancelProduct };

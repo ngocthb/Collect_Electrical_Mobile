@@ -1,5 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  Dimensions,
+  PermissionsAndroid,
+  ActivityIndicator,
+} from 'react-native';
 import { Camera, CameraType } from 'react-native-camera-kit';
 
 import AppButton from './ui/AppButton';
@@ -27,6 +33,36 @@ const ScanQrComponent: React.FC<ScanQrComponentProps> = ({
 }) => {
   const [scanned, setScanned] = useState(false);
   const [qrId, setQrId] = useState<string | null>(null);
+  const [cameraPermission, setCameraPermission] = useState<boolean | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    requestCameraPermission();
+  }, []);
+
+  const requestCameraPermission = async () => {
+    try {
+      setLoading(true);
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Quyền truy cập camera',
+          message: 'Ứng dụng cần quyền truy cập camera để quét mã QR',
+          buttonNeutral: 'Hỏi lại sau',
+          buttonNegative: 'Hủy',
+          buttonPositive: 'Cho phép',
+        },
+      );
+      setCameraPermission(granted === PermissionsAndroid.RESULTS.GRANTED);
+    } catch (err) {
+      console.warn(err);
+      setCameraPermission(false);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleBarCodeRead = (event: any) => {
     if (!scanned && event.nativeEvent.codeStringValue) {
@@ -55,7 +91,25 @@ const ScanQrComponent: React.FC<ScanQrComponentProps> = ({
       <Text className="text-sm text-gray-500 mb-4 text-center">{subtitle}</Text>
 
       <View className="w-72 h-72 rounded-xl overflow-hidden bg-black items-center justify-center shadow-lg mb-6">
-        {!scanned ? (
+        {loading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#e85a4f" />
+            <Text className="text-gray-500 mt-3 text-center">
+              Đang kiểm tra quyền truy cập camera...
+            </Text>
+          </View>
+        ) : cameraPermission === false ? (
+          <View className="flex-1 items-center justify-center p-4">
+            <Text className="text-gray-500 text-center mb-4">
+              Không có quyền truy cập camera. Vui lòng cho phép quyền truy cập
+              camera trong cài đặt ứng dụng.
+            </Text>
+            <AppButton
+              title="Yêu cầu quyền lại"
+              onPress={requestCameraPermission}
+            />
+          </View>
+        ) : !scanned ? (
           <>
             <Camera
               style={{
@@ -70,7 +124,7 @@ const ScanQrComponent: React.FC<ScanQrComponentProps> = ({
               onReadCode={handleBarCodeRead}
               showFrame={false}
             />
-       
+
             <View
               style={{
                 position: 'absolute',

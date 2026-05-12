@@ -278,18 +278,18 @@ const DeliveryMapPanel: React.FC<Props> = ({
                       </Text>
                     </TouchableOpacity>
                   </View>
-                  <ZegoSendCallInvitationButton
+                  {/* <ZegoSendCallInvitationButton
                     invitees={invitees}
                     isVideoCall={false}
                     resourceID="thugom"
                     timeout={120}
-                  />
-                  {/* <TouchableOpacity
+                  /> */}
+                  <TouchableOpacity
                     onPress={() => setShowCallModal(true)}
                     className="w-12 h-12 rounded-full bg-white items-center justify-center"
                   >
                     <Icon name="phone-in-talk" size={26} color="#3366CC" />
-                  </TouchableOpacity> */}
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -383,14 +383,14 @@ const DeliveryMapPanel: React.FC<Props> = ({
         }}
       />
 
-      {/* <CallOptionsModal
+      <CallOptionsModal
         visible={showCallModal}
         onClose={() => setShowCallModal(false)}
         receiver={receiver}
         invitees={invitees}
         user={user}
         senderName={normalizedRequest?.sender?.name}
-      /> */}
+      />
     </ScrollView>
   );
 };

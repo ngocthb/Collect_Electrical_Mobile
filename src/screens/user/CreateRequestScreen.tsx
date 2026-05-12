@@ -25,6 +25,9 @@ import create from '../../services/requestService';
 import { useAppDispatch } from '../../store/hooks';
 import { clearTimeSlot } from '../../store/slices/timeSlotSlice';
 import ChooseAddress from '../../components/ChooseAddress';
+import DeliveryOptionModal from '../../components/DeliveryOptionModal';
+import DeliveryWarehouseFlow from '../../components/DeliveryWarehouseFlow';
+import { dropOff } from '../../services/productService';
 
 const CreateRequestScreen = () => {
   const router = useRoute<any>();
@@ -51,6 +54,15 @@ const CreateRequestScreen = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showDeliveryOptionModal, setShowDeliveryOptionModal] = useState(false);
+  const [deliveryType, setDeliveryType] = useState<
+    'warehouse' | 'pickup' | null
+  >(null);
+  const [warehouseData, setWarehouseData] = useState<{
+    containerId: string;
+    containerDetails: any;
+    finalQrCode: string;
+  } | null>(null);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -59,8 +71,33 @@ const CreateRequestScreen = () => {
 
   const goToNextStep = () => {
     if (currentStep < 2) {
-      setCurrentStep(currentStep + 1);
+      setShowDeliveryOptionModal(true);
     }
+  };
+
+  const handleSelectWarehouse = () => {
+    setDeliveryType('warehouse');
+    setShowDeliveryOptionModal(false);
+    setCurrentStep(2);
+  };
+
+  const handleSelectPickup = () => {
+    setDeliveryType('pickup');
+    setShowDeliveryOptionModal(false);
+    setCurrentStep(2);
+  };
+
+  const handleWarehouseFlowComplete = (data: {
+    containerId: string;
+    containerDetails: any;
+    finalQrCode: string;
+  }) => {
+    setWarehouseData(data);
+    toast.show({
+      type: 'success',
+      text1: 'Thành công',
+      text2: 'Thông tin phát hàng đã được ghi lại',
+    });
   };
 
   const goToPreviousStep = () => {
@@ -72,13 +109,21 @@ const CreateRequestScreen = () => {
     }
   };
 
+  const handleCancelWarehouseFlow = () => {
+    setDeliveryType(null);
+    setCurrentStep(1);
+  };
+
   const isStep1Valid =
     selectedBrandId !== null &&
     selectedCategory !== null &&
     selectedImages.length > 0 &&
     selectedTags.length > 0;
 
-  const isStep2Valid = selectedAddress !== null && timeSlots.length > 0;
+  const isStep2Valid =
+    deliveryType === 'warehouse'
+      ? warehouseData !== null
+      : selectedAddress !== null && timeSlots.length > 0;
 
   const handleAddImage = (assets: Asset[]) => {
     setSelectedImages(prev => [...prev, ...assets]);
@@ -111,30 +156,57 @@ const CreateRequestScreen = () => {
   const handleCreateRequest = async () => {
     try {
       setLoading(true);
+      console.log('111111');
+      if (deliveryType === 'warehouse' && warehouseData) {
+        // Warehouse delivery flow
+        const allAssets = [...selectedImages];
+        const urls = await handleUploadImages(allAssets);
+        console.log('aaaaa');
+        await dropOff(
+          user?.userId ?? '',
+          selectedTags.join(', '),
+          warehouseData.containerId,
+          urls,
+          categoryId ?? '',
+          selectedCategory?.id ?? '',
+          selectedBrandId ?? '',
+          warehouseData.finalQrCode,
+        );
 
-      const urls = await handleUploadImages(selectedImages);
+        toast.show({
+          type: 'success',
+          text1: 'Thành công',
+          text2: 'Bạn đã giao hàng thành công',
+        });
+      } else if (deliveryType === 'pickup') {
+        // Pickup delivery flow
+        const urls = await handleUploadImages(selectedImages);
 
-      const payload: CreateRequestPayload = {
-        senderId: user?.userId,
-        description: selectedTags.join(', '),
-        address: selectedAddress?.address,
-        images: urls,
-        collectionSchedule: timeSlots || [],
-        product: {
-          parentCategoryId: categoryId,
-          subCategoryId: selectedCategory?.id,
-          brandId: selectedBrandId,
-          attributes: attributeValues || null,
-        },
-      };
-      console.log(JSON.stringify(payload, null, 2));
+        const payload: CreateRequestPayload = {
+          senderId: user?.userId,
+          description: selectedTags.join(', '),
+          address: selectedAddress?.address,
+          images: urls,
+          collectionSchedule: timeSlots || [],
+          product: {
+            parentCategoryId: categoryId,
+            subCategoryId: selectedCategory?.id,
+            brandId: selectedBrandId,
+            attributes: attributeValues || null,
+          },
+        };
 
-      const data = await create.create(payload);
-      toast.show({
-        type: 'success',
-        text1: 'Thành công',
-        text2: 'Yêu cầu đã được tạo thành công.',
-      });
+        console.log(JSON.stringify(payload, null, 2));
+        await create.create(payload);
+        toast.show({
+          type: 'success',
+          text1: 'Thành công',
+          text2: 'Yêu cầu đã được tạo thành công.',
+        });
+      } else {
+        throw new Error('Invalid delivery type');
+      }
+
       dispatch(clearTimeSlot());
       navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (error: any) {
@@ -226,11 +298,20 @@ const CreateRequestScreen = () => {
           </View>
 
           <View style={{ display: currentStep === 2 ? 'flex' : 'none' }}>
-            <ChooseAddress
-              selectedAddress={selectedAddress}
-              onSelectAddress={setSelectedAddress}
-            />
-            <PickupTimeSelector />
+            {deliveryType === 'warehouse' ? (
+              <DeliveryWarehouseFlow
+                onComplete={handleWarehouseFlowComplete}
+                onCancel={handleCancelWarehouseFlow}
+              />
+            ) : (
+              <>
+                <ChooseAddress
+                  selectedAddress={selectedAddress}
+                  onSelectAddress={setSelectedAddress}
+                />
+                <PickupTimeSelector />
+              </>
+            )}
           </View>
         </View>
       </ScrollView>
@@ -290,6 +371,13 @@ const CreateRequestScreen = () => {
         }}
         onCancel={() => setShowErrorModal(false)}
         showCloseButton={true}
+      />
+
+      <DeliveryOptionModal
+        visible={showDeliveryOptionModal}
+        onClose={() => setShowDeliveryOptionModal(false)}
+        onSelectWarehouse={handleSelectWarehouse}
+        onSelectPickup={handleSelectPickup}
       />
 
       {loading && currentStep === 2 && (

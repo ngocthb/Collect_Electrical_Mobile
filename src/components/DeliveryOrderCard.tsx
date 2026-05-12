@@ -110,19 +110,19 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
 
         <View className="ml-3">
           {invitees.length > 0 && isSelectedDateToday && !actionsDisabled ? (
-            // <TouchableOpacity
-            //   onPress={() => setShowCallModal(true)}
-            //   className="w-12 h-12 rounded-full bg-white items-center justify-center"
-            // >
-            //   <Icon name="phone-in-talk" size={26} color="#3366CC" />
-            // </TouchableOpacity>
-            <ZegoSendCallInvitationButton
-              invitees={invitees}
-              isVideoCall={false}
-              resourceID="thugom"
-              timeout={120}
-            />
-          ) : invitees.length > 0 ? (
+            <TouchableOpacity
+              onPress={() => setShowCallModal(true)}
+              className="w-12 h-12 rounded-full bg-white items-center justify-center"
+            >
+              <Icon name="phone-in-talk" size={26} color="#3366CC" />
+            </TouchableOpacity>
+          ) : // <ZegoSendCallInvitationButton
+          //   invitees={invitees}
+          //   isVideoCall={false}
+          //   resourceID="thugom"
+          //   timeout={120}
+          // />
+          invitees.length > 0 ? (
             <View
               className="bg-gray-100 rounded-full p-2"
               style={{ opacity: 0.4 }}
@@ -137,14 +137,14 @@ const DeliveryOrderCard = ({ order, isSelectedDateToday }: Props) => {
         </View>
       </View>
 
-      {/* <CallOptionsModal
+      <CallOptionsModal
         visible={showCallModal}
         onClose={() => setShowCallModal(false)}
         receiver={receiver}
         invitees={invitees}
         user={user}
         senderName={receiver?.name}
-      /> */}
+      />
     </View>
   );
 };
