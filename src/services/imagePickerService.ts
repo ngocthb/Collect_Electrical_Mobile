@@ -9,7 +9,7 @@ export interface ImagePickerResult {
   error?: string;
 }
 
-const requestCameraPermission = async (): Promise<boolean> => {
+export const requestCameraPermission = async (): Promise<boolean> => {
   if (Platform.OS === 'android') {
     try {
       const granted = await PermissionsAndroid.request(

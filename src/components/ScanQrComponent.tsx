@@ -5,10 +5,12 @@ import {
   Dimensions,
   PermissionsAndroid,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Camera, CameraType } from 'react-native-camera-kit';
-
+import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import AppButton from './ui/AppButton';
+import { requestCameraPermission } from '../services/imagePickerService';
 
 interface ScanQrComponentProps {
   onClose: () => void;
@@ -33,29 +35,19 @@ const ScanQrComponent: React.FC<ScanQrComponentProps> = ({
 }) => {
   const [scanned, setScanned] = useState(false);
   const [qrId, setQrId] = useState<string | null>(null);
-  const [cameraPermission, setCameraPermission] = useState<boolean | null>(
-    null,
-  );
+  const [cameraPermission, setCameraPermission] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    requestCameraPermission();
+    checkRequestCameraPermission();
   }, []);
 
-  const requestCameraPermission = async () => {
+  const checkRequestCameraPermission = async () => {
     try {
       setLoading(true);
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.CAMERA,
-        {
-          title: 'Quyền truy cập camera',
-          message: 'Ứng dụng cần quyền truy cập camera để quét mã QR',
-          buttonNeutral: 'Hỏi lại sau',
-          buttonNegative: 'Hủy',
-          buttonPositive: 'Cho phép',
-        },
-      );
-      setCameraPermission(granted === PermissionsAndroid.RESULTS.GRANTED);
+
+      const permission = await requestCameraPermission();
+      setCameraPermission(permission);
     } catch (err) {
       console.warn(err);
       setCameraPermission(false);
