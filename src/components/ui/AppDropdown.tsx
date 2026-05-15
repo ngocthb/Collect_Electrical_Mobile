@@ -1,85 +1,162 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-} from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-
-interface Option {
-  id: string | number;
-  label: string;
-  value?: any;
-}
+import type { AttributeOption } from '../../types/Category';
 
 interface AppDropdownProps {
-  options: Option[];
+  options: AttributeOption[];
   placeholder?: string;
-  onSelect: (option: Option) => void;
+  onSelect: (option: AttributeOption) => void;
   title?: string;
-  required?: boolean; // Added required prop
+  required?: boolean;
+  value?: AttributeOption | null;
+  inlineLabel?: boolean;
+  size?: 'normal' | 'sub';
+  compact?: boolean;
+  isOpen?: boolean;
+  onToggle?: (isOpen: boolean) => void;
 }
 
 const AppDropdown: React.FC<AppDropdownProps> = ({
   options,
-  placeholder,
   onSelect,
   title,
-  required,
+  required = false,
+  value,
+  inlineLabel = false,
+  size = 'normal',
+  compact = false,
+  isOpen = false,
+  onToggle,
 }) => {
-  const [isDropdownVisible, setDropdownVisible] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string | null>(
-    options.length > 0 ? options[0].label : null, // Default to the first option
+  const [selectedOption, setSelectedOption] = useState<AttributeOption | null>(
+    null,
   );
 
   useEffect(() => {
-    if (options.length > 0) {
-      onSelect(options[0]); // Automatically select the first option
+    if (value) {
+      setSelectedOption(value);
+    } else if (options.length > 0 && !selectedOption) {
+      setSelectedOption(options[0]);
+      onSelect(options[0]);
     }
-  }, [options, onSelect]);
+   
+  }, [value, options]);
 
-  const handleSelect = (option: Option) => {
-    setSelectedOption(option.label);
+  const handleSelect = (option: AttributeOption) => {
+    setSelectedOption(option);
     onSelect(option);
-    setDropdownVisible(false);
+    onToggle?.(false);
+  };
+
+  const handleToggle = () => {
+    onToggle?.(!isOpen);
   };
 
   return (
-    <View className="relative">
-      {title && (
-        <Text className="text-sm font-medium mb-2 text-text-main">
-          {title} {required && <Text className="text-red-500">*</Text>}
-        </Text>
-      )}
-
-      <TouchableOpacity
-        className="border border-gray-300 rounded-md p-3 flex-row justify-between items-center"
-        onPress={() => setDropdownVisible(!isDropdownVisible)}
+    <View style={{ marginBottom: compact ? 4 : 16, position: 'relative' }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginBottom: 8,
+        }}
       >
-        <Text className="text-sm text-text-main">
-          {selectedOption || placeholder || 'Select an option'}
-        </Text>
-        <Icon name="chevron-down" size={20} color="gray" />
-      </TouchableOpacity>
-
-      {isDropdownVisible && (
-        <View className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-md mt-0 z-10">
-          <FlatList
-            data={options}
-            keyExtractor={item => String(item.id)}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                className="p-3 border-b border-gray-200"
-                onPress={() => handleSelect(item)}
-              >
-                <Text className="text-sm text-text-main">{item.label}</Text>
-              </TouchableOpacity>
-            )}
-          />
+        <View className="w-2/5">
+          <Text className="text-sm font-medium text-text-sub items-center text-start">
+            {title} {required && <Text style={{ color: 'red' }}>*</Text>}
+          </Text>
         </View>
-      )}
+        <View className="w-3/5">
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              borderWidth: 1,
+              borderColor: '#D1D5DB',
+              borderRadius: 8,
+              padding: 12,
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              backgroundColor: '#FFFFFF',
+            }}
+            onPress={handleToggle}
+          >
+            <Text
+              style={{
+                fontSize: size === 'sub' ? 12 : 16,
+                color: selectedOption ? '#111827' : '#9CA3AF',
+              }}
+            >
+              {selectedOption?.optionName}
+            </Text>
+            <Icon
+              name={isOpen ? 'chevron-up' : 'chevron-down'}
+              size={20}
+              color="#6B7280"
+            />
+          </TouchableOpacity>
+          {isOpen && (
+            <View
+              style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                backgroundColor: '#FFFFFF',
+                borderWidth: 1,
+                borderColor: '#E5E7EB',
+                borderRadius: 12,
+                marginTop: 2,
+                zIndex: 50,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 5,
+              }}
+            >
+              <View>
+                {options.map(item => (
+                  <TouchableOpacity
+                    key={String(item.attributeOptionId)}
+                    style={{
+                      padding: size === 'sub' ? 12 : 16,
+                      borderBottomWidth:
+                        item !== options[options.length - 1] ? 1 : 0,
+                      borderBottomColor: '#F3F4F6',
+                      backgroundColor:
+                        selectedOption?.attributeOptionId ===
+                        item.attributeOptionId
+                          ? '#FEE2E2'
+                          : '#FFFFFF',
+                    }}
+                    onPress={() => handleSelect(item)}
+                  >
+                    <Text
+                      style={{
+                        fontSize: size === 'sub' ? 12 : 16,
+                        color:
+                          selectedOption?.attributeOptionId ===
+                          item?.attributeOptionId
+                            ? '#e85a4f'
+                            : '#374151',
+                        fontWeight:
+                          selectedOption?.attributeOptionId ===
+                          item?.attributeOptionId
+                            ? '600'
+                            : '400',
+                      }}
+                    >
+                      {item?.optionName}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+        </View>
+      </View>
     </View>
   );
 };

@@ -1,0 +1,206 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  Dimensions,
+  PermissionsAndroid,
+  ActivityIndicator,
+  Platform,
+} from 'react-native';
+import { Camera, CameraType } from 'react-native-camera-kit';
+import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import AppButton from './ui/AppButton';
+import { requestCameraPermission } from '../services/imagePickerService';
+
+interface ScanQrComponentProps {
+  onClose: () => void;
+  onScan: (id: string) => void;
+  title?: string;
+  subtitle?: string;
+  instruction?: string;
+  scanResultMessage?: string;
+  resultColor?: string;
+  resultIcon?: string;
+}
+const { width, height } = Dimensions.get('window');
+const ScanQrComponent: React.FC<ScanQrComponentProps> = ({
+  onClose,
+  onScan,
+  title = 'Quét mã QR của sản phẩm',
+  subtitle = 'Đưa camera vào mã QR để định danh sản phẩm',
+  instruction = 'Hướng camera vào mã QR của sản phẩm để quét và xác nhận thông tin sản phẩm',
+  scanResultMessage = 'Quét thành công!',
+  resultColor = '#10B981',
+  resultIcon = '✓',
+}) => {
+  const [scanned, setScanned] = useState(false);
+  const [qrId, setQrId] = useState<string | null>(null);
+  const [cameraPermission, setCameraPermission] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkRequestCameraPermission();
+  }, []);
+
+  const checkRequestCameraPermission = async () => {
+    try {
+      setLoading(true);
+
+      const permission = await requestCameraPermission();
+      setCameraPermission(permission);
+    } catch (err) {
+      console.warn(err);
+      setCameraPermission(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBarCodeRead = (event: any) => {
+    if (!scanned && event.nativeEvent.codeStringValue) {
+      const code = event.nativeEvent.codeStringValue;
+      setScanned(true);
+      setQrId(code);
+      setTimeout(() => {
+        onScan(code);
+      }, 500);
+    }
+  };
+
+  const handleScanAgain = () => {
+    setScanned(false);
+    setQrId(null);
+  };
+
+  return (
+    <View
+      className="flex-1 bg-background-50 px-4  items-center"
+      style={{ paddingTop: (20 * height) / 812 }}
+    >
+      <Text className="text-xl font-bold mb-2 text-primary-700 text-center">
+        {title}
+      </Text>
+      <Text className="text-sm text-gray-500 mb-4 text-center">{subtitle}</Text>
+
+      <View className="w-72 h-72 rounded-xl overflow-hidden bg-black items-center justify-center shadow-lg mb-6">
+        {loading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#e85a4f" />
+            <Text className="text-gray-500 mt-3 text-center">
+              Đang kiểm tra quyền truy cập camera...
+            </Text>
+          </View>
+        ) : cameraPermission === false ? (
+          <View className="flex-1 items-center justify-center p-4">
+            <Text className="text-gray-500 text-center mb-4">
+              Không có quyền truy cập camera. Vui lòng cho phép quyền truy cập
+              camera trong cài đặt ứng dụng.
+            </Text>
+            <AppButton
+              title="Yêu cầu quyền lại"
+              onPress={requestCameraPermission}
+            />
+          </View>
+        ) : !scanned ? (
+          <>
+            <Camera
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+              cameraType={CameraType.Back}
+              scanBarcode={true}
+              onReadCode={handleBarCodeRead}
+              showFrame={false}
+            />
+
+            <View
+              style={{
+                position: 'absolute',
+                width: 220,
+                height: 220,
+                zIndex: 1,
+              }}
+            >
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: 40,
+                  height: 40,
+                  borderTopWidth: 4,
+                  borderLeftWidth: 4,
+                  borderColor: '#10B981',
+                  borderTopLeftRadius: 4,
+                }}
+              />
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  width: 40,
+                  height: 40,
+                  borderTopWidth: 4,
+                  borderRightWidth: 4,
+                  borderColor: '#10B981',
+                  borderTopRightRadius: 4,
+                }}
+              />
+              <View
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  width: 40,
+                  height: 40,
+                  borderBottomWidth: 4,
+                  borderLeftWidth: 4,
+                  borderColor: '#10B981',
+                  borderBottomLeftRadius: 4,
+                }}
+              />
+              <View
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  right: 0,
+                  width: 40,
+                  height: 40,
+                  borderBottomWidth: 4,
+                  borderRightWidth: 4,
+                  borderColor: '#10B981',
+                  borderBottomRightRadius: 4,
+                }}
+              />
+            </View>
+          </>
+        ) : (
+          <View className="flex-1 items-center justify-center bg-white p-4 w-full">
+            <Text style={{ fontSize: 40, color: resultColor }} className="mb-2">
+              {resultIcon}
+            </Text>
+            <Text
+              style={{ color: resultColor }}
+              className="text-lg font-semibold mb-2"
+            >
+              {scanResultMessage}
+            </Text>
+
+            <AppButton title="Quét lại" onPress={handleScanAgain} />
+          </View>
+        )}
+      </View>
+
+      <View className="mt-2 bg-blue-50 px-4 py-3 rounded-lg border border-blue-200">
+        <Text className="text-xs text-blue-700 text-center">{instruction}</Text>
+      </View>
+    </View>
+  );
+};
+
+export default ScanQrComponent;

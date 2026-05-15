@@ -1,25 +1,31 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface HeaderProps {
-  onMenuPress?: () => void;
-  onNotificationPress?: () => void;
+  icon?: string;
+  title?: string;
+  subtitle?: string;
+  rightComponent?: React.ReactNode;
 }
 
 const Header: React.FC<HeaderProps> = ({
-  onMenuPress,
-  onNotificationPress,
+  icon,
+  title,
+  subtitle,
+  rightComponent,
 }) => {
   return (
-    <View className="flex-row items-center justify-between px-6 py-8 mb-6">
-      <TouchableOpacity onPress={onMenuPress}>
-        <Icon name="menu" size={28} color="#333" />
-      </TouchableOpacity>
+    <View className="flex-row bg-background-50 items-center justify-between px-6 py-8">
+      {icon && <Icon name={icon} size={28} color="#333" className="mr-2" />}
 
-      <TouchableOpacity onPress={onNotificationPress}>
-        <Icon name="notifications-none" size={28} color="#333" />
-      </TouchableOpacity>
+      <View className="flex-1 ">
+        {title && (
+          <Text className="text-lg font-semibold text-gray-900">{title}</Text>
+        )}
+        {subtitle && <Text className="text-sm text-gray-600">{subtitle}</Text>}
+      </View>
+      {rightComponent && <View>{rightComponent}</View>}
     </View>
   );
 };

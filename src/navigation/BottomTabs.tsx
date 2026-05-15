@@ -1,14 +1,19 @@
-import React, { useContext } from 'react';
+import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Text, View } from 'react-native';
+import CenterPlusButton from '../components/ui/CenterPlusButton';
+import { useNavigation } from '@react-navigation/native';
 import IconOcticons from 'react-native-vector-icons/Octicons';
 import IconFeature from 'react-native-vector-icons/Feather';
 import HomeScreen from '../screens/user/HomeScreen';
-import RequestScreen from '../screens/user/RequestScreen';
-import NotificationsScreen from '../screens/user/NotificationsScreen';
-import ProfileScreen from '../screens/user/ProfileScreen';
-import { AuthContext } from '../context/AuthContext';
+import ProductScreen from '../screens/user/ProductScreen';
+import ProfileScreen from '../screens/common/ProfileScreen';
+import { useAppSelector } from '../store/hooks';
 import { createStackNavigator } from '@react-navigation/stack';
-import HomeDeliveryScreen from '../screens/delivery/HomeDeliveryScreen';
+import NotificationScreen from '../screens/user/NotificationScreen';
+import CategoryPickerModal from '../components/CategoryPickerModal';
+import Toast from 'react-native-toast-message';
+import DeliveryListScreen from '../screens/delivery/DeliveryListScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -22,13 +27,19 @@ export default function AppNavigator() {
 }
 
 function BottomTabs() {
-  const { role } = useContext(AuthContext);
+  const user = useAppSelector(s => s.auth);
+  const role = user?.user?.role.toLocaleLowerCase();
+  const navigation = useNavigation<any>();
+  const [catModalVisible, setCatModalVisible] = useState(false);
+  const isHaveAddress = useAppSelector(s => s.address.list.length > 0);
+  const isHavePhoneNumber = useAppSelector(s => !!s.auth.user?.phone);
 
+  const { unRead } = useAppSelector(s => s.notification);
   const userTabs = (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#19CCA1',
+        tabBarActiveTintColor: '#e85a4f',
         tabBarInactiveTintColor: '#818898',
         tabBarStyle: { backgroundColor: '#fff', height: 60 },
         tabBarIcon: ({ color, size }) => {
@@ -39,7 +50,37 @@ function BottomTabs() {
             case 'Yêu cầu':
               return <IconFeature name="archive" {...props} />;
             case 'Thông báo':
-              return <IconFeature name="bell" {...props} />;
+              return (
+                <View style={{ width: 24, height: 24 }}>
+                  <IconFeature name="bell" {...props} />
+                  {Number(unRead) > 0 && (
+                    <View
+                      style={{
+                        position: 'absolute',
+                        top: -6,
+                        right: -8,
+                        minWidth: 16,
+                        height: 16,
+                        borderRadius: 8,
+                        backgroundColor: '#ef4444',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingHorizontal: 3,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: '#fff',
+                          fontSize: 10,
+                          fontWeight: '700',
+                        }}
+                      >
+                        {Number(unRead) > 99 ? '99+' : Number(unRead)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              );
             case 'Tài khoản':
               return <IconFeature name="user" {...props} />;
             default:
@@ -49,8 +90,42 @@ function BottomTabs() {
       })}
     >
       <Tab.Screen name="Trang chủ" component={HomeScreen} />
-      <Tab.Screen name="Yêu cầu" component={RequestScreen} />
-      <Tab.Screen name="Thông báo" component={NotificationsScreen} />
+      <Tab.Screen name="Yêu cầu" component={ProductScreen} />
+      <Tab.Screen
+        name="TaoYeuCau"
+        component={HomeScreen}
+        options={{
+          tabBarLabel: '',
+          tabBarButton: (props: any) => (
+            <CenterPlusButton
+              {...props}
+              onPress={() => {
+                if (!isHaveAddress) {
+                  Toast.show({
+                    type: 'info',
+                    text1: 'Vui lòng thêm địa chỉ trước khi tạo yêu cầu',
+                    visibilityTime: 1500,
+                  });
+                  navigation.navigate('DefaultAddress');
+                  return;
+                } else if (!isHavePhoneNumber) {
+                  Toast.show({
+                    type: 'info',
+                    text1:
+                      'Vui lòng cập nhât số điện thoại trước khi tạo yêu cầu',
+                    visibilityTime: 1500,
+                  });
+                  navigation.navigate('EditProfile');
+                  return;
+                }
+
+                setCatModalVisible(true);
+              }}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen name="Thông báo" component={NotificationScreen} />
       <Tab.Screen name="Tài khoản" component={ProfileScreen} />
     </Tab.Navigator>
   );
@@ -59,16 +134,47 @@ function BottomTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#19CCA1',
+        tabBarActiveTintColor: '#e85a4f',
         tabBarInactiveTintColor: '#818898',
-        tabBarStyle: { backgroundColor: '#fff', height: 60 },
+        tabBarStyle: { height: 60, backgroundColor: '#fff' },
+
         tabBarIcon: ({ color, size }) => {
           const props = { color, size: size ?? 22 };
           switch (route.name) {
-            case 'Trang chủ':
-              return <IconOcticons name="home" {...props} />;
+            case 'Đơn hàng':
+              return <IconOcticons name="checklist" {...props} />;
             case 'Thông báo':
-              return <IconFeature name="bell" {...props} />;
+              return (
+                <View style={{ width: 24, height: 24 }}>
+                  <IconFeature name="bell" {...props} />
+                  {Number(unRead) > 0 && (
+                    <View
+                      style={{
+                        position: 'absolute',
+                        top: -6,
+                        right: -8,
+                        minWidth: 16,
+                        height: 16,
+                        borderRadius: 8,
+                        backgroundColor: '#ef4444',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingHorizontal: 3,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: '#fff',
+                          fontSize: 10,
+                          fontWeight: '700',
+                        }}
+                      >
+                        {Number(unRead) > 99 ? '99+' : Number(unRead)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              );
             case 'Tài khoản':
               return <IconFeature name="user" {...props} />;
             default:
@@ -77,11 +183,24 @@ function BottomTabs() {
         },
       })}
     >
-      <Tab.Screen name="Trang chủ" component={HomeDeliveryScreen} />
-      <Tab.Screen name="Thông báo" component={NotificationsScreen} />
+      <Tab.Screen name="Đơn hàng" component={DeliveryListScreen} />
+      <Tab.Screen name="Thông báo" component={NotificationScreen} />
       <Tab.Screen name="Tài khoản" component={ProfileScreen} />
     </Tab.Navigator>
   );
 
-  return role === 'user' ? userTabs : deliveryTabs;
+  return (
+    <>
+      {role === 'user' ? userTabs : deliveryTabs}
+      <CategoryPickerModal
+        visible={catModalVisible}
+        onClose={() => setCatModalVisible(false)}
+        onConfirm={cat => {
+          setCatModalVisible(false);
+
+          navigation.navigate('CreateRequest', { parentCategoryId: cat.id });
+        }}
+      />
+    </>
+  );
 }

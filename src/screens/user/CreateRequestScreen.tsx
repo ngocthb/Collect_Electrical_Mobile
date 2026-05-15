@@ -1,240 +1,403 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  Alert,
-} from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import SubLayout from '../../layout/SubLayout';
-import AppDropdown from '../../components/ui/AppDropdown';
-import AppInput from '../../components/ui/AppInput';
-import PickupTimeSelector from '../../components/PickupTimeSelector';
-import PickupAddressSelector from '../../components/PickupAddressSelector';
-import ImagePickerModal from '../../components/ImagePickerModal';
-import {
-  openCamera,
-  openGallery,
-  validateImageSize,
-} from '../../utils/imagePickerService';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import toast from 'react-native-toast-message';
+
 import type { Asset } from 'react-native-image-picker';
+import { useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import SubLayout from '../../layout/SubLayout';
+import AppSearchableDropdown from '../../components/ui/AppSearchableDropdown';
+import AttributeSizePanel from '../../components/AttributeSizePanel';
+import PickupTimeSelector from '../../components/PickupTimeSelector';
+import ImagePickerModal from '../../components/ImagePickerModal';
+import ConfirmModal from '../../components/ConfirmModal';
+import AppImageGallery from '../../components/ui/AppImageGallery';
 import AppButton from '../../components/ui/AppButton';
-
-const categories = [
-  { id: 1, label: 'Điện tử' },
-  { id: 2, label: 'Gia dụng' },
-  { id: 3, label: 'Thời trang' },
-  { id: 4, label: 'Khác' },
-];
-
-const tags = ['Đã hỏng', 'Có thể sửa', 'Không hoạt động'];
+import SizeOptions from '../../components/SizeOptions';
+import tags from '../../data/tags';
+import type { AttributeOptionData, SubCategory } from '../../types/Category';
+import type { Address } from '../../types/Address';
+import type { CreateRequestPayload } from '../../types/Request';
+import { useAppSelector } from '../../store/hooks';
+import { uploadImageToCloudinary } from '../../config/cloudinary';
+import { TimeSlot } from '../../types/TimeSlot';
+import create from '../../services/requestService';
+import { useAppDispatch } from '../../store/hooks';
+import { clearTimeSlot } from '../../store/slices/timeSlotSlice';
+import ChooseAddress from '../../components/ChooseAddress';
+import DeliveryOptionModal from '../../components/DeliveryOptionModal';
+import DeliveryWarehouseFlow from '../../components/DeliveryWarehouseFlow';
+import { dropOff } from '../../services/productService';
 
 const CreateRequestScreen = () => {
-  const route = useRoute<any>();
+  const router = useRoute<any>();
   const navigation = useNavigation<any>();
+  const categoryId = router?.params?.parentCategoryId;
+  const user = useAppSelector(state => state.auth.user);
+  const timeSlots: TimeSlot[] = useAppSelector(state => state.timeSlots.list);
+  const [currentStep, setCurrentStep] = useState(1);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [showImagePicker, setShowImagePicker] = useState(false);
+  const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
+
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+
+  const [selectedCategory, setSelectedCategory] = useState<SubCategory | null>(
+    null,
+  );
+
+  const [attributeValues, setAttributeValues] = useState<AttributeOptionData[]>(
+    [],
+  );
   const [selectedImages, setSelectedImages] = useState<Asset[]>([]);
-  const [timeSlots, setTimeSlots] = useState<Record<string, string[]>>({
-    T2: ['09:00 AM', '09:00 PM'],
-    T3: ['09:00 AM', '09:00 PM'],
-    T4: ['09:00 AM', '09:00 PM'],
-    T5: ['09:00 AM', '09:00 PM'],
-    T6: ['09:00 AM', '09:00 PM'],
-    T7: ['09:00 AM', '09:00 PM'],
-    CN: ['09:00 AM', '09:00 PM'],
-  });
+  const [isImagePickerVisible, setIsImagePickerVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showDeliveryOptionModal, setShowDeliveryOptionModal] = useState(false);
+  const [deliveryType, setDeliveryType] = useState<
+    'warehouse' | 'pickup' | null
+  >(null);
+  const [warehouseData, setWarehouseData] = useState<{
+    containerId: string;
+    containerDetails: any;
+    finalQrCode: string;
+  } | null>(null);
+  const dispatch = useAppDispatch();
 
-  const [selectedAddress, setSelectedAddress] = useState({
-    address:
-      'Vinhomes Grand Park, Nguyễn Xiển Tòa S902, Phường Long Thạnh Mỹ, TP. Thủ Đức, TP.HCM',
-  });
-
-  // Update address if coming from MapboxLocationPicker
   useEffect(() => {
-    if (route.params?.location) {
-      setSelectedAddress({ address: route.params.location.name });
-    }
-  }, [route.params?.location]);
+    setSelectedBrandId(null);
+  }, [selectedCategory]);
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag],
-    );
-  };
-
-  const handlePickFromGallery = async () => {
-    const result = await openGallery(true, 5); // Allow multiple selection, max 5 images
-
-    if (result.success && result.images) {
-      // Validate image sizes
-      const invalidImages = result.images.filter(
-        img => !validateImageSize(img.fileSize, 10),
-      );
-
-      if (invalidImages.length > 0) {
-        Alert.alert(
-          'Ảnh quá lớn',
-          'Một số ảnh có kích thước lớn hơn 10MB. Vui lòng chọn ảnh khác.',
-        );
-        return;
-      }
-
-      setSelectedImages(prev => [...prev, ...result.images!].slice(0, 5)); // Max 5 images
-    } else if (result.error && result.error !== 'User cancelled') {
-      Alert.alert('Lỗi', 'Không thể chọn ảnh từ thư viện');
+  const goToNextStep = () => {
+    if (currentStep < 2) {
+      setShowDeliveryOptionModal(true);
     }
   };
 
-  const handleTakePhoto = async () => {
-    const result = await openCamera();
+  const handleSelectWarehouse = () => {
+    setDeliveryType('warehouse');
+    setShowDeliveryOptionModal(false);
+    setCurrentStep(2);
+  };
 
-    if (result.success && result.images) {
-      // Validate image size
-      if (!validateImageSize(result.images[0].fileSize, 10)) {
-        Alert.alert(
-          'Ảnh quá lớn',
-          'Ảnh có kích thước lớn hơn 10MB. Vui lòng chụp lại.',
-        );
-        return;
-      }
+  const handleSelectPickup = () => {
+    setDeliveryType('pickup');
+    setShowDeliveryOptionModal(false);
+    setCurrentStep(2);
+  };
 
-      if (selectedImages.length >= 5) {
-        Alert.alert('Giới hạn ảnh', 'Bạn chỉ có thể thêm tối đa 5 ảnh');
-        return;
-      }
+  const handleWarehouseFlowComplete = (data: {
+    containerId: string;
+    containerDetails: any;
+    finalQrCode: string;
+  }) => {
+    setWarehouseData(data);
+    toast.show({
+      type: 'success',
+      text1: 'Thành công',
+      text2: 'Thông tin phát hàng đã được ghi lại',
+    });
+  };
 
-      setSelectedImages(prev => [...prev, ...result.images!]);
-    } else if (result.error && result.error !== 'User cancelled') {
-      Alert.alert('Lỗi', 'Không thể chụp ảnh');
+  const goToPreviousStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    } else {
+      dispatch(clearTimeSlot());
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     }
   };
 
-  const removeImage = (index: number) => {
+  const handleCancelWarehouseFlow = () => {
+    setDeliveryType(null);
+    setCurrentStep(1);
+  };
+
+  const isStep1Valid =
+    selectedBrandId !== null &&
+    selectedCategory !== null &&
+    selectedImages.length > 0 &&
+    selectedTags.length > 0;
+
+  const isStep2Valid =
+    deliveryType === 'warehouse'
+      ? warehouseData !== null
+      : selectedAddress !== null && timeSlots.length > 0;
+
+  const handleAddImage = (assets: Asset[]) => {
+    setSelectedImages(prev => [...prev, ...assets]);
+    setIsImagePickerVisible(false);
+  };
+
+  const handleRemoveImage = (index: number) => {
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  return (
-    <SubLayout
-      title="Tạo yêu cầu"
-      onBackPress={() =>
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'MainTabs' }],
-        })
+  const handleUploadImages = async (images: Asset[]): Promise<string[]> => {
+    try {
+      const formattedImages = images.map(image => ({
+        uri: image.uri,
+        mimeType: image.type,
+        fileName: image.fileName,
+      }));
+
+      const uploadedUrls = await Promise.all(
+        formattedImages.map(image => uploadImageToCloudinary(image)),
+      );
+
+      return uploadedUrls;
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      throw error;
+    }
+  };
+
+  const handleCreateRequest = async () => {
+    try {
+      setLoading(true);
+      console.log('111111');
+      if (deliveryType === 'warehouse' && warehouseData) {
+        // Warehouse delivery flow
+        const allAssets = [...selectedImages];
+        const urls = await handleUploadImages(allAssets);
+        console.log('aaaaa');
+        await dropOff(
+          user?.userId ?? '',
+          selectedTags.join(', '),
+          warehouseData.containerId,
+          urls,
+          categoryId ?? '',
+          selectedCategory?.id ?? '',
+          selectedBrandId ?? '',
+          warehouseData.finalQrCode,
+        );
+
+        toast.show({
+          type: 'success',
+          text1: 'Thành công',
+          text2: 'Bạn đã giao hàng thành công',
+        });
+      } else if (deliveryType === 'pickup') {
+        // Pickup delivery flow
+        const urls = await handleUploadImages(selectedImages);
+
+        const payload: CreateRequestPayload = {
+          senderId: user?.userId,
+          description: selectedTags.join(', '),
+          address: selectedAddress?.address,
+          images: urls,
+          collectionSchedule: timeSlots || [],
+          product: {
+            parentCategoryId: categoryId,
+            subCategoryId: selectedCategory?.id,
+            brandId: selectedBrandId,
+            attributes: attributeValues || null,
+          },
+        };
+
+        console.log(JSON.stringify(payload, null, 2));
+        await create.create(payload);
+        toast.show({
+          type: 'success',
+          text1: 'Thành công',
+          text2: 'Yêu cầu đã được tạo thành công.',
+        });
+      } else {
+        throw new Error('Invalid delivery type');
       }
-    >
-      <ScrollView className="flex-1 px-6 py-4">
-        <AppDropdown
-          title="Chọn danh mục sản phẩm"
-          options={categories}
-          placeholder="Chọn danh mục"
-          onSelect={option => console.log('Selected category:', option)}
-        />
 
-        <AppInput
-          label="Nhập tên sản phẩm"
-          placeholder="Ví dụ: Điện thoại Samsung Galaxy S21"
-          required
-        />
+      dispatch(clearTimeSlot());
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+    } catch (error: any) {
+      console.error('Error creating request:', error);
+      setErrorMessage(error?.message || 'Đã có lỗi xảy ra khi tạo yêu cầu.');
+      setShowErrorModal(true);
+      setLoading(false);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        <Text className="text-sm font-medium mb-2 text-text-main">
-          Nhập mô tả sản phẩm<Text className="text-red-500"> *</Text>
-        </Text>
-        <View className="flex-row flex-wrap mb-4">
-          {tags.map(tag => (
-            <TouchableOpacity
-              key={tag}
-              className={`px-4 py-2 rounded-full mr-2 mb-2 ${
-                selectedTags.includes(tag)
-                  ? 'bg-secondary-100'
-                  : 'bg-secondary-50'
-              }`}
-              onPress={() => toggleTag(tag)}
-            >
-              <Text
-                className={`text-sm font-semibold ${
-                  selectedTags.includes(tag)
-                    ? 'text-secondary-50'
-                    : 'text-secondary-100'
-                }`}
-              >
-                {tag}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+  return (
+    <SubLayout title="Tạo yêu cầu" onBackPress={goToPreviousStep}>
+      <ScrollView className="flex-1 bg-background-50">
+        <View className="px-6" style={{ flex: 1 }}>
+          <View style={{ display: currentStep === 1 ? 'flex' : 'none' }}>
+            <>
+              <AppSearchableDropdown
+                type="subcategory"
+                parentCategoryId={categoryId}
+                onChange={(selectedItem: any | null) => {
+                  const cat = (selectedItem as any) || null;
 
-        <PickupAddressSelector
-          selectedAddress={selectedAddress}
-          setSelectedAddress={setSelectedAddress}
-        />
+                  setSelectedCategory(cat);
+                }}
+              />
 
-        <PickupTimeSelector
-          selectedDays={selectedDays}
-          setSelectedDays={setSelectedDays}
-          timeSlots={timeSlots}
-          setTimeSlots={setTimeSlots}
-        />
-
-        <Text className="text-sm font-medium mb-2 text-text-main">
-          Hình ảnh / Video về sản phẩm<Text className="text-red-500"> *</Text>
-        </Text>
-        <Text className="text-gray-500 text-xs mb-3">
-          Tối đa 5 ảnh, mỗi ảnh không quá 10MB
-        </Text>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mb-6"
-        >
-          <View className="flex-row items-center">
-            {/* Selected Images */}
-            {selectedImages.map((image, index) => (
-              <View key={index} className="mr-3 relative overflow-visible">
-                <Image
-                  source={{ uri: image.uri }}
-                  className="w-20 h-20 rounded-lg"
-                  resizeMode="cover"
+              {selectedCategory && (
+                <AppSearchableDropdown
+                  key={selectedCategory.id}
+                  type="brand"
+                  subCategoryId={selectedCategory?.id ?? ''}
+                  onChange={(selectedItem: any | null) => {
+                    const brand = (selectedItem as any) || null;
+                    if (brand) {
+                      setSelectedBrandId(brand.brandId);
+                    }
+                  }}
                 />
-                <TouchableOpacity
-                  onPress={() => removeImage(index)}
-                  className="absolute top-0 -right-2 bg-red-500 rounded-full w-6 h-6 items-center justify-center"
-                >
-                  <Icon name="close" size={16} color="#FFF" />
-                </TouchableOpacity>
-              </View>
-            ))}
+              )}
 
-            {/* Add Button */}
-            {selectedImages.length < 5 && (
-              <TouchableOpacity
-                className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg items-center justify-center bg-gray-50"
-                onPress={() => setShowImagePicker(true)}
-              >
-                <Icon name="add" size={32} color="#9CA3AF" />
-              </TouchableOpacity>
+              <View className="">
+                <SizeOptions
+                  title="Tình trạng sản phẩm"
+                  options={tags}
+                  selectedOptions={selectedTags}
+                  onToggle={tag => {
+                    setSelectedTags(prev =>
+                      prev.includes(tag)
+                        ? prev.filter(t => t !== tag)
+                        : [...prev, tag],
+                    );
+                  }}
+                />
+              </View>
+
+              {selectedCategory && (
+                <View>
+                  <AttributeSizePanel
+                    subCategoryId={selectedCategory.id}
+                    onChange={(data: AttributeOptionData) => {
+                      setAttributeValues(prev => {
+                        const index = prev.findIndex(
+                          item => item.attributeId === data.attributeId,
+                        );
+                        if (index >= 0) {
+                          const updated = [...prev];
+                          updated[index] = { ...updated[index], ...data };
+                          return updated;
+                        } else {
+                          return [...prev, data];
+                        }
+                      });
+                    }}
+                  />
+                </View>
+              )}
+
+              <View className=" mt-4">
+                <AppImageGallery
+                  images={selectedImages}
+                  onRemove={handleRemoveImage}
+                  onAddPress={() => setIsImagePickerVisible(true)}
+                  haveVideo={true}
+                />
+              </View>
+            </>
+          </View>
+
+          <View style={{ display: currentStep === 2 ? 'flex' : 'none' }}>
+            {deliveryType === 'warehouse' ? (
+              <DeliveryWarehouseFlow
+                onComplete={handleWarehouseFlowComplete}
+                onCancel={handleCancelWarehouseFlow}
+              />
+            ) : (
+              <>
+                <ChooseAddress
+                  selectedAddress={selectedAddress}
+                  onSelectAddress={setSelectedAddress}
+                />
+                <PickupTimeSelector />
+              </>
             )}
           </View>
-        </ScrollView>
-
-        <AppButton
-          title="Tạo Yêu Cầu"
-          onPress={() => console.log('Create Request Pressed')}
-        />
+        </View>
       </ScrollView>
 
+      <View className="px-6 py-4 bg-background-50 p-4">
+        {currentStep < 2 && (
+          <AppButton
+            title="Tiếp theo"
+            onPress={goToNextStep}
+            disabled={!isStep1Valid}
+          />
+        )}
+        {currentStep === 2 && (
+          <AppButton
+            title="Hoàn tất"
+            onPress={() => setShowConfirmModal(true)}
+            disabled={!isStep2Valid}
+            loading={loading}
+          />
+        )}
+      </View>
+
       <ImagePickerModal
-        visible={showImagePicker}
-        onClose={() => setShowImagePicker(false)}
-        onPickFromGallery={handlePickFromGallery}
-        onTakePhoto={handleTakePhoto}
+        visible={isImagePickerVisible}
+        onClose={() => setIsImagePickerVisible(false)}
+        onSelect={handleAddImage}
+        currentCount={selectedImages.length}
+        maxItems={5}
       />
+
+      <ConfirmModal
+        visible={showConfirmModal}
+        iconName="alert-triangle"
+        title="Xác nhận tạo yêu cầu"
+        message="Chúng tôi có thể từ chối nhận hàng nếu thông tin kích thước không chính xác."
+        onConfirm={() => {
+          setShowConfirmModal(false);
+          handleCreateRequest();
+        }}
+        onCancel={() => setShowConfirmModal(false)}
+      />
+
+      <ConfirmModal
+        visible={showErrorModal}
+        iconName="alert-circle"
+        title="Thất bại"
+        message={errorMessage}
+        subMessage="Bạn có thể xem lại các kho gần bạn."
+        confirmText="Xem các kho"
+        onConfirm={() => {
+          setShowErrorModal(false);
+          dispatch(clearTimeSlot());
+          navigation.reset({
+            index: 1,
+            routes: [{ name: 'MainTabs' }, { name: 'WarehouseLocation' }],
+          });
+        }}
+        onCancel={() => setShowErrorModal(false)}
+        showCloseButton={true}
+      />
+
+      <DeliveryOptionModal
+        visible={showDeliveryOptionModal}
+        onClose={() => setShowDeliveryOptionModal(false)}
+        onSelectWarehouse={handleSelectWarehouse}
+        onSelectPickup={handleSelectPickup}
+      />
+
+      {loading && currentStep === 2 && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.85)',
+            zIndex: 9999,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <ActivityIndicator size="large" color="#e85a4f" />
+          <Text className="mt-4 text-gray-600 font-medium">Đang xử lý...</Text>
+        </View>
+      )}
     </SubLayout>
   );
 };

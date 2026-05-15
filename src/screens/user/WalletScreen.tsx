@@ -1,0 +1,261 @@
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  ActivityIndicator,
+  TouchableOpacity,
+  FlatList,
+  RefreshControl,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import {
+  getUserPoints,
+  getUserPointTransactions,
+} from '../../services/pointsService';
+import AppButton from '../../components/ui/AppButton';
+import SubLayout from '../../layout/SubLayout';
+import { useAppSelector } from '../../store/hooks';
+import { formatTimestamp } from '../../utils/dateUtils';
+const wallet1 = require('../../assets/images/wallet1.png');
+const wallet2 = require('../../assets/images/wallet2.png');
+const voucher = require('../../assets/images/voucher.png');
+
+export default function WalletScreen() {
+  const navigation = useNavigation<any>();
+  const { user } = useAppSelector(s => s.auth);
+  const [balance, setBalance] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const LIMIT = 10;
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      try {
+        const userId = user?.userId;
+        if (!userId) {
+          if (mounted) setLoading(false);
+          return;
+        }
+
+        const res = await getUserPoints(userId);
+        if (mounted && res && typeof res.points === 'number')
+          setBalance(res.points);
+      } catch (e) {
+        console.warn('[Wallet] Failed to load points', e);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [user]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const userId = user?.userId;
+      if (!userId) return;
+      setLoadingTransactions(true);
+      try {
+        const res = await getUserPointTransactions(userId, 1, LIMIT);
+        if (mounted) {
+          const data = Array.isArray(res) ? res : res?.data ?? [];
+          setTransactions(data);
+          setPage(1);
+          setHasMore(data?.length === LIMIT);
+        }
+      } catch (e) {
+        console.warn('[Wallet] Failed to load transactions', e);
+      } finally {
+        if (mounted) setLoadingTransactions(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [user?.userId]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const userId = user?.userId;
+      if (!userId) return;
+
+      const res = await getUserPoints(userId);
+      if (res && typeof res.points === 'number') setBalance(res.points);
+
+      const transRes = await getUserPointTransactions(userId, 1, LIMIT);
+      const data = Array.isArray(transRes) ? transRes : transRes?.data ?? [];
+      setTransactions(data);
+      setPage(1);
+      setHasMore(data?.length === LIMIT);
+    } catch (e) {
+      console.warn('[Wallet] Failed to refresh', e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const onLoadMore = async () => {
+    if (!hasMore || loadingMore) return;
+    console.log('==========');
+    setLoadingMore(true);
+    try {
+      const userId = user?.userId;
+      if (!userId) return;
+
+      const nextPage = page + 1;
+      const res = await getUserPointTransactions(userId, nextPage, LIMIT);
+      const data = Array.isArray(res) ? res : res?.data ?? [];
+
+      setTransactions(prev => [...prev, ...data]);
+      setPage(nextPage);
+      setHasMore(data?.length === LIMIT);
+    } catch (e) {
+      console.warn('[Wallet] Failed to load more', e);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const renderHistory = ({ item }: any) => {
+    const img =
+      item?.images && item.images.length > 0
+        ? { uri: item.images[0] }
+        : voucher;
+
+    const desc =
+      item.desciption ||
+      item.description ||
+      item.transactionType ||
+      'Giao dịch';
+    const productId = item.productId || item.postId || null;
+    const voucherId = item.voucherId || null;
+    return (
+      <TouchableOpacity
+        onPress={() =>
+          item.transactionType === 'TICH_DIEM'
+            ? productId && navigation.navigate('Timeline', { productId })
+            : voucherId && navigation.navigate('VoucherDetails', { voucherId })
+        }
+        className="flex-row items-start "
+      >
+        <Image source={img} className="w-16 h-16 rounded-lg mr-3 bg-gray-100" />
+        <View className="flex-1">
+          <Text className="text-base font-semibold text-primary-100">
+            {desc}
+          </Text>
+          <Text className="text-sm text-gray-500 mt-1">
+            {item.point >= 0 ? 'Bạn đã nhận được ' : 'Bạn đã sử dụng '}
+            <Text className="text-red-500 font-semibold">
+              {(Math.abs(item.point) ?? 0).toLocaleString()}
+            </Text>{' '}
+            <Text style={{ fontSize: 12 }}> 🪙</Text>
+          </Text>
+          <Text className="text-xs text-gray-400 mt-1">
+            {formatTimestamp(item.createdAt)}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  console.log(transactions);
+  return (
+    <SubLayout
+      title="Ví của tôi"
+      onBackPress={() => navigation.goBack()}
+      noScroll={true}
+      enableRefresh={false}
+    >
+      <View className="flex-1 bg-background-50 px-4 ">
+       
+        <View className="rounded-3xl  overflow-hidden mb-6 p-4 bg-primary-100 border-2 border-red-200">
+          <View className="flex-row items-center justify-between">
+            <Image
+              source={wallet1}
+              className="w-24 h-24 justify-start"
+              resizeMode="contain"
+            />
+            <View className="flex-1 justify-between">
+              <Text className="text-white text-sm">Tổng điểm</Text>
+              <Text className="text-white text-2xl font-bold mt-2">
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  `${(balance ?? 0).toLocaleString()} 🪙`
+                )}
+              </Text>
+              <View className="mt-2">
+                <AppButton
+                  title="Đổi quà ngay"
+                  onPress={() => navigation.navigate('Voucher')}
+                  color="#FFFFFF"
+                  textColor="#e85a4f"
+                  size="small"
+                />
+              </View>
+            </View>
+
+            <Image
+              source={wallet2}
+              className="w-32 h-32 justify-end"
+              resizeMode="contain"
+            />
+          </View>
+        </View>
+
+      
+        <Text className="text-lg font-semibold mb-3">Lịch sử nhận điểm</Text>
+        <View className="flex-1">
+          {loadingTransactions ? (
+            <View className="py-8 items-center">
+              <ActivityIndicator size="large" color="#e85a4f" />
+            </View>
+          ) : (
+            <FlatList
+              data={transactions}
+              keyExtractor={(item, idx) => `${item._id}-${idx}`}
+              renderItem={({ item }) => (
+                <View className="bg-white border-2 border-red-200 rounded-xl p-3 mb-3 shadow-sm">
+                  {renderHistory({ item })}
+                </View>
+              )}
+              ListEmptyComponent={
+                <View className="py-8 items-center">
+                  <Text className="text-gray-500">Không có giao dịch</Text>
+                </View>
+              }
+              ListFooterComponent={
+                loadingMore ? (
+                  <View className="py-4 items-center">
+                    <ActivityIndicator size="small" color="#e85a4f" />
+                  </View>
+                ) : null
+              }
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  tintColor="#e85a4f"
+                />
+              }
+              onEndReached={onLoadMore}
+              onEndReachedThreshold={0.5}
+              scrollEnabled={true}
+            />
+          )}
+        </View>
+      </View>
+    </SubLayout>
+  );
+}

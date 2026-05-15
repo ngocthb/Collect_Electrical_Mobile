@@ -1,39 +1,57 @@
-import React, { useContext, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
 import AuthNavigator from './AuthNavigator';
 import MainNavigator from './MainNavigator';
-import { AuthContext } from '../context/AuthContext';
+import { useAppSelector } from '../store/hooks';
 import SplashScreen from '../screens/public/SplashScreen';
 import OnboardingScreen from '../screens/public/OnboardingScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function RootNavigator() {
-  const { user, role, loading } = useContext(AuthContext);
+  const auth = useAppSelector(s => s.auth);
   const [showSplash, setShowSplash] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Show splash screen first
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      try {
+        const hasSeenOnboarding = await AsyncStorage.getItem(
+          'hasSeenOnboarding',
+        );
+        if (!hasSeenOnboarding) {
+          setShowOnboarding(true);
+        }
+      } catch (error) {
+        console.error('Error checking onboarding:', error);
+      }
+    };
+
+    checkOnboarding();
+  }, []);
+
   if (showSplash) {
     return <SplashScreen onFinish={() => setShowSplash(false)} />;
   }
 
-  // Then show onboarding
-  if (showOnboarding && !user) {
-    return <OnboardingScreen onFinish={() => setShowOnboarding(false)} />;
-  }
-
-  if (loading) {
-    return <SplashScreen onFinish={() => {}} />;
+  if (showOnboarding && !auth.user) {
+    return (
+      <OnboardingScreen
+        onFinish={async () => {
+          await AsyncStorage.setItem('hasSeenOnboarding', 'true');
+          setShowOnboarding(false);
+        }}
+      />
+    );
   }
 
   return (
-    <NavigationContainer>
-      {!user ? (
+    <>
+      {!auth.user ? (
         <AuthNavigator />
-      ) : role === 'delivery' ? (
+      ) : auth.user.role === 'Collector' ? (
         <MainNavigator delivery />
       ) : (
         <MainNavigator />
       )}
-    </NavigationContainer>
+    </>
   );
 }

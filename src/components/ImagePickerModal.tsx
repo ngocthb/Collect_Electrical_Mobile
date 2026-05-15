@@ -1,27 +1,137 @@
 import React from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  Pressable,
-  StyleSheet,
-} from 'react-native';
+import { Modal, View, Text, TouchableOpacity, Pressable } from 'react-native';
+import toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { openCamera, openGallery } from '../services/imagePickerService';
+import { validateImageSize } from '../utils/validations';
+import type { Asset } from 'react-native-image-picker';
+import AppButton from './ui/AppButton';
 
 interface ImagePickerModalProps {
   visible: boolean;
   onClose: () => void;
-  onPickFromGallery: () => void;
-  onTakePhoto: () => void;
+  onSelect: (assets: Asset[]) => void;
+  currentCount?: number;
+  maxItems?: number;
+  hideVideoOption?: boolean;
 }
 
 const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
   visible,
   onClose,
-  onPickFromGallery,
-  onTakePhoto,
+  onSelect,
+  currentCount = 0,
+  maxItems = 5,
+  hideVideoOption = false,
 }) => {
+  const handlePickFromGallery = async () => {
+    try {
+      onClose();
+      await new Promise<void>(resolve => setTimeout(() => resolve(), 300));
+      const allowed = Math.max(1, maxItems - currentCount);
+      const result = await openGallery(true, allowed);
+      if (result.success && result.images) {
+        const invalidImages = result.images.filter(
+          (img: Asset) => !validateImageSize(img.fileSize, 10),
+        );
+
+        if (invalidImages.length > 0) {
+          toast.show({
+            type: 'warning',
+            text1: 'Ảnh quá lớn',
+            text2:
+              'Một số ảnh có kích thước >= 10MB. Vui lòng chọn ảnh nhỏ hơn 10MB.',
+          });
+          return;
+        }
+
+        onSelect(result.images.slice(0, allowed));
+      } else if (result.error && result.error !== 'User cancelled') {
+        toast.show({
+          type: 'error',
+          text1: 'Lỗi',
+          text2: 'Không thể chọn ảnh từ thư viện',
+        });
+      }
+    } catch (e) {
+      console.warn('openGallery failed', e);
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể chọn ảnh từ thư viện',
+      });
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      onClose();
+      await new Promise<void>(resolve => setTimeout(() => resolve(), 300));
+      const result = await openCamera();
+      if (result.success && result.images) {
+        if (!validateImageSize(result.images[0].fileSize, 10)) {
+          toast.show({
+            type: 'warning',
+            text1: 'Ảnh quá lớn',
+            text2: 'Ảnh có kích thước >= 10MB. Vui lòng chụp lại.',
+          });
+          return;
+        }
+
+        const allowed = Math.max(1, maxItems - currentCount);
+        onSelect(result.images.slice(0, allowed));
+      } else if (result.error && result.error !== 'User cancelled') {
+        toast.show({
+          type: 'error',
+          text1: 'Lỗi',
+          text2: 'Không thể chụp ảnh',
+        });
+      }
+    } catch (e) {
+      console.warn('openCamera failed', e);
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể chụp ảnh',
+      });
+    }
+  };
+
+  const handlePickVideo = async () => {
+    try {
+      onClose();
+      await new Promise<void>(resolve => setTimeout(() => resolve(), 300));
+      const result = await launchImageLibrary({
+        mediaType: 'video',
+        videoQuality: 'high',
+        selectionLimit: 1,
+      });
+
+      if (result.didCancel) return;
+      if (result.errorCode) {
+        toast.show({
+          type: 'error',
+          text1: 'Lỗi',
+          text2: 'Không thể chọn video từ thư viện',
+        });
+        return;
+      }
+
+      if (result.assets && result.assets.length > 0) {
+        const allowed = Math.max(1, maxItems - currentCount);
+        onSelect(result.assets.slice(0, allowed) as Asset[]);
+      }
+    } catch (e) {
+      console.warn('pick video failed', e);
+      toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: 'Không thể chọn video từ thư viện',
+      });
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -34,24 +144,23 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
           className="bg-white rounded-t-3xl"
           onPress={e => e.stopPropagation()}
         >
-          {/* Header with handle */}
+     
           <View className="items-center pt-3 pb-4">
             <View className="w-12 h-1 bg-gray-300 rounded-full" />
           </View>
 
-          {/* Title */}
+
           <View className="px-6 pb-4">
             <Text className="text-lg font-semibold text-gray-800">
-              Chọn ảnh
+              Chọn ảnh hoặc video
             </Text>
           </View>
 
-          {/* Options */}
+         
           <View className="px-4 pb-6">
             <TouchableOpacity
               onPress={() => {
-                onTakePhoto();
-                onClose();
+                handleTakePhoto();
               }}
               className="flex-row items-center px-4 py-4 bg-gray-50 rounded-xl mb-3"
               activeOpacity={0.7}
@@ -72,10 +181,9 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
 
             <TouchableOpacity
               onPress={() => {
-                onPickFromGallery();
-                onClose();
+                handlePickFromGallery();
               }}
-              className="flex-row items-center px-4 py-4 bg-gray-50 rounded-xl"
+              className="flex-row items-center px-4 py-4 bg-gray-50 rounded-xl mb-3"
               activeOpacity={0.7}
             >
               <View className="w-12 h-12 bg-purple-100 rounded-full items-center justify-center mr-4">
@@ -91,22 +199,37 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
               </View>
               <Icon name="chevron-forward" size={20} color="#9CA3AF" />
             </TouchableOpacity>
+
+            {!hideVideoOption && (
+              <TouchableOpacity
+                onPress={() => {
+                  handlePickVideo();
+                }}
+                className="flex-row items-center px-4 py-4 bg-gray-50 rounded-xl"
+                activeOpacity={0.7}
+              >
+                <View className="w-12 h-12 bg-red-100 rounded-full items-center justify-center mr-4">
+                  <Icon name="videocam" size={24} color="#EF4444" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-semibold text-gray-800">
+                    Chọn video
+                  </Text>
+                  <Text className="text-sm text-gray-500 mt-0.5">
+                    Chọn video từ thư viện
+                  </Text>
+                </View>
+                <Icon name="chevron-forward" size={20} color="#9CA3AF" />
+              </TouchableOpacity>
+            )}
           </View>
 
-          {/* Cancel button */}
+  
           <View className="px-4 pb-6 pt-2">
-            <TouchableOpacity
-              onPress={onClose}
-              className="bg-white border border-gray-200 rounded-xl py-4"
-              activeOpacity={0.7}
-            >
-              <Text className="text-center text-base font-semibold text-gray-700">
-                Hủy
-              </Text>
-            </TouchableOpacity>
+            <AppButton title="Đóng" onPress={onClose} />
           </View>
 
-          {/* Safe area bottom padding */}
+   
           <View className="pb-4" />
         </Pressable>
       </Pressable>

@@ -1,0 +1,166 @@
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  FlatList,
+  Linking,
+  useWindowDimensions,
+} from 'react-native';
+
+const homepage = require('../assets/images/homepage.png');
+
+interface NewsItem {
+  title: string;
+  intro: string;
+  link: string;
+  image: string;
+}
+
+export default function NewsCarousel() {
+  const [newsList, setNewsList] = useState<NewsItem[]>([]);
+  const flatListRef = useRef<any>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const { width: screenWidth } = useWindowDimensions();
+  const [listWidth, setListWidth] = useState(screenWidth);
+
+  const fetchNews = async () => {
+    try {
+      const res = await fetch(
+        'https://serpapi.com/search?engine=google_news_light&q=r%C3%A1c+th%E1%BA%A3i+%C4%91i%E1%BB%87n+t%E1%BB%AD&api_key=46d717b9d86a95fca974d83dcb888e9f68b7001a71b94b9d4f73a9d66f2ff643',
+      );
+      const data = await res.json();
+      const list = data?.news_results.slice(0, 5).map((item: any) => ({
+        title: item.title,
+        intro: item.snippet,
+        link: item.link,
+        image: item.thumbnail,
+      }));
+
+      setNewsList(list);
+    } catch (e) {
+      console.log('API error', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchNews();
+  }, []);
+
+  useEffect(() => {
+    if (newsList.length === 0) return;
+
+    const interval = setInterval(() => {
+      const nextIndex = (currentIndex + 1) % newsList.length;
+
+      flatListRef.current?.scrollToIndex({
+        index: nextIndex,
+        animated: true,
+      });
+
+      setCurrentIndex(nextIndex);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [currentIndex, newsList]);
+
+  if (newsList.length > 0) {
+    return (
+      <View className="mb-4 mt-10">
+        <View
+          onLayout={event => {
+            const width = event.nativeEvent.layout.width;
+            if (width > 0 && width !== listWidth) {
+              setListWidth(width);
+            }
+          }}
+        >
+          <FlatList
+            ref={flatListRef}
+            data={newsList}
+            horizontal
+            pagingEnabled
+            snapToInterval={listWidth}
+            snapToAlignment="start"
+            decelerationRate="fast"
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(_, index) => index.toString()}
+            getItemLayout={(_, index) => ({
+              length: listWidth,
+              offset: listWidth * index,
+              index,
+            })}
+            onMomentumScrollEnd={event => {
+              const index = Math.round(
+                event.nativeEvent.contentOffset.x / listWidth,
+              );
+              setCurrentIndex(index);
+            }}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={{ width: listWidth }}
+                onPress={() => {
+                  if (item.link) {
+                    Linking.openURL(item.link);
+                  }
+                }}
+              >
+                <View className="rounded-2xl p-4 bg-primary-100 border border-gray-200">
+                  <View className="flex-row items-center">
+                    {item.image && (
+                      <Image
+                        source={{ uri: item.image }}
+                        style={{ width: 100, height: 72 }}
+                        className="mr-4"
+                      />
+                    )}
+                    <View className="flex-1">
+                      <Text
+                        numberOfLines={2}
+                        className="text-white text-sm font-bold"
+                      >
+                        {item.title}
+                      </Text>
+                      <Text
+                        numberOfLines={3}
+                        className="text-white text-xs mt-1"
+                      >
+                        {item.intro}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View className="mb-4 mt-10">
+      <View className="rounded-2xl p-4 bg-primary-100 border border-gray-200">
+        <View className="flex-row items-center">
+          <View className="flex-1">
+            <Text className="text-white text-base font-bold">
+              Công nghệ – xanh
+            </Text>
+            <Text className="text-white text-sm mt-1">
+              Công nghệ cũ, giá trị mới. Tái chế điện tử an toàn – dễ dàng – bền
+              vững.
+            </Text>
+          </View>
+          <View>
+            <Image
+              source={homepage}
+              style={{ width: 72, height: 72, borderRadius: 24 }}
+              resizeMode="cover"
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}

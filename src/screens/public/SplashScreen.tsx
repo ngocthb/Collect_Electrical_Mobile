@@ -8,26 +8,38 @@ interface SplashScreenProps {
 }
 
 export default function SplashScreen({ onFinish }: SplashScreenProps) {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.5)).current;
+  const scaleCircle = useRef(new Animated.Value(0)).current;
+  const fadeCircle = useRef(new Animated.Value(1)).current;
+  const fadeLogo = useRef(new Animated.Value(0)).current;
+  const scaleLogo = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
-    // Animate logo appearance
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
+    Animated.timing(scaleCircle, {
+      toValue: 1.3,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      Animated.timing(fadeCircle, {
+        toValue: 0,
+        duration: 200,
         useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 4,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-    ]).start();
+      }).start();
 
-    // Auto-dismiss after 2.5 seconds
+      Animated.parallel([
+        Animated.timing(fadeLogo, {
+          toValue: 1,
+          duration: 350,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleLogo, {
+          toValue: 1,
+          friction: 5,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+
     const timer = setTimeout(() => {
       onFinish();
     }, 2500);
@@ -39,19 +51,29 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
     <View className="flex-1 items-center justify-center bg-white">
       <Animated.View
         style={{
-          opacity: fadeAnim,
-          transform: [{ scale: scaleAnim }],
+          position: 'absolute',
+          top: '42%',
+          width: 30,
+          height: 30,
+          borderRadius: 60,
+          backgroundColor: '#e85a4f',
+          transform: [{ scale: scaleCircle }],
+        }}
+      />
+
+      <Animated.View
+        style={{
+          opacity: fadeLogo,
+          transform: [{ scale: scaleLogo }],
         }}
         className="items-center"
       >
-        {/* Logo */}
         <View className="w-28 h-28 items-center justify-center mb-8">
           <Image source={logo} className="w-24 h-24" resizeMode="contain" />
         </View>
 
-        {/* App name */}
         <Text className="text-5xl font-bold text-text-muted tracking-widest mb-2">
-          THU GOM
+          EWISE
         </Text>
       </Animated.View>
     </View>
