@@ -122,7 +122,7 @@ const AppSearchableDropdown: React.FC<Props> = ({
   };
 
   const displayLabel =
-    type === 'subcategory' ? 'Chọn danh mục con' : 'Chọn thương hiệu';
+    type === 'subcategory' ? 'Chọn danh mục nhỏ' : 'Chọn thương hiệu';
 
   return (
     <TouchableWithoutFeedback onPress={() => setIsOpen(false)}>
@@ -138,7 +138,7 @@ const AppSearchableDropdown: React.FC<Props> = ({
               onChangeText={handleSearch}
               onFocus={() => setIsOpen(true)}
               placeholder={`Tìm kiếm ${
-                type === 'subcategory' ? 'danh mục con' : 'thương hiệu'
+                type === 'subcategory' ? 'danh mục nhỏ' : 'thương hiệu'
               }`}
               placeholderTextColor="#9CA3AF"
               className="border border-gray-300 rounded-lg px-4 py-2.5 bg-white pr-11 text-text-main"
