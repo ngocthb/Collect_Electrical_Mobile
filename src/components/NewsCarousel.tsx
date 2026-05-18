@@ -8,6 +8,7 @@ import {
   Linking,
   useWindowDimensions,
 } from 'react-native';
+import { getNew } from '../services/newService';
 
 const homepage = require('../assets/images/homepage.png');
 
@@ -27,15 +28,12 @@ export default function NewsCarousel() {
 
   const fetchNews = async () => {
     try {
-      const res = await fetch(
-        'https://serpapi.com/search?engine=google_news_light&q=r%C3%A1c+th%E1%BA%A3i+%C4%91i%E1%BB%87n+t%E1%BB%AD&api_key=46d717b9d86a95fca974d83dcb888e9f68b7001a71b94b9d4f73a9d66f2ff643',
-      );
-      const data = await res.json();
-      const list = data?.news_results.slice(0, 5).map((item: any) => ({
+      const res = await getNew();
+      const list = res.map((item: any) => ({
         title: item.title,
-        intro: item.snippet,
+        intro: item.intro,
         link: item.link,
-        image: item.thumbnail,
+        image: item.image,
       }));
 
       setNewsList(list);
